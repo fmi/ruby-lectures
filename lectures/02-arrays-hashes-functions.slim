@@ -1,0 +1,788 @@
+= slide 'Какво предстои' do
+  ul
+    li Списъци (масиви)
+    li Хешове
+    li Методи
+    li Обекти
+    li Класове
+
+= slide 'Преди това' do
+  ul
+    li.action Сайт на курса: <a href="http://fmi.ruby.bg/">http://fmi.ruby.bg</a>
+    li.action Лекциите са там, задачите са там, форумите са там, животът ви е там
+    li.action Има ги и в GitHub — <a href="https://github.com/fmi/ruby-lectures">http://github.com/fmi/ruby-lectures</a>
+    li.action Регистрацията е задължителна, ако ще участвате в курса
+    li.action
+      ' За записали курса в СУСИ след 3-ти октомври или хора извън ФМИ, ни пишете на
+      a href="mailto:fmi@ruby.bg" fmi@ruby.bg
+
+= slide 'Бонус точки', 'отвъд сникерсите' do
+  p Първите ви точки:
+
+  ul
+    li.action Ако все още не сте, то:
+    li.action Регистрирайте се и си качете снимка.
+    li.action Качете си Ruby 1.9 и го удостоверете със screenshot (<a href="http://fmi.ruby.bg/topics/17">вж. тази тема във форумите</a>)
+    li.action Представете се с няколко изречения в <a href="http://fmi.ruby.bg/topics/1">тази тема във форумите</a>
+    li.action Помагайте на колегите си във форумите; ще даваме бонус точки за смислена и навреемнна помощ
+
+= slide 'Първа задача' do
+  ul
+    li.action
+      ' Публикувана е, крайният й срок е идния понеделник и може да я намерите на
+      a href="http://fmi.ruby.bg/tasks/1" сайта на курса
+    li.action
+      ' Може да задавате въпроси в
+      a href="http://fmi.ruby.bg/topics/51" съответната тема на форумите
+    li.action Днес ще научите достатъчния минимум Ruby, за да я решите
+    li.action Трябва да се регистрирате, за да предадете решение
+    li.action Ако в последния ден откриете, че не може да се регистрирате, това е ваш проблем
+    li.action Не си споделяйте решения - нито публично, нито помежду си. Ще има време за това след крайния срок.
+    li.action Ако пропуснете повече от три задачи, не получавате точки от тях
+
+= slide 'Малко тривиа', 'където ние питаме, а вие отговаряте' do
+  p (ако сте записали курса)
+
+= slide 'Въпрос 1' do
+  p Каква е разликата между тези имена?
+
+  example:
+    foo  = 1
+    Bar  = 2
+    $baz = 3
+
+  p.action.answer
+    ' <code>foo</code> е локална променлива, <code>Bar</code> е константа, <code>$baz</code> е глобална променлива
+
+= slide 'Въпрос 2' do
+  p Кои от следните неща се оценяват до неистина?
+
+  pre 0 [] nil {} ""
+
+  p.action.answer Само <code>false</code> и <code>nil</code> са неистина.
+
+= slide 'Въпрос 3' do
+  p Какво прави <code>&lt;=&gt;</code>
+
+  .action.answer
+    p
+      ' Връща положително число, ако първия елемент е по-голям,
+        нула, ако са равни и
+        отрицателно, ако първия е по-малък.
+    p Помнете го като "минус".
+
+= slide 'Въпрос 4' do
+  p Каква е разликата между единични и двойки кавички?
+
+  .action.answer
+    p В единичните няма интерполация, в двойните - има.
+    p В единичните могат да се екранират само <code>\\</code> и <code>\'</code>. В двойните има ред екранирания.
+
+= slide 'Въпрос 5' do
+  p Какво извежда следния код и защо?
+
+  example:
+    puts 'foo' == 'foo', 'foo'.equal? 'foo'
+    puts [] == [],       [].equal? []
+    puts 42 == 42,       42.equal? 42
+    puts :foo == :foo,   :foo.equal? :foo
+
+  .action.answer
+    p <code>==</code> сравнява по стойност, а <code>equal?</code> по идентитет.
+    p Числата и символите се интернират.
+
+= slide 'Кратко проучване' do
+  p Колко от вас са запознати със следните неща:
+
+  ul
+    li.action Свързани списъци
+    li.action Масиви с променлива дължина
+    li.action Хеш таблици
+    li.action Анонимни функции
+    li.action <code>map</code> и <code>filter</code>
+
+  p.action Очаквания отговор: всички
+
+= slide 'Отклониение', '#to_s и #inspect' do
+  p
+    | Един обект се обръща до низ с <code>#to_s</code>. Има и друг вариант, <code>#inspect</code>,
+      който го обръща до текстов низ, изглеждащ като ruby код. Целта е инспектиране.
+
+  ul
+    li <code>puts(something)</code> извежда <code>something.to_s</code>
+    li <code>p(something)</code> извежда <code>something.inspect</code>
+
+= slide 'Преди това', 'хилядите значение на диез' do
+  ul
+    li.action В рамките на един ред, всичко след <code>#</code> е коментар
+    li.action В документацията е "представка" за име на метод &mdash; <code>#puts</code>, <code>Array#inject</code>
+    li.action Нота, обозначена с диез, се свири полутон по-високо &mdash; <code>C#</code>
+
+= slide 'Масиви' do
+  ul
+    li.action Класът се казва <code>Array</code>. Разбира се, има литерален синтаксис
+    li.action Дефинират се така: <code>[1, 2, 3, 4]</code>
+    li.action Хетерогенни: <code>[18, :female, 'Burgas']</code>
+    li.action Напълно mutable
+    li.action Могат да се влагат, както всички колекции
+    li.action Неограчиен, нестатичен размер
+    li.action Пазят референси, а не копия към елементите си
+    li.action Имплементирани като масив
+
+= slide 'Масиви', 'индексиране' do
+  annotate:
+    numbers = [:zero, :one, :two]
+    numbers[1]   # =>
+    numbers[10]  # =>
+
+    numbers[5] = :five
+    numbers[5]   # =>
+    numbers      # =>
+
+= slide 'Масиви', 'fetch' do
+  p <code>Array#fetch</code> хвърля грешка или връща друга стойност, при индексиране извън обема на масива:
+
+  annotate:
+    numbers = [:zero, :one, :two]
+
+    numbers.fetch(1)            # =>
+    numbers.fetch(10, :dunno)   # =>
+    numbers.fetch(10)           #!
+
+    numbers[10] || :dunno       # като предното, ама не точно
+
+  p Ползва се по-рядко, отколкото си мислите.
+
+= slide 'Масиви', 'типичните методи' do
+  annotate:
+    numbers = [3, 1, 2, 4]
+    numbers.length  # =>
+    numbers.size    # =>
+    numbers.sort    # =>
+    numbers.reverse # =>
+    numbers[1..2]   # =>
+
+  p <code>sort</code> и <code>reverse</code> връщат нов масив, без да променят <code>numbers</code>.
+
+= slide 'Масиви', '#include?' do
+  p <code>#include?</code> ви казва дали масив съдържа даден елемент.
+
+  annotate:
+    prime_digits = [2, 3, 5, 7]
+
+    prime_digits.include? 2    # =>
+    prime_digits.include? 4    # =>
+
+  p Внимание: линейно търсене. Подходящо за малки масиви.
+
+= slide 'Масиви', 'забавни оператори' do
+  annotate:
+    [:a, :b, :c] + [:d, :e]             # =>
+    [:a, :b, :c, :b, :a] - [:b, :c, :d] # =>
+    [:a, :b, :c] & [:b, :c, :d]         # =>
+    [:a, :b, :c] | [:b, :c, :d]         # =>
+
+  p <code>&</code> и <code>|</code> конкатенират масивите и премахват повторенията.
+  p В Ruby има множества, които са по-удачни в повечето случаи.
+
+= slide 'Масиви', 'мутиране' do
+  annotate:
+    numbers = [1, 2, 3]
+
+    numbers << 4
+    p numbers   # =>
+
+    numbers.insert 0, :zero
+    p numbers   # =>
+
+    result = numbers.delete_at(0)
+    p result    # =>
+    p numbers   # =>
+
+= slide 'Масиви', 'push и pop' do
+  annotate:
+    stack = [1, 2, 3]
+
+    stack.push 4
+    p stack         # =>
+
+    top = stack.pop
+    p stack         # =>
+    p top           # =>
+
+  p <code>#shift</code> и <code>#unshift</code> са аналогични, но работят с началото на масива.
+
+= slide 'Масиви', 'разни други методи' do
+  annotate:
+    [1, 2, 3].join("-")        # =>
+    [1, 2, 3].permutation      # сещате се какво връща
+    [1, 2].product([3, 4])     # =>
+    [[1, 2], [3, 4]].transpose # =>
+    [1, 2, 3, 4].shuffle       # разбърква масива произволно
+
+  p
+    ' Има ред такива методи, които може да намерите в
+    a href="http://apidock.com/ruby/Array" APIDock
+    ' .
+
+= slide 'APIDock', 'свиквайте с него отсега' do
+  p Сериозно.
+
+= slide 'Масиви', 'последната запетая' do
+  p
+    ' Може да оставите запетая след последния елемент на масива. Така редовете
+      се разместват по-лесно. Важи и за хешове.
+
+  example:
+    songs = [
+      'My Favorite Things',
+      'Alabama',
+      'A Love Supreme',
+    ]
+
+= slide 'Масиви', 'пърладжийски истории' do
+  p Има специален синтаксис за масив от думи.
+
+  example:
+    %w(chunky bacon)     == ['chunky', 'bacon']
+    %w[a b c]            == ['a', 'b', 'c']
+    %w{cool stuff}       == ['cool', 'stuff']
+    %w<coffee tea water> == ['coffee', 'tea', 'water']
+    %w|foo bar|          == ['foo', 'bar']
+
+  p Може да използвате различни видове символи, които да ограждат масива:
+  pre
+    | ! @ # $ * - _
+  p Този списък е непълен.
+
+= slide 'Масиви', 'итерация' do
+  p Итерира се с <code>#each</code>, както всичко останало в Ruby:
+  example:
+    primes = [2, 3, 5, 7, 11]
+
+    primes.each { |n| puts n }
+
+    primes.each do |n|
+      puts n
+    end
+
+= slide '"Къдрави скоби" и do/end' do
+  ul
+    li.action Фигурни скоби се ползват, когато целия блок е на един ред
+    li.action <code>do</code>/<code>end</code> се ползва, когато блока е няколко реда
+    li.action Има и друга конвенция, но няма да я ползваме
+    li.action Спазвайте тази. Точка.
+
+= slide "next и break" do
+  p
+    | <code>next</code> прескача изпълнението до края на блока и продължава
+      със следващия елемент, ала <code>continue</code> в <code>C/Java</code>.
+  p <code>break</code> прекъсва итерацията и продължава изпълнението след блока.
+  example:
+    numbers.sort.each do |number|
+      next if number.odd?
+      break if number > 100
+
+      puts number
+    end
+
+= slide 'Хешове' do
+  ul
+    li.action Важна част в програмирането на Ruby
+    li.action Майсторското овладяване е задължително!
+    li.action Още: хеш таблици, асоциативен масив, речник, map
+    li.action Колко от вас познават тази структура?
+    li.action Останалите: :(
+
+= slide 'Хешове', 'общи факти' do
+  ul
+    li.action Класът е <code>Hash</code>, но има и литерал
+    li.action Дефинират се така: <code>{1 => :one, 2 => :two}</code>
+    li.action Ключовете трябва да могат да се хешират: числа, низове, символи, масиви
+    li.action По възможност, ключовете трябва да са immutable
+    li.action От Ruby 1.9 насам редът на ключовете се запазва
+
+= slide 'Хешове', 'Индексиране' do
+  annotate:
+    numbers = {:one => :eins, :two => :zwei}
+
+    numbers[:one]     # =>
+    numbers[:three]   # =>
+
+    numbers[:three] = :drei
+
+    numbers[:three]                     # =>
+    numbers.fetch(:four, :keine_ahnung) # =>
+    numbers.fetch(:four)                #!
+
+= slide 'Хешове', 'итерация' do
+  annotate:
+    numbers = {:one => :eins, :two => :zwei}
+    numbers.keys    # =>
+    numbers.values  # =>
+
+    numbers.each { |key| puts key }
+    numbers.each { |key, value| puts key, value }
+
+= slide 'Хешове', 'разни методи' do
+  annotate:
+    numbers = {1 => 2, 3 => 4}
+
+    numbers.has_key?(:three) # =>
+    numbers.size             # =>
+    numbers.invert           # =>
+    numbers.merge({5 => 6})  # =>
+    numbers.to_a             # =>
+    Hash[1, 2, 3, 4]         # =>
+
+= slide 'Хешове алтернативен синтаксис' do
+  p Долните два реда произвеждат еднакви хешове. Второто е 1.9 синтаксис:
+
+  example:
+    {:one => 1, :two => 2}
+    {one: 1, two: 2}
+
+  p Има интересна врътка при извикването на методи
+
+= slide 'Масиви и хешове', 'накратко' do
+  ul
+    li.action Ползват се <strong>постоянно</strong>
+    li.action Трябва да ги владеете много добре
+    li.action Това е едва върха на айсберга
+
+= slide 'Методи', 'дефиниране' do
+  p
+    | Дефинирането става с ключовата дума <code>def</code>. Резултата от функцията е
+      последния оценен израз.
+
+  example:
+    def factorial(n)
+      unless n == 1
+        factorial(n - 1) * n
+      else
+        1
+      end
+    end
+
+  p В Ruby няма tail recursion оптимизация. Този код яде стек.
+
+= slide 'Методи', 'отгоре-отгоре' do
+  ul
+    li.action В ruby няма такова нещо като "глобална функция"
+    li.action <code>def</code> винаги дефинира метод в някакъв клас
+    li.action Ако <code>def</code> не е в дефиниция на клас, отива като <code>private</code> метод на <code>Object</code>
+    li.action <code>puts</code> е пример за нещо такова
+    li.action Дефинирането на методи в <code>Object</code> е удачно само за кратки скриптове
+    li.action Отвъд тях, дефинирането на методи в <code>Object</code> е ужасно лош стил
+
+= slide 'Методи', 'return' do
+  p Можете да излезете от функция с <code>return</code>:
+
+  example:
+    def includes?(array, element)
+      array.each do |item|
+        return true if item == element
+      end
+      false
+    end
+
+  p.action
+    | Разбира се, такава функция е излишна.
+      Може да ползвате <code>array.include?(element)</code>.
+
+= slide 'Методи', 'стойности по подразбиране' do
+  p Параметрите в Ruby могат да имат стойности по подразбиране:
+
+  example:
+    def order(drink, size = 'large')
+      puts "A #{size} #{drink}, please!"
+    end
+
+    order 'tea'
+    order 'coffee', 'small'
+
+= slide 'Методи', 'стойности по подразбиране (2)' do
+  ul
+    li.action Стойностите по подразбиране могат да бъдат всякакъв израз
+    li.action "Всякакъв израз" включва и извикване на друга функция
+    li.action Оценяват се на всяко извикване
+    li.action Сложни изрази за аргументи по подразбиране са лош стил
+
+= slide 'Методи', 'променлив брой аргументи' do
+  p
+    | Методите в ruby могат да вземат променлив брой аргументи. Параметърът се означава със
+      <code>*</code> и при извикване на функцията съдържа масив от аргументите.
+
+  example:
+    def say_hi(name, *drinks)
+      puts "Hi, I am #{name} and I enjoy: #{drinks.join(',')}"
+    end
+
+    say_hi 'Stefan', 'coffee', 'tea', 'water'
+
+= slide 'Методи', 'променлив брой аргументи' do
+  p Параметърът за променлив брой аргументи може да е на всяка позиция в дефиницията:
+
+  example:
+    def something(*a, b, c)
+    end
+
+    def something(a, *b, c)
+    end
+
+  p Очевидно, може да има само един такъв параметър във функция.
+
+= slide 'Методи', '...и техните приятели, хешовете' do
+  p
+    | Когато последния аргумент е хеш, може да изтървете фигурните скобо около него.
+      Долните редове правят едно и също:
+
+  example:
+    def order(drink, preferences)
+    end
+
+    order 'Latte', {:size => 'grande', :syrup => 'hazelnut'}
+    order 'Latte', :size => 'grande', :syrup => 'hazelnut'
+    order 'Latte', size: 'grande', syrup: 'hazelnut'
+
+  p Така ruby симулира извикане на функция с наименовани аргументи.
+
+= slide 'Методи', '...и хешове, отново' do
+  p Често ще видите код в този вид:
+
+  example:
+    def order(drink, preferences = {})
+    end
+
+    order 'Latte'
+    order 'Latte', size: 'grande', syrup: 'hazelnut'
+
+  p
+    | Така <code>preferences</code> е незадължителен и няма нужда да го подавате, ако
+      нямате предпочитания.
+
+= slide 'Методи', 'предикати' do
+  p
+    | Името на метод може да завършва на <code>?</code>. Това се ползва, за методи,
+      които връщат лъжа или истина (предикати):
+
+  example:
+    def even?(n)
+      n % 2 == 0
+    end
+
+    even? 2
+    even? 3
+
+  p Това е само конвенция
+
+= slide 'Методи', 'две версии' do
+  p
+    | Името на метод може да завършва на <code>!</code>.
+      Това се ползва, когато метода има две версии с различно поведение:
+
+  example:
+    numbers = [4, 1, 3, 2, 5, 0]
+
+    numbers.sort   # връща нов масив
+    numbers.sort!  # променя масива на място
+
+  p "По-опасният" метод завършва на удивителна
+
+= slide 'Анонимни функции', 'ламбди' do
+  p
+    | Анонимни функции в Ruby се дефинират с <code>lambda</code>. Има три начина на извикване:
+
+  example:
+    pow = lambda { |a, b| a ** b }
+
+    pow.call 2, 3
+    pow[2, 3]
+    pow.(2, 3)
+
+  p
+    | За нещастие, не може да извиквате така: <code>double(2)</code>. Това е несъвместимо с
+      изтърваването на скобите при извикването на метод.
+
+= slide 'Анонимни функции', 'ламбди (2)' do
+  p Може и така:
+
+  example:
+    double = lambda do |x|
+      x * 2
+    end
+
+  p Важи същата конвенция за <code>{ }</code> и <code>do</code>/<code>end</code>.
+
+= slide 'Анонимни функции', 'ламбди (3)' do
+  p От 1.9 има по-симпатичен синтаксис за ламбди:
+
+  example:
+    say_hi = lambda { puts 'Hi there!' }
+    double = lambda { |x| x * 2 }
+    divide = lambda { |a, b| a / b }
+
+    say_hi = -> { puts 'Hi there' }
+    double = ->(x) { x * 2 }
+    divide = ->(a, b) { a / b }
+
+= slide 'Блокове', 'където става забавно' do
+  p
+    | Всеки метод в може да приеме допълнителен аргумент, който е "анонимна функция". Може да
+      го извикате от метода с <code>yield</code>:
+
+  example:
+    def twice
+      yield
+      yield
+    end
+
+    twice { puts 'Ruby rocks!' }
+
+= slide 'Блокове', 'аргументи' do
+  p Блокът може да приема аргументи:
+
+  example:
+    def sequence(first, last, step)
+      current = first
+      while current < last
+        yield current
+        current += step
+      end
+    end
+
+    sequence(1, 10, 2) { |n| puts n }
+    # Извежда 1, 3, 5, 7, 9
+
+= slide 'Блокове', 'стойности' do
+  p <code>yield</code> се оценява до стойността на блока:
+
+  example:
+    def calculate
+      result = yield(2)
+      puts "The result for 2 is #{result}"
+    end
+
+    calculate { |x| x ** 2 }
+    # The result for 2 is 4
+
+= slide 'Блокове', 'преди примера' do
+  p Колко от вас знаят какво прави <code>filter</code>?
+
+= slide 'Блокове', 'един пример' do
+  p Или как можем да напишем <code>filter</code>:
+
+  example:
+    def filter(array)
+      result = []
+      array.each do |item|
+        result << item if yield item
+      end
+      result
+    end
+
+    filter([1, 2, 3, 4, 5]) { |n| n.odd? }
+
+= slide 'Блокове', '#block_given?' do
+  p <code>block_given?</code> ще ви каже дали методът е извикан с блок:
+
+  example:
+    def i_can_has_block
+      if block_given?
+        puts 'yes'
+      else
+        puts 'no'
+      end
+    end
+
+    i_can_has_block                  # no
+    i_can_has_block { 'something' }  # yes
+
+= slide 'Блокове', '& при извикване на метод' do
+  p Ако имате ламбда, която искате да подадете като блок, може да ползвате <code>&</code>:
+
+  example:
+    is_odd = lambda { |n| n.odd? }
+
+    filter([1, 2, 3, 4, 5], &is_odd)
+    filter([1, 2, 3, 4, 5]) { |n| n.odd? }
+
+  p Горните са (почти) еквиваленти. Има малка разлика в някои други случаи.
+
+= slide 'Блокове', 'в сигнатурата' do
+  p Ако искате да вземете блока като обект, има начин:
+
+  example:
+    def invoke_with(*args, &block)
+      block.(*args)
+    end
+
+    invoke_with(1, 2) { |a, b| puts a + b }
+
+= slide 'Блокове', 'в сигнатурата (2)' do
+  p Може и така:
+
+  annotate:
+    def make_block(&block)
+      block
+    end
+
+    doubler = make_block { |n| n * 2 }
+    doubler.(2) # =>
+
+= slide 'Proc.new', 'където става странно' do
+  p В Ruby има два вида анонимни функции. Другият е Proc.
+
+  example:
+    double = Proc.new { |x| x * 2 }
+
+    double.call(2)
+    double[2]
+    double.(2)
+
+  p Дотук е същото, но има разлики при извикване.
+
+= slide 'Разлики между Proc.new и lambda' do
+  table
+    thead
+      tr
+        th
+          code f =
+        th
+          code Proc.new { |x, y| p x, y }
+        th
+          code lambda { |x, y| p x, y }
+    tbody
+      tr
+        td
+          code f.call(1)
+        td 1 nil
+        td ArgumentError
+      tr
+        td
+          code f.call(1, 2)
+        td 1 2
+        td 1 2
+      tr
+        td
+          code f.call(1, 2, 3)
+        td 1 2
+        td ArgumentError
+      tr
+        td
+          code f.call([1, 2])
+        td 1 2
+        td ArgumentError
+      tr
+        td
+          code f.call(*[1, 2])
+        td 1 2
+        td 1 2
+
+  ul
+    li.action <code>yield</code> ползва семантиката на <code>Proc.new</code>
+    li.action Извикването на метод ползва семантиката на <code>lambda</code>
+    li.action Има още няколко малки разлики, но по-натам
+
+= slide 'Блокове', '...и една особенност' do
+  p
+    | Ако първия аргумент на функция е хеш, трябва да изтървете скобите на хеша,
+      ако изтървете скобите на метода.
+
+  example:
+    # Валиден код
+    order drink: 'latte', size: 'grande'
+    order({drink: 'latte', size: 'grande'})
+
+    # Невалиден код
+    order {drink: 'latte', size: 'grande'}
+
+  p Ruby си мисли, че му подавате блок.
+
+= slide 'Блокове', 'в Ruby като цяло' do
+  ul
+    li.action Ползват се изключително често
+    li.action Премахват нуждата от много синтаксис
+    li.action Има още мистика, за която ще си говорим следващата седмица
+    li.action Ето няколко примера
+
+= slide 'Функционални закачки' do
+  p Стандартните функционални неща:
+
+  example:
+    numbers   = [-9, -4, -1, 0, 1, 4, 9]
+
+    positive = numbers.select { |n| n >= 0 }
+    even     = numbers.reject { |n| n.odd? }
+    squares  = numbers.collect { |n| n ** 2 }
+    roots    = numbers.select { |n| n > 0 }.collect { |n| n ** 0.5 }
+
+= slide 'Функционални закачки', 'синоними' do
+  p
+    | <code>#select</code> и <code>#collect</code> имат синоними
+      <code>#find_all</code> и <code>#map</code>:
+
+  example:
+    numbers   = [-9, -4, -1, 0, 1, 4, 9]
+
+    squares  = numbers.map { |n| n ** 2 }
+    positive = numbers.find_all { |n| n >= 0 }
+
+  p В Ruby подобни синоними се срещат често.
+
+= slide '#inject', 'ако разбирате това, значи сте ОК' do
+  p <code>#inject</code> свежда масив до единична стойно с някаква операция:
+
+  example:
+    numbers = [1, 2, 3, 4, 5]
+
+    numbers.inject(0) { |a, b| a + b }
+    numbers.inject(1) { |a, b| a * b }
+
+    numbers.inject { |a, b| a + b }
+    numbers.inject { |a, b| "#{a}, #{b}" }
+
+= slide '#inject', 'често срещана грозотия' do
+  p
+    ' Имаме масив с думи. Искаме да получим хеш от вида
+    code {дума => дължина на думата}
+    | :
+
+  example:
+    words = %w[chunky bacon is awesome]
+    words.inject({}) { |hash, word| hash[word] = word.length; hash }
+
+  p Това е неидиоматично използване на <code>#inject</code>, но е интересен пример.
+
+= slide '#inject', 'примерна имплементация' do
+  example:
+    def inject(array, initial = nil)
+      remaining = array.dup
+      buffer    = initial || remaining.shift
+
+      until remaining.empty?
+        buffer = yield buffer, remaining.shift
+      end
+
+      buffer
+    end
+
+    inject([1, 2, 3, 4]) { |a, b| a + b }
+    inject([1, 2, 3, 4], 0) { |a, b| a + b }
+
+= slide '#inject', 'още по-примерна имплементация' do
+  p За забавлението. Неяснотите &mdash; следващия път.
+
+  example:
+    class Array
+      def inject(initial = nil)
+        remaining = dup
+        buffer    = initial || remaining.shift
+
+        until remaining.empty?
+          buffer = yield buffer, remaining.shift
+        end
+
+        buffer
+      end
+    end
