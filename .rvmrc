@@ -1,1 +1,1 @@
-rvm --create 1.9.3@evans
+rvm --create 1.9.3@ruby-lectures
