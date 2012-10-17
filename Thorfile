@@ -31,9 +31,7 @@ class Default < Thor
       files.grep(/lectures\/(\d+)-/) do
         begin
           lecture $1.to_i
-          `say Done. 2>/dev/null || echo Done.`
         rescue Exception => e
-          `say Error. 2>/dev/null || echo Error:`
           say_status :failed, "Failed to compile: #{e.class.name}", :red
           say e.message.gsub(/^/, "              ")
         end
