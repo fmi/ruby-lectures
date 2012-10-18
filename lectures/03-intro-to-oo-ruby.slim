@@ -3,14 +3,6 @@
     li Ще ви разкажем малко за обектите в Ruby
     li Ще прегледаме някои неща от първа задача
 
-= slide 'Тривиа!' do
-  p Където аз задавам въпроси!
-
-= slide 'Въпрос 5' do
-  p Каква е разликата между <code>Proc</code> и <code>lambda</code>? Каква им е връзката с <code>yield</code>?
-
-  p.action.answer Дълго :)
-
 = slide 'Ruby и ООП' do
   ul
     li.action Всичко е обект
@@ -353,7 +345,51 @@
     Хейта ще е за неща, които трябва да знаете
     Вашите решения
     Как бихме я решили ние
-    Грешки!
+
+= slide 'Integer#prime_divisors' do
+  example:
+    class Integer
+      def prime_divisors
+        2.upto(abs).select { |n| remainder(n).zero? and n.prime? }
+      end
+
+      def prime?
+        2.upto(pred).all? { |n| remainder(n).nonzero? }
+      end
+    end
+
+= slide 'Range#fizzbuzz' do
+  example:
+    class Range
+      def fizzbuzz
+        map do |n|
+          if    n % 15 == 0 then :fizzbuzz
+          elsif n % 3  == 0 then :fizz
+          elsif n % 5  == 0 then :buzz
+          else                   n
+          end
+        end
+      end
+    end
+
+= slide 'Hash#group_values' do
+  example:
+    class Hash
+      def group_values
+        each_with_object({}) do |(key, value), result|
+          result[value] ||= []
+          result[value] << key
+        end
+      end
+    end
+
+= slide 'Array#densities' do
+  example:
+    class Array
+      def densities
+        map { |item| count item }
+      end
+    end
 
 = slide '#1 Глупави имена', '...двете трудни неща в компютърните науки' do
   list:
