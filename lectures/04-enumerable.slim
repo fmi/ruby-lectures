@@ -179,7 +179,7 @@
   example:
     class Symbol
       def to_proc
-        -> (object, *args) { object.public_send self, *args }
+        ->(object, *args) { object.public_send self, *args }
       end
     end
 
