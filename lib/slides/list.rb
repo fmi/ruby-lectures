@@ -5,6 +5,7 @@ class List < Slim::Filter
       line = line.gsub(/`(.*?)`/, '<code>\1</code>')
       line = line.gsub('--', '&mdash;')
       line = line.gsub(/\[github:([^\]]*?)\]/, '<a href="http://github.com/\1">\1</a>')
+      line = line.gsub(/\[([^\]]+)\]\((\S+?)\)/, '<a href="\2">\1</a>')
       %{<li class="action">#{line}</li>}
     end
     html = "<ul>#{items.join}</ul>"
