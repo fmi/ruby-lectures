@@ -2,6 +2,6 @@ source 'http://rubygems.org'
 
 gem 'slim'
 gem 'thor'
-gem 'guard'
+gem 'listen'
 gem 'albino'
 gem 'rcodetools'
