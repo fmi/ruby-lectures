@@ -113,13 +113,17 @@
 = slide 'case', 'с обикновени условия' do
   list:
     Можете да слагате и цели изрази във <code>when</code>
-    Изпуска се параметърът след <code>case</code>
+    Изпуска се параметърът след <code>case</code>, например:
+
+  .action
     example:
       thing = 42
       case
         when thing == 1 then 1
         else 'no_idea'
       end
+
+  list:
     Не го правете.
     Ако ви се налага, ползвайте обикновени <code>if</code>-ове
 
