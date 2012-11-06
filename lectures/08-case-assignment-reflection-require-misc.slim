@@ -67,6 +67,7 @@
           'wow. that is old!'
         else
           'not very interesting'
+        end
       end
 
 = slide 'case', 'Object#===' do
@@ -112,6 +113,13 @@
 = slide 'case', 'с обикновени условия' do
   list:
     Можете да слагате и цели изрази във <code>when</code>
+    Изпуска се параметъра след <code>case</code>
+    example:
+      thing = 42
+      case #thing was here
+        when thing == 1 then 1
+        else 'no_idea'
+      end
     Не го правете.
     Ако ви се налага, ползвайте обикновени <code>if</code>-ове
 
@@ -178,12 +186,12 @@
 
 = slide 'Паралелно присвояване', 'splat аргументи отдясно' do
   annotate:
-    first, *middle, last = first, *middle, last = 1, [2, 3, 4]
+    first, *middle, last = 1, [2, 3, 4]
     first  # =>
     middle # =>
     last   # =>
 
-    first, *middle, last = first, *middle, last = 1, *[2, 3, 4]
+    first, *middle, last = 1, *[2, 3, 4]
     first  # =>
     middle # =>
     last   # =>
@@ -276,7 +284,7 @@
 = slide 'Зареждане на файлове от текущата директория', 'require_relative' do
   list:
     Алтернатива на горното е <code>require_relative</code>
-    <code>require_relative 'foo'</code> зарежда 'foo' спрямо <strong>директорията на изпълняващия файл</strong>
+    <code>require_relative 'foo'</code> зарежда 'foo' спрямо <strong>директорията на изпълняващия се файл</strong>
     <code>require './foo'</code> зарежда спрямо <strong>текущата директория на изпълняващия процес</strong>
 
 = slide 'Load path', 'където Ruby търси файлове за require' do
