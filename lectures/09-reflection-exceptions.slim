@@ -1,0 +1,240 @@
+= slide 'Днес' do
+  list:
+    Интроспекция в Ruby
+    Изключения
+
+= slide 'Интроспекция' do
+  list:
+    Начин програмно да инспектирате свойства на код
+    Още: рефлекция (reflection)
+    Необходимост, за да може да се метапрограмира на даден език
+
+= slide 'Интроспекция на ОО йерархията' do
+  list:
+    Сравнително проста, много от нещата вече сте ги виждали
+    `class` ви дава класа на даден обект; всеки обект има клас, дори класовете
+    `superclass` - родителският клас
+    `kind_of?` (със синоним `is_a?`)
+    `instance_of?`
+    `ancestors` - списъкът от класове и модули, в който се търси метод при извикване на такъв
+
+= slide 'Разглеждане на обекти', 'методите им' do
+  list:
+    `methods` - списък с методите, на които отговаря дадена инстанция
+    Забележете, че `foo.methods != foo.class.methods`
+    Горното е следствие на факта, че и класовете са инстанции и си имат собствени методи
+    Например:
+
+  .action
+    example:
+      'foo'.methods.size  # =>
+      String.methods.size # =>
+
+= slide 'Разглеждане на обекти', 'методите им' do
+  list:
+    Може да видите какви методи дефинира даден клас за своите инстанции
+    Следните имена са очевидни:
+    `private_instance_methods`
+    `protected_instance_methods`
+    `public_instance_methods`
+    `singleton_methods` ви връша класовите методи
+
+
+    `constants - Demo.superclass.constants`
+
+
+= slide 'Интроспекция', 'още reflection' do
+  list:
+    `class`, `superclass`, `kind_of?/is_a?`, `instance_of?`
+    ancestors
+    `methods`
+    `public_methods`, `private_methods` и сродни
+    `respond_to?`
+    `Class#constants` (напр. `Regexp.constants`, `Object.constants`)
+    instance_variable_get
+    instance_variable_set
+    instance_variable_defined?
+    remove_instance_variable
+    instance_variables
+      class Foo
+        def initialize
+          @baba = 42
+        end
+
+        def touch
+          @touched = true
+        end
+      end
+
+      f23u22 = Foo.new
+
+      f23u22.instance_variables # =>
+      f23u22.touch
+      f23u22.instance_variables # =>
+
+    Kernel
+      global_variables
+      local_variables
+      block_given?
+
+    slide 'Object#method(method_name)' do
+      list:
+        Връща обект от тип `Method`
+        Ако такъв метод няма, хвърля изключение (`NameError`)
+        Инстанциите на `Method` се държат като closure
+
+    slide 'Класът Method' do
+      list:
+        `call` ще извика въпросния метод
+        `name` ще ви даде името на метода
+        `owner` - класът или модулът, откъдето е дошъл този метод
+        `receiver` - обектът получател на този метод (инстанцията, обвързана с метода)
+        `arity` връща колко аргумента приема метода (с врътки за променлив брой аргументи)
+        `parameters` - детайлна информация за приеманите аргументи - имена, дали са задължителни и т.н.
+        `source_location` - в кой файл и на кой ред е дефиниран този метод; много полезно
+        `unbind` - "разкача" този метод от получателя му; връща ви инстанция на `UnboundMethod`
+
+    slide 'Необвързани методи' do
+      list:
+        Инстанции на `UnboundMethod`
+        Имат почти същите методи като и обвързаните (т.е. инстанциите на `Method`)
+        Не могат да бъдат извиквани
+        Mогат да бъдат обвързани впоследствие към други инстанции
+
+    slide 'Необвързани методи' do
+      annotate:
+        class Person
+          attr_reader :name
+
+          def initialize(name)
+            @name = name
+          end
+        end
+
+        stefan = Person.new 'Stefan'
+        mitio  = Person.new 'Mitio'
+
+        stefan.name                           # =>
+
+        stefans_name = stefan.method(:name)
+        stefans_name.call                     # =>
+        stefans_name.unbind.bind(mitio).call  # =>
+
+    defined?
+      defined? 1             # =>
+      defined? foo           # =>
+      defined? puts          # =>
+      defined? String        # =>
+      defined? $&            # =>
+      defined? $_            # =>
+      defined? Math::PI      # =>
+      defined? answer = 42   # =>
+      defined? 42.abs        # =>
+    ObjectSpace
+      each_object
+        всичко без Fixnum, true, false, and nil.
+        ObjectSpace.each_object(Class) { |x| puts x} - класове
+      `inspect` -> _id2ref
+
+      define_finalizer(object, proc) - като деструктор
+        example:
+          foo = 'Memory is plentiful!'
+          ObjectSpace.define_finalizer foo, proc { puts 'foo is gone' }
+          ObjectSpace.garbage_collect
+
+          foo = nil
+          ObjectSpace.garbage_collect # Prints "foo is gone"
+
+    Hooks
+
+    Adding an instance method Module#method_added
+    Adding a singleton method Kernel::singleton_method_added
+    Subclassing a class Class#inherited
+    Mixing in a module  Module#extend_object
+    included
+
+    Kernel#set_trace_func(proc)
+
+        Задава въпросния Proc обкект като трасираща функция
+        Параметри: име на събитие, файл, ред, object_id, binding, клас
+        Събития:
+          `c-call` - извикване на C-метод
+          `c-return` - връщане от C-метод
+          `call` - извикване на Ruby метод
+          `return` - връщане от Ruby метод
+          `class` начало на дефиниция на клас или модул
+          `end` край на горната дефиниця
+          `line` изпълняване на код на ред Х
+          `raise` изключение
+
+    example:
+      tracer = proc do |event, file, line, id, binding, classname|
+         printf "%8s %s:%-2d %15s %15s\n", event, file, line, id, classname
+      end
+
+      set_trace_func tracer
+
+      class Foo
+        def bar
+          a, b = 1, 2
+        end
+      end
+
+      larodi = Foo.new
+      larodi.bar
+
+    pre
+      c-return t.rb:5   set_trace_func          Kernel
+          line t.rb:7
+        c-call t.rb:7        inherited           Class
+      c-return t.rb:7        inherited           Class
+         class t.rb:7
+          line t.rb:8
+        c-call t.rb:8     method_added          Module
+      c-return t.rb:8     method_added          Module
+           end t.rb:11
+          line t.rb:13
+        c-call t.rb:13             new           Class
+        c-call t.rb:13      initialize     BasicObject
+      c-return t.rb:13      initialize     BasicObject
+      c-return t.rb:13             new           Class
+          line t.rb:14
+          call t.rb:8              bar             Foo
+          line t.rb:9              bar             Foo
+        return t.rb:10             bar             Foo
+
+    Kernel#trace_var
+
+    example:
+      trace_var :$_, proc { |value| puts "$_ is now #{value.inspect}" }
+      $_ = "Ruby"
+      $_ = ' > Python'
+
+    p Извежда следното:
+
+    pre
+      $_ is now "Ruby"
+      $_ is now " > Python"
+
+    Човъркане с виртуалната машина
+
+      list:
+        Да спрем събирането на боклука
+        GC.stop
+
+      annotate:
+        GC.methods - Object.methods # =>
+        GC.constants                # =>
+
+    slide 'GC::Profiler' do
+      example:
+        GC::Profiler.enable
+        require 'active_support/ordered_hash'
+        puts GC::Profiler.result
+
+      pre
+        GC 8 invokes.
+        Index    Invoke Time(sec)       Use Size(byte)     Total Size(byte)         Total Object                    GC Time(ms)
+            1               0.706              2889840             16818080               420452        23.71699999999998809130
+
+

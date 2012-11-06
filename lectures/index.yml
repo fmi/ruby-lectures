@@ -34,3 +34,7 @@
   title: 08. Паралелно присвояване, case, интроспекция, require и още
   slug: 08-case-assignment-reflection-require-misc
   date: 2012-11-05
+9:
+  title: 09. Интроспекция и изключения
+  slug: 09-reflection-exceptions
+  date: 2012-11-07
