@@ -11,6 +11,7 @@
 ## Инсталация
 
 - Клонирате хранилището някъде и сменате текущата си директория да е там
+- `sudo easy_install pygments`
 - `bundle install`
 - `bundle exec thor rebuild`
 
