@@ -3,11 +3,25 @@
     Интроспекция в Ruby
     Изключения
 
+= slide 'Преди това' do
+  list:
+    Трета задача е качена , запретвайте ръкави
+    Както обикновено, при въпроси се старайте първо да пишете във форума
+    Само в краен случай ни пращайте мейл на fmi@ruby.bg
+    Във ваш интерес е да си пускате примерния тест локално, преди да предадете задачата
+
 = slide 'Интроспекция' do
   list:
     Начин програмно да инспектирате свойства на код
     Още: рефлекция (reflection)
     Необходимост, за да може да се метапрограмира на даден език
+
+= slide 'Интроспекция', 'Code smell' do
+  list:
+    Внимание: употребяват се много внимателно и предимно в специфични случаи
+    Ако мислите, че имате нужда да ползвате нещо от това, които ще ви покажем, помислете пак
+    Възможно е да има друг, много по-чист и елегантен начин да решите поставения проблем
+    Третирайте тези неща като code smell и прибягвайте до тях само в краен случай
 
 = slide 'Интроспекция на ОО йерархията' do
   list:
@@ -141,7 +155,182 @@
     Object.const_set(:String, Fixnum)
     String # Fixnum
 
+= slide 'Глобални променливи' do
+  p
+    |
+      <code>Kernel#global_variables</code> ще ви върне списък с всички глобални променливи<br />
+      дефинирани към момента. Например:
 
+  example:
+    puts global_variables.map { |var| var.to_s.ljust(16) }
+                         .each_slice(4)
+                         .map { |vars_per_line| vars_per_line.join(' ') }
+                         .join("\n")
+
+= slide 'Глобални променливи' do
+  pre
+    |
+      $;               $-F              $@               $!
+      $SAFE            $~               $&               $`
+      $'               $+               $=               $KCODE
+      $-K              $,               $/               $-0
+      $\               $_               $stdin           $stdout
+      $stderr          $>               $<               $.
+      $FILENAME        $-i              $*               $?
+      $$               $:               $-I              $LOAD_PATH
+      $"               $LOADED_FEATURES $VERBOSE         $-v
+      $-w              $-W              $DEBUG           $-d
+      $0               $PROGRAM_NAME    $-p              $-l
+      $-a              $binding         $1               $2
+      $3               $4               $5               $6
+      $7               $8               $9
+
+= slide 'Локални променливи' do
+  list:
+    Подобно на `Kernel#global_variables`, има метод `Kernel#local_variables`
+    Връща списък с локалните променливи, регистрирани към момента в текущия scope
+
+  .action
+    annotate:
+      foo          = :bar
+      die_antwoord = 42
+
+      local_variables # =>
+
+= slide 'defined?' do
+  list:
+    Ключова дума, за разлика от всички методи, показани до момента
+    "Аргументът", който приема, е произволен Ruby израз
+    Работи на ниво parser (синтаксис)
+    Връща ви низ, описващ типа на израза, който сте подали на `defined?`
+    Ако подадете несъществуващо име (напр. недефинирана локална променлива), ще получите `nil`
+    Така може да проверите дали дадена локална променлива съществува
+
+= slide 'defined?' do
+  list:
+    Примерна употреба - задаване на дифолтна стойност на локална променлива
+    Идиоматично е следното: `foo ||= default_value`
+    Ще работи дори `foo` да не е била дефинирана към момента. Проблемът с този код?
+    Ако `foo` е имала стойност `false` и това е валидно за вашия случай, ще я презапишете
+    Ако попаднете в тази рядка ситуация, може да направите следното:
+
+  .action
+    example:
+      unless defined? cache
+        cache = true
+      end
+
+= slide 'defined?', 'gotcha' do
+  annotate:
+    x = 42 unless defined? x
+    x # =>
+
+  list:
+    Защо?
+    Постфиксната форма на условието води до дефиниране на всички имена, срещани на реда
+    Т.е. преди още `defined?` да се изпълни, `x` ще се дефинира и ще има стойност `nil`
+
+= slide 'defined?' do
+  annotate:
+    defined? 1             # =>
+    defined? foo           # =>
+    defined? puts          # =>
+    defined? String        # =>
+    defined? $&            # =>
+    defined? $_            # =>
+    defined? Math::PI      # =>
+    defined? answer = 42   # =>
+    defined? 42.abs        # =>
+
+= slide 'block_given?' do
+  p
+    |
+      Можете да ползвате <code>Kernel#block_given?</code>, за да проверите дали<br />
+      някой ви е подал блок, например:
+
+  annotate:
+    def block_or_no_block
+      if block_given?
+        'We got a block, go this way...'
+      else
+        'No block man, go that way...'
+      end
+    end
+
+    block_or_no_block     # =>
+    block_or_no_block {}  # =>
+
+= slide 'ObjectSpace' do
+  list:
+    Класът `ObjectSpace` ви дава прост интерфейс за манипулация на обектите в паметта
+    `ObjectSpace.each_object` ще `yield`-ва на подадения му блок всеки такъв обект
+    Приема опционален аргумент - от какъв клас да бъде дадения обект
+    `ObjectSpace.each_object(String)` ще обходи всички низове, заредени в паметта в момента
+    `ObjectSpace.each_object(Class)` - всички класове
+    Обхожда всичко без `Fixnum`, `Symbol`, `true`, `false` и `nil`, тъй като те се интернират
+    Ако не му подадете блок, ще ви върне `Enumerator`
+
+= slide 'ObjectSpace.each_object' do
+  annotate:
+    ObjectSpace.each_object.count          # =>
+    ObjectSpace.each_object(String).count  # =>
+    ObjectSpace.each_object(Float).to_a    # =>
+    ObjectSpace.each_object(Class).count   # =>
+
+    ObjectSpace.each_object(Class) do |klass|
+      # Do something with klass
+    end
+
+= slide 'ObjectSpace.count_objects' do
+  p Дава проста статистика на бройките обекти в паметта по типове. Връща хеш. Например:
+
+  example:
+    puts ObjectSpace.count_objects
+          .map { |type, count| "#{type}:".ljust(10) + count.to_s.rjust(7) }
+          .each_slice(3)
+          .map { |counts_per_row| counts_per_row.join('    ') }
+          .join("\n")
+
+= slide 'ObjectSpace.count_objects', 'Резултати' do
+  pre
+    |
+      TOTAL:     419019    FREE:      289687    T_OBJECT:   12958
+      T_CLASS:      880    T_MODULE:      34    T_FLOAT:        8
+      T_STRING:   85708    T_REGEXP:     175    T_ARRAY:    21544
+      T_HASH:       707    T_STRUCT:       1    T_BIGNUM:       6
+      T_FILE:         7    T_DATA:      2188    T_MATCH:      643
+      T_COMPLEX:      1    T_NODE:      4436    T_ICLASS:      36
+
+= slide 'ObjectSpace._id2ref' do
+  list:
+    Помните ли `Object#object_id`?
+    `ObjectSpace._id2ref` е обратният му метод
+    Пример:
+
+  .action
+    annotate:
+      id = 'larodi'.object_id   # =>
+      ObjectSpace._id2ref(id)   # =>
+
+= slide 'Деструктори в Ruby?' do
+  list:
+    Невъзможно и ненужно
+    Или?
+    `ObjectSpace.define_finalizer(object, proc)`
+    Вика `proc` когато `object` бъде garbage collect-нат
+    Много подобно на деструктор...
+
+= slide 'ObjectSpace.define_finalizer' do
+  example:
+    foo = 'Memory is plentiful!'
+    ObjectSpace.define_finalizer foo, proc { puts 'foo is gone' }
+    ObjectSpace.garbage_collect
+
+    foo = nil
+    ObjectSpace.garbage_collect
+
+    # Тук proc-ът от по-горе бива извикан
+    # и на STDOUT се извежда "foo is gone"
 
 = slide 'Object#method(method_name)' do
   list:
@@ -247,6 +436,60 @@
     stefans_name.call                     # =>
     stefans_name.unbind.bind(mitio).call  # =>
 
+= slide 'Hooks', 'Куки' do
+  list:
+    Ruby ви дава възможност да се закачате на определени събития посредством hooks
+    Обикновено във въпросните hooks може да промените нещото, което се случва по някакъв начин
+    Ще разгледаме някои hooks за събития, възникващи при промяна и изпълнение на код
+
+= slide 'Добавяне и махане на методи' do
+  list:
+    Можем да бъдем известени, че някой е добавил метод в модул или клас
+    Това става като си дефинираме `Module#method_added(method_name)`
+    Същото нещо, но за премахване на методи е `Module#method_removed`
+
+= slide 'Добавяне и махане на методи' do
+  example:
+    module Foo
+      def self.method_added(name)
+        puts "A-ha! You added the #{name} method!"
+      end
+    end
+
+    module Foo
+      def bar
+      end
+    end # Извежда "A-ha! You added the bar method!"
+
+= slide 'Добавяне и махане на методи' do
+  example:
+    module BigBrother
+      def method_added(name)
+        puts "A-ha! You added the #{name} method!"
+      end
+    end
+
+    class Citizen
+      extend BigBrother
+    end
+
+    class Citizen
+      def name
+      end
+    end # Ивежда "A-ha! You added the name method!"
+
+= slide 'Още hooks' do
+  list:
+    `Kernel::singleton_method_added` се вика, когато добавите класов метод в модул или клас
+    `Class#inherited` се вика, когато вашият клас бъде наследен от друг клас
+    `Bar.included` се вика, когаот някой напише `class Foo; include Bar; end`
+    `Bar.extend_object` се вика, когато някой напише `class Foo; extend Bar; end`
+
+= slide 'Hooks' do
+  list:
+    В тези hooks получавате аргументи, които ви дават възможност да следите какво се случва
+    Получавате името на добавен/премахнат метод, класът наследник, класът, който ви е include-нал и т.н.
+    В тези моменти можете да извършите някакво допълнително действие, ако се налага
 
 = slide 'Човъркане с виртуалната машина' do
   list:
@@ -272,111 +515,89 @@
         Index    Invoke Time(sec)       Use Size(byte)     Total Size(byte)         Total Object                    GC Time(ms)
             1               0.706              2889840             16818080               420452        23.71699999999998809130
 
+= slide 'За десерт' do
+  list:
+    `Kernel#set_trace_func(proc)`
+    Задава въпросния proc обкект като трасираща функция
+    Параметри: име на събитие, файл, ред, object_id, binding, клас
+    Понеже му давате proc, може да пропуснете някои от параметрите
+
+= slide 'Kernel#set_trace_func(proc)', 'Събития' do
+  list:
+    `c-call` - извикване на C-метод
+    `c-return` - връщане от C-метод
+    `call` - извикване на Ruby метод
+    `return` - връщане от Ruby метод
+    `class` начало на дефиниция на клас или модул
+    `end` край на горната дефиниця
+    `line` изпълняване на код на ред Х
+    `raise` възникнало изключение
+
+= slide 'Kernel#set_trace_func', 'Пример' do
+  example:
+    tracer = proc do |event, file, line, id, binding, classname|
+       printf "%8s %s:%-2d %15s %15s\n", event, file, line, id, classname
+    end
+
+    set_trace_func tracer
+
+    class Foo
+      def bar
+        a, b = 1, 2
+      end
+    end
+
+    larodi = Foo.new
+    larodi.bar
+
+= slide 'Kernel#set_trace_func', 'Резултати' do
+  pre
+    |
+      c-return t.rb:5   set_trace_func          Kernel
+          line t.rb:7
+        c-call t.rb:7        inherited           Class
+      c-return t.rb:7        inherited           Class
+         class t.rb:7
+          line t.rb:8
+        c-call t.rb:8     method_added          Module
+      c-return t.rb:8     method_added          Module
+           end t.rb:11
+          line t.rb:13
+        c-call t.rb:13             new           Class
+        c-call t.rb:13      initialize     BasicObject
+      c-return t.rb:13      initialize     BasicObject
+      c-return t.rb:13             new           Class
+          line t.rb:14
+          call t.rb:8              bar             Foo
+          line t.rb:9              bar             Foo
+        return t.rb:10             bar             Foo
 
 = slide 'Интроспекция', 'още reflection' do
   list:
-    Kernel
-      global_variables
-      local_variables
-      block_given?
 
-    defined?
-      defined? 1             # =>
-      defined? foo           # =>
-      defined? puts          # =>
-      defined? String        # =>
-      defined? $&            # =>
-      defined? $_            # =>
-      defined? Math::PI      # =>
-      defined? answer = 42   # =>
-      defined? 42.abs        # =>
+= slide 'Kernel#trace_var' do
+  list:
+    Може да ползвате `Kernel#trace_var` за да следите за промени по глобални променливи
+    Важи само за "специални" глобални променливи, не за такива, дефинирани от вас
 
-    ObjectSpace
-      each_object
-        всичко без Fixnum, true, false, and nil.
-        ObjectSpace.each_object(Class) { |x| puts x} - класове
-      `inspect` -> _id2ref
+= slide 'Kernel#trace_var' do
+  example:
+    trace_var :$_ do |value|
+      puts "$_ is now #{value.inspect}"
+    end
 
-      define_finalizer(object, proc) - като деструктор
-        example:
-          foo = 'Memory is plentiful!'
-          ObjectSpace.define_finalizer foo, proc { puts 'foo is gone' }
-          ObjectSpace.garbage_collect
+    $_ = "Ruby"
+    $_ = ' > Python'
 
-          foo = nil
-          ObjectSpace.garbage_collect # Prints "foo is gone"
+  p Извежда следното:
 
-    Hooks
-
-      Adding an instance method Module#method_added
-        #method_removed
-      Adding a singleton method Kernel::singleton_method_added
-      Subclassing a class Class#inherited
-      Mixing in a module  Module#extend_object
-      included
-
-    Kernel#set_trace_func(proc)
-
-      Задава въпросния Proc обкект като трасираща функция
-      Параметри: име на събитие, файл, ред, object_id, binding, клас
-      Събития:
-        `c-call` - извикване на C-метод
-        `c-return` - връщане от C-метод
-        `call` - извикване на Ruby метод
-        `return` - връщане от Ruby метод
-        `class` начало на дефиниция на клас или модул
-        `end` край на горната дефиниця
-        `line` изпълняване на код на ред Х
-        `raise` изключение
-
-    example:
-      tracer = proc do |event, file, line, id, binding, classname|
-         printf "%8s %s:%-2d %15s %15s\n", event, file, line, id, classname
-      end
-
-      set_trace_func tracer
-
-      class Foo
-        def bar
-          a, b = 1, 2
-        end
-      end
-
-      larodi = Foo.new
-      larodi.bar
-
-    pre
-      |
-        c-return t.rb:5   set_trace_func          Kernel
-            line t.rb:7
-          c-call t.rb:7        inherited           Class
-        c-return t.rb:7        inherited           Class
-           class t.rb:7
-            line t.rb:8
-          c-call t.rb:8     method_added          Module
-        c-return t.rb:8     method_added          Module
-             end t.rb:11
-            line t.rb:13
-          c-call t.rb:13             new           Class
-          c-call t.rb:13      initialize     BasicObject
-        c-return t.rb:13      initialize     BasicObject
-        c-return t.rb:13             new           Class
-            line t.rb:14
-            call t.rb:8              bar             Foo
-            line t.rb:9              bar             Foo
-          return t.rb:10             bar             Foo
-
-    Kernel#trace_var
-
-    example:
-      trace_var :$_, proc { |value| puts "$_ is now #{value.inspect}" }
-      $_ = "Ruby"
-      $_ = ' > Python'
-
-    p Извежда следното:
-
-    pre
+  pre
+    |
       $_ is now "Ruby"
       $_ is now " > Python"
 
-
+= slide 'Интроспекция', 'Code smell!' do
+  list:
+    Напомняме: третирайте всички техники, показани тук, като code smell
+    Много е вероятно да има друг, по-прост, чист и елегантен дизайн, решаващ същия проблем
+    Просто вие не сте го открили още; помислете добре, преди да прибегнете до тези техники
