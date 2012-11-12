@@ -89,8 +89,8 @@
 
 = slide 'Най-прост пример' do
   annotate:
-    /find me/.match 'Can you find me in this long sentence?'  # =>
-    /find me/.match 'I am not here and you will not find ME!' # =>
+    /find me/.match 'Can you find me here?' # =>
+    /find me/.match 'You will not find ME!' # =>
   list:
     Този шаблон не съдържа специални символи
     Както виждате, по подразбиране шаблоните са чувствителни към регистъра на буквите
@@ -243,13 +243,15 @@
     Отвън, през локални променливи, за именовани групи
 
 = slide 'Референции към групи', 'извън шаблона, за номерирани групи, през MatchData' do
-  annotate:
+  example:
     date_string = '2012-11-12'
     date_parts  = /\A(\d{4})-(\d\d)-(\d\d)\z/.match(date_string)
 
     if date_parts
       Date.new date_parts[1].to_i, date_parts[2].to_i, date_parts[3].to_i
-    end # =>
+      # #<Date: 2012-11-12 ...>
+    end
+
 
 = slide 'if с регулярни изрази' do
   list:
@@ -271,12 +273,12 @@
     end
 
 = slide 'Референции към групи', 'извън шаблона, за номерирани групи, през $1, $2...' do
-  annotate:
+  example:
     date_string = '2012-11-12'
 
     if date_string =~ /\A(\d{4})-(\d\d)-(\d\d)\z/
-      Date.new $1.to_i, $2.to_i, $3.to_i
-    end # =>
+      Date.new $1.to_i, $2.to_i, $3.to_i # #<Date: 2012-11-12 ...>
+    end
 
 = slide 'Именовани групи' do
   list:
@@ -420,10 +422,14 @@
     html = '<img src="http://my/image.src" alt="Kartman Makes Burgers" />'
 
     case html
-    when /(<h(\d)>)(.+)<\/h\2>/                       then {header: $3, size: $2}
-    when /<a\s+href="([^"]+)">([^<]+)<\/a>/           then {url: $1, text: $2}
-    when /<img\s+src="([^"]+)"\s+alt="([^"]+)"\s*\/>/ then {image: $1, alt: $2}
-    else                                                   'unrecognized tag'
+      when /(<h(\d)>)(.+)<\/h\2>/
+        {header: $3, size: $2}
+      when /<a\s+href="([^"]+)">([^<]+)<\/a>/
+        {url: $1, text: $2}
+      when /<img\s+src="([^"]+)"\s+alt="([^"]+)"\s*\/>/
+        {image: $1, alt: $2}
+      else
+        'unrecognized tag'
     end
 
     # {:image=>"http://my/image.src", :alt=>"Kartman Makes Burgers"}
