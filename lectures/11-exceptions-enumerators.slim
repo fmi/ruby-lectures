@@ -81,13 +81,13 @@
 
 = slide '"вдигане" на изключения' do
   annotate:
-    # Хвърля RuntimeError
+    # Предизвиква RuntimeError
     raise "'Prophet!' said I, 'Thing of evil!" #!
 
     # Като горното, но с различен текст
     raise RuntimeError, 'prophet still, if bird or devil!' #!
 
-    # Друг начин да хвърлим RuntimeError
+    # Друг начин да предизвикаме RuntimeError
     raise RuntimeError.new('Whether tempter sent, or whether...') #!
 
 = slide 'Хващане на изключения' do
@@ -238,7 +238,7 @@
       # Ensure something always happens
     end
 
-= slide 'Хвърляне на изключение', 'по време на обработка на друго' do
+= slide 'Предизвикване на изключение', 'по време на обработка на друго' do
   p Ако възникне изключение при обработка друго, старото се игнорира и се "вдига" новото.
 
   example:
