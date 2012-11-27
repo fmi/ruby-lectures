@@ -58,16 +58,16 @@ nav button { float: left; border: 0; width: 26px; height: 25px; text-indent: -99
 
 /* Additional styles */
 body{ background:#f5f6f6; }
-#deck h1 { font-family: 'Marker Felt', Impact, Arial; font-size:50px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
-#deck h2 { font-family: 'Marker Felt', Impact, Arial; font-size: 30px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
+#deck h1 { font-family: 'Marker Felt', Impact, Arial, sans-serif; font-size:50px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
+#deck h2 { font-family: 'Marker Felt', Impact, Arial, sans-serif; font-size: 30px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
 #deck p,
 #deck li,
 #deck table th,
 #deck blockquote,
-#deck table td { font-family: Arial; font-size:20px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
-#deck code { font-family: Monaco; background-color: #f8f8ff; color: #444; padding: 1px 3px; border: 1px solid #dedede; border-radius: 2px; }
+#deck table td { font-family: Arial, sans-serif; font-size:20px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
+#deck code { font-family: Monaco, monospace; background-color: #f8f8ff; color: #444; padding: 1px 3px; border: 1px solid #dedede; border-radius: 2px; }
 #deck pre { margin-bottom: 1em; }
-#deck kbd { font-family: Monaco; }
+#deck kbd { font-family: Monaco, monospace; }
 #deck section:first-child hgroup { text-align: center; padding-top: 100px !important; }
 
 #deck table { border-collapse: collapse; margin-bottom: 2em; }
