@@ -1,0 +1,625 @@
+= slide 'Днес' do
+  list:
+    Липсващи методи и константи (`method_missing` и компания)
+    Метапрограмиране!
+    Любопитни неща за обектния модел в Ruby
+    `define_method`
+    Всичките варианти на `eval`
+
+= slide 'Следващите няколко лекции' do
+  list:
+    Още метапрограмиране!
+    В дълбочина за обектния модел в Ruby
+    singleton класове
+    Основи на уеб; Rails/Sinatra
+
+= slide 'Object#method_missing' do
+  list:
+    Ако обект не отговаря на някакво съобщение, Ruby вика `method_missing`.
+    Обикновено той е наследен от `Object` и хвърля `NoMethodError`.
+    Можем да го предефинираме.
+    Обикновено трябва да викнем `super`.
+    Трябва да се прави внимателно, понеже има бая поле за грешка.
+
+= slide 'Object#method_missing', 'пример' do
+  annotate:
+    class Hash
+      def method_missing(name, *args, &block)
+        args.empty? ? self[name] : super
+      end
+    end
+
+    things = {fish: 'Nemo', lion: 'Simba'}
+
+    things.fish   # =>
+    things.lion   # =>
+    things.larodi # =>
+    things.foo(1) #!
+
+= slide 'Object#method_missing', 'капани' do
+  p Има и коварни моменти:
+
+  annotate:
+    class Hash
+      def method_missing(name, *arg, &block)
+        args.empty? ? self[name] : super
+      end
+    end
+
+    things = {lion: 'Simba'}
+    things.lion
+
+  list:
+    Има typo - `arg` вместо `args`.
+    `args` всъщност е `self.args`.
+    Безкрайна рекурсия, anyone?
+
+= slide 'Object#respond_to_missing?' do
+  list:
+    Спомняте ли си `respond_to?`
+    `respond_to?` не работи за методите, на които "отговаряте" през `method_missing`
+    `respond_to?` вика `respond_to_missing?`, ако методът, за който питате, не е дефиниран
+    Добра практика е да дефинирате `respond_to_missing?`, ако имате и `method_missing`
+
+= slide 'Object#respond_to_missing?', 'сигнатура' do
+  example:
+    class Foo
+      def respond_to_missing?(symbol, include_private)
+        # Return true or false
+      end
+    end
+
+= slide 'Object#respond_to_missing?', 'пример' do
+  example:
+    class Foo
+      def respond_to_missing?(method_name, include_private)
+        puts "Looking for #{method_name}"
+        super
+      end
+
+      private
+
+      def bar() end
+    end
+
+    Foo.new.respond_to? :larodi     # false и на екрана се извежда "Looking for bar"
+    Foo.new.respond_to? :bar        # false и на екрана се извежда "Looking for bar"
+    Foo.new.respond_to? :bar, true  # true
+
+= slide 'Module#const_missing' do
+  annotate:
+    module Unicode
+      def self.const_missing(name)
+        if name.to_s =~ /^U([0-9a-fA-F]{4,5}|10[0-9a-fA-F]{4})$/
+          codepoint = $1.to_i(16)
+          utf8 = [codepoint].pack('U')
+          utf8.freeze
+          const_set(name, utf8)
+          utf8
+        else
+          super
+        end
+      end
+    end
+
+    Unicode::U20AC  # =>
+    Unicode::U221E  # =>
+    Unicode::Baba   #!
+
+= slide 'Метапрограмиране', 'първа дефиниция' do
+  blockquote Метапрограмирането е писането на код, който пише друг код
+
+= slide 'meta-' do
+  p
+    ' <strong>meta- (also met- before a vowel or h)</strong><br>
+      combining form
+  p
+    '
+      1. denoting a change of position or condition : <em>metamorphosis | metathesis</em>.<br>
+      2. denoting position behind, after, or beyond: : <em>metacarpus</em>.<br>
+      3. denoting something of a higher or second-order kind : <em>metalanguage | metonym</em>.<br>
+      4. Chemistry denoting substitution at two carbon atoms separated by one other in a benzene ring, e.g., in 1,3 positions : <em>metadichlorobenzene</em>. Compare with ortho- and para- 1 .<br>
+      5. Chemistry denoting a compound formed by dehydration : <em>metaphosphoric acid</em>.<br>
+
+  p ORIGIN from Greek meta ‘with, across, or after.’
+
+= slide 'Езикови конструкция' do
+  list:
+    Градове-призраци и пазари
+    C и C++ са градове-призраци по отношение на езиковите конструкции
+    Ruby и Python за пазари по същото отношение
+    Java е някъде по средата
+
+= slide 'Примерът с филмите', '(от Metaprogramming Ruby)' do
+  list:
+    Представете си, че сте Java програмист...
+    ...който наскоро е открил Ruby...
+    ...и иска да направи социална мрежа за киномани.
+    Решавате да започнете с клас, пазещ филм в БД
+
+= slide 'Примерът с филмите', 'накаква абстракция' do
+  example:
+    class Entity
+      attr_reader :table, :ident
+
+      def initialize(table, ident)
+        @table = table
+        @ident = ident
+        Database.sql "INSERT INTO #{@table} (id) VALUES (#{@ident})"
+      end
+
+      def set(col, val)
+        Database.sql "UPDATE #{@table} SET #{col}='#{val}' WHERE id=#{@ident}"
+      end
+
+      def get(col)
+        Database.sql("SELECT #{col} FROM #{@table} WHERE id=#{@ident}")[0][0]
+      end
+    end
+
+= slide 'Примерът с филмите' do
+  example:
+    class Movie < Entity
+      def initialize(ident)
+        super("movies", ident)
+      end
+
+      def title
+        get("title")
+      end
+
+      def title=(value)
+        set("title", value)
+      end
+
+      def director
+        get("director")
+      end
+
+      def director=(value)
+        set("director", value)
+      end
+    end
+
+= slide 'DRY' do
+  p Тук имаше повторение.
+
+  list:
+    Има таблица `movies` с колона `title` и клас `Movie` с поле `@title`
+    Стринговия литерал `"title"` се повтаря
+    Двойката <code>title()</code> и <code>title=()</code> някак повтаря двойката <code>director()</code> и <code>director=()</code>
+    Може би ставаме нагли, но низа `"movies"` изглежда повтаря, че класът се казва `Movie`
+
+= slide 'Примерът с филмите' do
+  p С малко метапрограмиране, изглежда така:
+
+  example:
+    class Movie < ActiveRecord::Base
+    end
+
+= slide 'Метапрограмиране', 'подобрена дефиниция' do
+  blockquote
+    ' Метапрограмирането е писането на код, което управлява конструкциите
+      на езика по време на изпълнение
+
+= slide 'Метапрограмирането и ние', '...или къде се намираме в този голям, страшен свят' do
+  list:
+    Ще си говорим за различни похвати, с които това става
+    За да разберем похватите, трябва да си говорим за някои детайли в Ruby
+    Първия такъв е ОО модела на Ruby
+
+= slide 'Класове и инстанции', 'разделение на ролите' do
+  p Доста просто:
+
+  ul
+    li Обектите пазят полета
+    li Класовете пазят методите
+    li Всеки обект знае от какъв клас е
+
+= slide 'Класове и инстанции', 'прост пример' do
+  example:
+    class MyClass
+      def my_method
+        @v = 1
+      end
+    end
+
+    obj = MyClass.new
+    obj.my_method
+
+    but_what_is object
+    # Spoiler alert: there is no `but_what_is' method
+
+= slide 'Класове и инстанции', 'как изглежда?' do
+  img src="12/instances-and-classes.svg" style="width: 80%"
+
+= slide 'Инстанции', 'полета (instance variables)' do
+  annotate:
+    class MyClass
+      def initialize
+        @a = 1
+        @b = 2
+      end
+    end
+
+    MyClass.new.instance_variables # =>
+
+= slide 'Инстанции', 'instance_variable_[gs]et' do
+  annotate:
+    class Person
+      def approximate_age
+        2011 - @birth_year
+      end
+    end
+
+    person = Person.new
+    person.instance_variables # =>
+
+    person.instance_variable_set :@birth_year, 1989
+    person.approximate_age # =>
+
+    person.instance_variable_get :@birth_year # =>
+
+= slide 'Класове' do
+  list:
+    Всеки клас дефинира методи
+    Тези методи са достъпни на инстанциите му
+    Отделно, класът е обект...
+    ...и има собствени методи
+    Има разлика, между методите на обекта клас и методите на неговите инстанции
+
+= slide 'Класове', 'инстанции' do
+  p Можете да вземете класа на всеки обект с <code>Object#class</code>.
+
+  annotate:
+    "abc".class              # =>
+    "abc".class.class        # =>
+    "abc".class.class.class  # =>
+
+= slide 'Класове', 'методи' do
+  annotate:
+    String.instance_methods == "abc".methods # =>
+    String.methods          == "abc".methods # =>
+
+    "abc".length     # =>
+    String.length    #!
+
+    String.ancestors # =>
+    "abc".ancestors  #!
+
+= slide 'Клас', '...и алтер-егото му, суперклас (superklaus в Германия)' do
+  p Можете да вземете родителския клас с <code>Object#superclass</code>.
+
+  annotate:
+    class A; end
+    class B < A; end
+    class C < B; end
+
+    C.superclass                       # =>
+    C.superclass.superclass            # =>
+    C.superclass.superclass.superclass # =>
+
+= slide 'Класове', 'и модули' do
+  list:
+    Нали ви казах, че инстанциите пазят полета, пък класовете - методи?
+    Е, модулите също пазят методи
+    Всъщност, `Class` е наследник на `Module`
+    Още <code>Class.superclass == Module</code>
+    Още известно като <code>Class < Module</code>
+    Спомнете си ancestor chain-а. Всичко в него е модул
+    <strong>В Ruby, данните се пазят в обекти, а кодът - в модули</strong>
+
+= slide 'Проста визуализация' do
+  img src="12/classes-and-superclasses.svg" style="width: 80%"
+
+= slide 'По-сложна визуализация' do
+  img src="12/classes-and-superclasses-2.svg" style="width: 80%"
+
+= slide 'BasicObject', 'истинският Object' do
+  p <code>BasicObject</code> идва в Ruby 1.9 и е много опростена версия на <code>Object</code>.
+  p Подходящ е за <code>method_missing</code> магарии
+
+  annotate:
+    Object.instance_methods.count      # =>
+    BasicObject.instance_methods.count # =>
+
+    m = BasicObject.instance_methods.join(', ')
+    m # =>
+
+  p.action
+    ' Което ни навежда на следващия въпрос - <code>instance_eval</code>
+
+= slide 'Object#instance_eval' do
+  list:
+    Всеки Ruby израз има някакъв неявен <code>self</code>
+    Този <code>self</code> се ползва за полета (<code>@foo</code>) и търсене на методи (<code>bar()</code>).
+    Може да го наричаме "текущ обект"
+    <code>instance_eval</code> променя <code>self</code> в рамките на един блок
+
+= slide 'Object#instance_eval', 'пример' do
+  annotate:
+    class Person
+      private
+      def greeting() "I am #{@name}" end
+    end
+
+    mityo = Person.new
+    mityo.instance_eval do
+      @name = 'Mityo'
+
+      greeting # =>
+      self     # =>
+    end
+
+    self       # =>
+
+    mityo.instance_variable_get :@name # =>
+
+= slide 'Object#instance_exec', '...по-добрия instance_eval' do
+  p <code>instance_exec</code> е като <code>instance_eval</code>, но позволява да давате параметри на блока.
+
+  annotate:
+    obj = Object.new
+    set = ->(value) { @x = value }
+
+    obj.instance_exec(42, &set)
+
+    obj.instance_variable_get :@x  # =>
+    obj.instance_eval { @x }       # =>
+
+  p Това е смислено, когато блока се подава с <code>&</code>. Иначе няма нужда.
+
+= slide 'Текущ клас' do
+  list:
+    Освен текущ обект, има и текущ клас
+    Това е класът, в който се дефинират методите с <code>def</code>
+    Няма ключова дума, която да ви го покаже
+    Следи се лесно
+    Ключовите думи <code>class</code> и <code>module</code> го променят
+
+= slide 'Текущ клас', 'пример' do
+  annotate:
+    def foo() end   # Тук е Object
+
+    class Something
+      def bar() end # Тук е Something
+
+      class OrOther
+        def baz() end # Тук е Something::OrOther
+      end
+    end
+
+= slide 'Текущ клас', '...впрочем' do
+  annotate:
+    class Something
+      def foo
+        def bar
+          6 * 9
+        end
+
+        bar - 12
+      end
+    end
+
+    something = Something.new
+    something.foo # =>
+    something.bar # =>
+
+= slide 'Module#class_eval' do
+  p <code>class_eval</code> променя <code>self</code> и текущия клас
+
+  annotate:
+    def monkey_patch_string
+      String.class_eval do
+        self # =>
+
+        def answer
+          42
+        end
+      end
+    end
+
+    "abc".respond_to? :answer # =>
+    monkey_patch_string
+    "abc".respond_to? :answer # =>
+
+= slide 'Module#module_eval' do
+  p <code>Module#module_eval</code> е синоним на <code>Module#class_eval</code>.
+
+= slide 'Три сходни методи' do
+  ul
+    li send
+    li method_missing
+    li define_method
+
+= slide 'Module#define_method' do
+  annotate:
+    class Something
+      define_method :foo do |arg|
+        "!#{arg}! :)"
+      end
+    end
+
+    Something.new.foo('a') # =>
+
+= slide 'Module#define_method (2)' do
+  annotate:
+    class Something
+      METASYNTACTIC = %w[foo bar baz]
+
+      METASYNTACTIC.each do |name|
+        define_method name do |arg|
+          "!#{arg}! :)"
+        end
+      end
+    end
+
+    Something.new.bar('a') # =>
+    Something.new.baz('a') # =>
+
+= slide 'Class.new' do
+  p С <code>Class.new</code> може да създадете анонимен клас
+
+  annotate:
+    anonymous = Class.new do
+      def answer
+        42
+      end
+    end
+
+    instance = anonymous.new
+    instance.answer # =>
+
+    anonymous # =>
+
+= slide 'Class.new', 'с константа' do
+  p Ако присвоите <code>Class.new</code> на константа, стават магии
+
+  annotate:
+    first  = Class.new {}
+    SECOND = Class.new {}
+
+    first  # =>
+    SECOND # =>
+
+  p Името на класа се променя. Любопитно.
+
+= slide 'Module.new' do
+  p Прави същото като <code>Class.new</code>, ама с модул
+
+= slide 'eval' do
+  p <code>eval(text)</code> изпълнява код в низ
+
+  annotate:
+    things = []
+    eval 'things << 42'
+    things    # =>
+
+= slide 'Binding' do
+  list:
+    Всеки Ruby израз има достъп до някакви променливи
+    Сборът от тези променливи се нарича "binding"
+    Това е доста популярна думичка
+    Можете да вземете обект, който представлява binding
+    И да изпълнявате код върху него
+
+= slide 'Kernel#binding' do
+  annotate:
+    x = 1_024
+
+    vars = binding
+
+    vars           # =>
+    vars.eval('x') # =>
+
+= slide 'Kernel#binding (2)' do
+  example:
+    x = 1_024
+
+    def foo
+      y = 42
+      binding
+    end
+
+    vars = foo
+    vars.eval('y') # 42
+    vars.eval('x') # error: NameError
+
+= slide 'Binding', 'вложеност' do
+  list:
+    Най-просто, това е лексикалният scope в момента
+    Всеки блок вижда променливите в блока, в който се съдържа
+    Ако блокът дефинира нова променлива, тя не отива в "родителските" му блокове
+    Ако промени текуща променлива, промяната остава
+    Помните ли scope gate-овете?
+
+= slide 'Scope gates' do
+  p <code>module</code>, <code>class</code> и <code>def</code> секват binding-а
+
+  example:
+    top_level = 1
+    module Something
+      in_module = 2
+      class Other
+        in_class = 3
+        def larodi
+          top_level # error: NameError
+          in_module # error: NameError
+          in_class  # error: NameError
+        end
+      end
+    end
+
+    Something::Other.new.larodi
+
+= slide 'Scope gates', 'заобикаляне' do
+  p Scope gate-овете могат да се заобиколят с <code>define_method</code>, <code>Class.new</code> и <code>Module.new</code>.
+
+= slide 'Scope gates', 'define_method' do
+  example:
+    top_level = 1
+    module Something
+      in_module = 2
+      class Other
+        in_class = 3
+        define_method :larodi do
+          top_level # error: NameError
+          in_module # error: NameError
+          in_class  # 3
+        end
+      end
+    end
+
+    Something::Other.new.larodi
+
+= slide 'Scope gates', 'Class.new' do
+  example:
+    top_level = 1
+    module Something
+      in_module = 2
+      Other = Class.new do
+        in_class = 3
+        define_method :larodi do
+          top_level # error: NameError
+          in_module # 2
+          in_class  # 3
+        end
+      end
+    end
+
+    Something::Other.new.larodi
+
+= slide 'Scope gates', 'Module.new' do
+  example:
+    top_level = 1
+    Something = Module.new do
+      in_module = 2
+      Other = Class.new do
+        in_class = 3
+        define_method :larodi do
+          top_level # 1
+          in_module # 2
+          in_class  # 3
+        end
+      end
+    end
+
+    Other.new.larodi
+
+= slide 'Използване на BasicObject за създаване на „прокси“' do
+  annotate:
+    class Proxy < BasicObject
+      def initialize(obj)
+        @instance = obj
+      end
+
+      def method_missing(name, *args, &block)
+        $stdout.puts "Calling #{ name } with (#{ args.join(', ') })"
+        @instance.send(name, *args)
+      end
+    end
+
+    a = []
+    b = Proxy.new a
+
+    b.length # =>
