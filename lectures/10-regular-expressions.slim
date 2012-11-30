@@ -266,7 +266,7 @@
   annotate:
     log_entry = "[2011-07-22 15:42:12] - GET / HTTP/1.1 200 OK"
 
-    if log_entry =~ /\bHTTP\/1.1 (\d+)/
+    if log_entry =~ /\bHTTP\/1\.1 (\d+)/
       request_status = $1.to_i # =>
     else
       raise "Malformed log entry!"
@@ -350,7 +350,7 @@
 
 = slide 'Примерно решение', 'с рекурсивни групи' do
   annotate:
-    validator = /^(\(car \g<1>*\w*\))*$/
+    validator = /^(\(car (\g<1>*|\w*)\))*$/
 
     valid   = '(car (car (car (car list))))'
     invalid = '(car (car (car list))'
