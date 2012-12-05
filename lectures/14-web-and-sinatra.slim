@@ -390,6 +390,22 @@
     Тогава важат същите правила като при `get 'route'`, `post 'route'`, ...
     С `before` може да спрете изпълнението на request-а
     С `after` може да модифицирате резултата, върнат от даден маршрут
+    Доста подобно на Rack middleware...
+
+= slide 'Rack middleware в Sinatra' do
+  list:
+    Може да ползвате всякакъв Rack middleware във вашето Sinatra приложение
+    Става с DSL-метода `use SomeMiddleware`
+    Например, `use Rack::Runtime`, или `use Rack::Chunked`...
+
+= slide 'Контекст на оценка на маршрутите' do
+  list:
+    Блокът на всеки маршрут се оценява в контекста на инстанция на някакъв обект
+    В контекта на същата инстанция се оценяват и филтрите
+    Всеки request си има собствена такава инстанция
+    Животът на една таква инстанция е, общо-взето, един request
+    Следователно, може да споделяте инстанционни променливи между блоковете, в рамките на един request
+    Инстанцията е на класа `Sinatra::Application` (подробности за това по-късно)
 
 = slide 'halt, pass и redirect' do
   list:
@@ -425,16 +441,16 @@
 
 = slide 'Рендериране' do
   list:
-    Може да им предавате данни посредством инстанционни променливи
     Викат се с `template_handler_name :path_to_template`
+    Връщат текстов низ с рендерирания темплейт
     Името на темплейта трябва да е символ
     Ако подадете низ на template handler, Sinatra ще реши, че подавате съдържанието на темплейта
-    Например, `markdown '# This is a heading!'` ще ви върне `'<h1>This is a heading!</h1>'`
+    Например, `markdown '# This is a heading!'` ще ви върне `'&lt;h1&gt;This is a heading!&lt;/h1&gt;'`
 
 = slide 'Вградени темплейти' do
   list:
     Вградените темплейти се намират редом до вашия код
-    След символ `__END__`
+    След стандартния маркер за край на Ruby код `__END__`
     Именовани са с нещо като клас променливи:
     `@@template_name`
 
@@ -486,32 +502,42 @@
     `not_found { handle 404 errors }`
     `error { handle internal server errors }`
 
-= slide 'Конфигурационния блок' do
+= slide 'Конфигурационният блок' do
   list:
     Конфигурирате в блок, подаден на `configure`
     Става със `set :option, 'value'`
     Има и `enable/disable :option`
-    Горното е синтаксис за `set :option true/false`
+    Горното е синтаксис за `set :option, true/false`
     Достъпно през `settings`
     Environment-aware
+
+= slide 'Environment' do
+  list:
+    Условен етикет, обозначаващ в каква среда се изпълнява приложението
+    Например `production`, `development`, `test`, ...
+    По подразбиране е `development`
+    Може да се промени със задаване стойност на променливата на обкръжението `RACK_ENV`
+    Напрimer `export RACK_ENV="production"` в `~/.bashrc`, ако сте на Unix и ползвате Bash
 
 = slide 'Конфигурационен блок' do
   example:
     configure do
+      # Важи за всички обкръжения
       set :public_folder, File.expand_path('../assets', __FILE__)
       set :my_custom_var, 'bar'
     end
 
     configure :production do
+      # Важи само за "production" обкръжение
       set :public_folder, '/var/www/assets'
     end
 
 = slide 'Конфигурационен блок' do
   list:
     Ако подадете блок на `set`, ще получите "динамична" опция
-    Дефинира се getter, setter и предикат (`foo`, `foo=` и `foo?`)
-    `set` всъщност дефинира класови методи в класа `Sinatra::Application`
-    Има и класов, и инстанционен метод `settings`, който просто връща `self`
+    Дефинира getter, setter и предикат (`foo`, `foo=` и `foo?`)
+    `set` всъщност дефинира тези методи като класови в `Sinatra::Application`
+    За удобство, има и инстанционен, и класов метод `settings` (връщат `self`)
     Може да го достъпвате и в DSL-а (класов контекст)
     Може и в маршрути и изгледи (инстанционен контекст)
 
