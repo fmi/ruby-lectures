@@ -488,15 +488,94 @@
 
 = slide 'Конфигурационния блок' do
   list:
-    TODO
+    Конфигурирате в блок, подаден на `configure`
+    Става със `set :option, 'value'`
+    Има и `enable/disable :option`
+    Горното е синтаксис за `set :option true/false`
+    Достъпно през `settings`
+    Environment-aware
 
-= slide 'Сесии' do
+= slide 'Конфигурационен блок' do
+  example:
+    configure do
+      set :public_folder, File.expand_path('../assets', __FILE__)
+      set :my_custom_var, 'bar'
+    end
+
+    configure :production do
+      set :public_folder, '/var/www/assets'
+    end
+
+= slide 'Конфигурационен блок' do
   list:
-    TODO
+    Ако подадете блок на `set`, ще получите "динамична" опция
+    Дефинира се getter, setter и предикат (`foo`, `foo=` и `foo?`)
+    `set` всъщност дефинира класови методи в класа `Sinatra::Application`
+    Има и класов, и инстанционен метод `settings`, който просто връща `self`
+    Може да го достъпвате и в DSL-а (класов контекст)
+    Може и в маршрути и изгледи (инстанционен контекст)
+
+= slide 'headers, request и response' do
+  list:
+    `headers` ви позволява да задавате хедъри на отовора към клиента
+    `request` е обект, обгръщащ `env` (което идва от Rack)
+    `response` е обект, с който може да манипулирате отговора при нужда
+
+= slide 'Методи на request (1)' do
+  pre
+    |
+      request.accept              # ['text/html', '*/*']
+      request.accept? 'text/xml'  # true
+      request.preferred_type(t)   # 'text/html'
+      request.body                # request body sent by the client (see below)
+      request.scheme              # "http"
+      request.script_name         # "/example"
+      request.path_info           # "/foo"
+      request.port                # 80
+      request.request_method      # "GET"
+      request.query_string        # ""
+      request.content_length      # length of request.body
+      request.media_type          # media type of request.body
+      request.host                # "example.com"
+
+= slide 'Методи на request (2)' do
+  pre
+    |
+      request.get?                # true (similar methods for other verbs)
+      request.form_data?          # false
+      request["SOME_HEADER"]      # value of SOME_HEADER header
+      request.referrer            # the referrer of the client or '/'
+      request.user_agent          # user agent (used by :agent condition)
+      request.cookies             # hash of browser cookies
+      request.xhr?                # is this an ajax request?
+      request.url                 # "http://example.com/example/foo"
+      request.path                # "/example/foo"
+      request.ip                  # client IP address
+      request.secure?             # false (would be true over ssl)
+      request.forwarded?          # true (if running behind a reverse proxy)
+      request.env                 # raw env hash handed in by Rack
 
 = slide 'Бисквитки', 'cookies' do
   list:
-    TODO
+    Достъпни през `request.cookies` (връща хеш)
+    Манипулация чрез `response.set_cookie` и `response.delete_cookie`
+    Не тъпчете много данни там, лашкат се напред-назад с всеки request
+
+= slide 'Сесии' do
+  list:
+    Трябва да ги разрешите с `configure { enable :sessions }`
+    Достъп през метода `session`
+    Пазят се в cookie (казва се `rack.session`)
+    Криптирани са и ключът се генерира автоматично при старт на приложението
+    Може да бъде променен чрез `set :session_secret, 'foo'`
+    Не прекалявайте с обема данни при cookie-базираното съхранение
+
+= slide 'Кеширане' do
+  list:
+    Sinatra дава няколко помощни метода за задаване стойности на HTTP caching хедори
+    `expires` (клиентът праща `If-Modified-Since`)
+    `cache_control`
+    `etag` (слага `ETag`, клиентът праща `If-None-Match`)
 
 = slide 'Стрийминг' do
   list:
@@ -504,9 +583,35 @@
     Ползвйте Thin, а не WEBrick
     Два вида: краен и безкраен стрийминг
 
-= slide 'Стрийминг', 'пример' do
+= slide 'Краен стрийминг', 'пример' do
   example:
-    # TODO
+    get '/stream' do
+      stream do |connection|
+        connection << "Start of the stream\n"
+        sleep 1
+        connection << "Some more data\n"
+        sleep 1
+        connection << "And even more data\n"
+      end
+    end
+
+= slide 'Безкраен стрийминг', 'пример' do
+  example:
+    subscribers = []
+    get '/listen' do
+      stream :keep_open do |subscriber|
+        subscriber << "Welcome!\n"
+        subscribers << subscriber
+      end
+    end
+
+    get '/broadcast/:message' do
+      message = params[:message]
+      subscribers.each do |subscriber|
+        subscriber << "#{Time.now}: #{message}\n"
+      end
+      "Message #{message} sent.\n"
+    end
 
 = slide 'Модулен стил' do
   list:
