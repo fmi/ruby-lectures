@@ -295,7 +295,7 @@
   p Какво става, ако поискаме несъществуващ адрес?
 
 = slide 'Грешки: 404' do
-  img src="14/404.png"
+  img src="14/404.png" style="max-width: 90%; max-height: 70%;"
 
 = slide 'Грешки' do
   list:
@@ -319,6 +319,12 @@
     Query string параметри
     Параметри от тялото на post-заявка
 
+= slide 'Параметри в URL-а' do
+  example:
+    get '/greet/:name' do
+      "Hey there, #{params[:name]}!"
+    end
+
 = slide 'Wildcard маршрути и приоритет' do
   list:
     Може да ползвате `*` в дефиниця на маршрут
@@ -329,15 +335,50 @@
 
 = slide 'Камък, ножица, хартия', 'малко по-голям пример' do
   list:
-    TODO
+    Сваляте <a href="14/game.rb" target="_blank">game.rb</a>
+    Пускате с `ruby game.rb`
+    Играете на <a href="http://localhost:4567/play/paper">localhost:4567/play/some_move</a>
 
-= slide '' do
-  list:
-    TODO
+= slide 'Камък, ножица, хартия (2)' do
+  example:
+    require 'sinatra'
 
-= slide '' do
-  list:
-    TODO
+    before do
+      content_type :txt
+      @moves = {rock: :scissors, paper: :rock, scissors: :paper}
+    end
+
+    get '/play/:move' do
+      # Игрова логика
+    end
+
+= slide 'Камък, ножица, хартия (3)' do
+  example:
+    get '/play/:move' do
+      # Внимавайте с #to_sym на произволни низове!
+      player_move = params[:move].to_sym
+
+      unless @moves.has_key?(player_move)
+        valid_moves = @moves.keys.map(&:to_s).join(', ')
+        halt 403, "You must throw one of the following: #{valid_moves}"
+      end
+    end
+
+= slide 'Камък, ножица, хартия (4)' do
+  example:
+    get '/play/:move' do
+      # Проверка за валиден ход...
+
+      computer_move = @moves.keys.sample
+
+      if player_move == computer_move
+        "Oh, my!\nIt's a tie!"
+      elsif computer_move == @moves[player_move]
+        "Nicely done, #{player_move} beats #{computer_move}!"
+      else
+        "Ouch... You got trashed, #{computer_move} beats #{player_move}. Better luck next time!"
+      end
+    end
 
 = slide '' do
   list:
