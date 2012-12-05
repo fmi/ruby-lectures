@@ -230,6 +230,7 @@
     |
       Sinatra is a domain-specific language for building websites, web services, and web applications in Ruby. It emphasizes a minimalistic approach to development, offering only what is essential to handle HTTP requests and deliver responses to clients.
   p — Из "Sinatra Up and Running"
+  p Официален сайт: <a href="http://www.sinatrarb.com/">sinatrarb.com</a>, GitHub проект: #{github_repo 'sinatra/sinatra'}
 
 = slide 'Sinatra' do
   list:
@@ -332,6 +333,7 @@
     Ще е достъпно през `params[:splat]`
     Оценката на маршрутите спира след "първото достатъчно съвпадение"
     Приоритетът е отгоре надолу, т.е. в реда, в който сте ги дефинирали
+    Може да подадете и регулярен израз като параметър на `get`, `post`, ...
 
 = slide 'Камък, ножица, хартия', 'малко по-голям пример' do
   list:
@@ -380,33 +382,141 @@
       end
     end
 
-= slide '' do
+= slide 'Филтри' do
+  list:
+    `before` и `after` такива
+    По подразбиране се изпълняват за всеки request
+    Може да им се даде опционален път, само за който да се изпълняват
+    Тогава важат същите правила като при `get 'route'`, `post 'route'`, ...
+    С `before` може да спрете изпълнението на request-а
+    С `after` може да модифицирате резултата, върнат от даден маршрут
+
+= slide 'halt, pass и redirect' do
+  list:
+    `halt` прекратява обработката на request-а и връща отговор
+    Опционално приема HTTP статус код, и също опционално, текст, който да върне
+    `pass` предава изпълнението на следващия маршрут, според приоритета
+    `redirect` кара HTTP клиента да зареди нов URL
+    Последното слага един header и след това вика `halt` вътрешно
+    Може да подадете аргументи на `redirect` за да укажете дали е временен или траен
+
+= slide 'Статични файлове' do
+  list:
+    Sinatra сервира статични файлове автоматично, ако сте ги сложили в папка `public`
+    Ако имате `public/foo/bar.js` редом до вашето приложение, следното ще работи:
+    http://localhost:4567/foo/bar.js (забележете, че `public` липсва от пътя)
+    В случай на конфликт, статичните файлове са с по-висок приоритет от вашите маршрути
+    Може да промените къде се търсят тези файлове с конфигурационна опция
+
+= slide 'Динамични изгледи', 'още темплейти' do
+  list:
+    Sinatra ползва Tilt
+    Tilt: "Generic interface to multiple Ruby template engines"
+    Чрез него ви дава достъп до купчина темплейтни формати
+    Erb, Haml, Slim, Markdown, ...
+    Могат да бъдат вградени или външни
+
+= slide 'Динамични изгледи', 'пример' do
+  example:
+    get '/' do
+      # Ще върне низ с рендерирания Erb темплейт, кръстен "index"
+      erb :index
+    end
+
+= slide 'Рендериране' do
+  list:
+    Може да им предавате данни посредством инстанционни променливи
+    Викат се с `template_handler_name :path_to_template`
+    Името на темплейта трябва да е символ
+    Ако подадете низ на template handler, Sinatra ще реши, че подавате съдържанието на темплейта
+    Например, `markdown '# This is a heading!'` ще ви върне `'<h1>This is a heading!</h1>'`
+
+= slide 'Вградени темплейти' do
+  list:
+    Вградените темплейти се намират редом до вашия код
+    След символ `__END__`
+    Именовани са с нещо като клас променливи:
+    `@@template_name`
+
+= slide 'Вградени темплейти' do
+  example:
+    get '/' do
+      erb :index
+    end
+
+    __END__
+
+    @@index
+    <h1>Hey, there!</h1>
+    <p>The time now is <%= Time.now %></p>
+
+= slide 'Външни темплейти' do
+  list:
+    Търсят се в папката `views/` по подразбиране
+    Това може да се промени с конфигурационна опция
+    `erb :index` ще търси `views/index.erb`
+    С `erb :'users/show'` ще рендерирате `views/users/show.erb`
+    Забележете, че "името трябва да се подаде като символ
+
+= slide 'Предаване на данни към темплейтите' do
+  list:
+    `self`-ът на маршрутите и на view-тата е един и същ
+    Може да предавате данни по два основни начина:
+    С инстанционни променливи
+    С опцията `:locals`, подадена на template handler-а
+
+= slide 'Предаване на данни към темплейтите' do
+  example:
+    get '/posts/:id' do
+      @info = "This is post ID #{params[:id]}"
+      erb :post, locals: {title: 'My Blog'}
+    end
+
+    __END__
+
+    @@post
+    <h1><%= title %></h1>
+    <p><%= @info %></p>
+
+= slide 'Прихващане на грешки' do
+  list:
+    Както казахме, Sinatra прихваща 404 и 500
+    Може да промените поведението по подразбиране като ги прихванете
+    Това става с DSL-методите `not_found` и `error`:
+    `not_found { handle 404 errors }`
+    `error { handle internal server errors }`
+
+= slide 'Конфигурационния блок' do
   list:
     TODO
 
-= slide '' do
+= slide 'Сесии' do
   list:
     TODO
 
-= slide '' do
+= slide 'Бисквитки', 'cookies' do
   list:
     TODO
 
-= slide '' do
+= slide 'Стрийминг' do
   list:
-    TODO
+    От Sinatra 1.3.0
+    Ползвйте Thin, а не WEBrick
+    Два вида: краен и безкраен стрийминг
 
-= slide '' do
-  list:
-    TODO
+= slide 'Стрийминг', 'пример' do
+  example:
+    # TODO
 
-= slide '' do
+= slide 'Модулен стил' do
   list:
-    TODO
+    Без top-level DSL
+    `require 'sinatra/base'` вместо `require 'sinatra'`
+    `class MyApp < Sinatra::Base ... end`
 
-= slide '' do
-  list:
-    TODO
+= slide 'Модулен стил', 'пример' do
+  example:
+    # TODO
 
 = slide 'sinatra-contrib' do
   blockquote Collection of common Sinatra extensions, semi-officially supported.
@@ -414,6 +524,7 @@
 
 = slide 'Повече информация' do
   list:
+    <a href="http://www.sinatrarb.com/intro.html">README-то в официалния сайт</a>
     Книгата "Sinatra Up and Running" на O'Reilly
     (Тя е за Sinatra 1.3.0, в момента latest stable е 1.3.3, dev branch 1.4.0)
     Кодът на самия <a href="https://github.com/sinatra/sinatra">проект в GitHub</a>
