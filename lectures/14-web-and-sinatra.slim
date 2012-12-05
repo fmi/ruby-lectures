@@ -1,0 +1,244 @@
+= slide 'Днес' do
+  list:
+    Програмиране за web с Ruby
+    HTTP сървъри, deployment и Rack
+    Sinatra
+
+= slide 'Преди това', 'въпроси около метапрограмиране и обектния модел в Ruby' do
+  p Споделете поне три различни начина за дефиниране инстанционни методи в клас.
+
+  .answer
+    list:
+      `def something; end`
+      `define_method :something { |args| }`
+      `eval()`
+
+= slide 'Въпрос 2' do
+  p Какво прави <code>instance_eval</code>?
+
+  .answer.action
+    p <code>instance_eval</code> променя <code>self</code> в рамките на един блок
+
+= slide 'Въпрос 3' do
+  p Ако искате да напишете клас-прокси, кой ще бъде родителският ви клас?
+
+  .answer
+    list:
+      `BasicObject`
+      Защо не `Object`?
+      В `Object` има твърде много методи, за разлика от `BasicObject`
+
+= slide 'Въпрос 4' do
+  p Как могат да се създават анонимни класове и/или модули?
+
+  .answer.action
+    p Посредством <code>Class.new { block }</code> и <code>Module.new { block }</code>
+
+= slide 'Въпрос 5' do
+  p Що е то <code>singleton class</code> на обект? Какво знаете за него?
+
+  .answer
+    list:
+      За всеки обект при нужда се създава специален клас, наречен singleton class
+      Съдържа методите, добавени специално към този обект
+      Известен е още като metaclass, eigenclass и собствен клас
+      `Symbol` и `Fixnum` нямат собствени класове
+
+= slide 'Въпрос 6' do
+  p 1. Къде се пазят инстанционните методи?
+  p.action.answer В модули (класове).
+  p.action 2. Къде се пазят инстанционните методи, уникални за дадена инстанция?
+  p.action.answer В специално създадения за нея singleton клас.
+
+= slide 'Въпрос 7' do
+  p 1. Къде се пазят класовите методи? Защо?
+  p.action.answer
+    | В singleton класа на текущия клас. Защото всеки клас е обект (инстанция) от тип
+      <code>Class</code> и всички "класови" методи, които има, са всъщност инстанционни,
+      уникални за тази конкретна инстанция на <code>Class</code>.
+  p.action 2. Ако имаме <code>class A; end</code> и <code>class B < A; end</code>, то какво е <code>B.singleton_class.superclass</code>?
+  p.action.answer Родителският клас на <code>B.singleton_class</code> е <code>A.singleton_class</code>.
+
+= slide 'Уеб с Ruby' do
+  list:
+    Много подходящ за тази цел
+    Популярен главно заради <a href="http://rubyonrails.org/">Ruby on Rails</a>
+    Има и други начини за писане на уеб с Ruby
+
+= slide 'Как работи?' do
+  list:
+    Клиент (браузър) → HTTP сървър → Ruby (Rack) → Ruby (App)
+    "Ruby (App)" обикновено е вашият код + някаква друга библиотека за уеб (Rails, Sinatra, ...)
+    Допустими е и HTTP сървърът да е на Ruby
+    Последното се прави обикновено само в development режим
+    Какво е Rack?
+
+= slide 'Rack' do
+  blockquote
+    | Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
+  p.action Rack в GitHub: #{github_repo 'rack/rack'}
+
+= slide 'Примерно Rack-приложение' do
+  p Запазете следния код във файл <code>config.ru</code> и пуснете с <code>rackup config.ru</code>
+  example:
+    hello_world_app = proc do |env|
+      [200, {'Content-Type'   => 'text/plain'}, ['Hello, World!']]
+    end
+
+    run hello_world_app
+
+= slide 'Вход' do
+  list:
+    За вход вашето Rack-приложение приема единствен аргумент - `env`
+    Той съдържа хеш с всичката ви необходима информация, за да отговорите
+    Cookies, информация за клиента (браузъра), налични сесии, информация за сървъра...
+
+= slide 'Вход', 'нека го инспектираме' do
+  example:
+    dump_env = proc do |env|
+      body = env.map { |key, value| "#{key}: #{value}" }.join("\n")
+      [200, {'Content-Type'   => 'text/plain'}, [body]]
+    end
+
+    run dump_env
+
+= slide 'Вход' do
+  pre
+    |
+      SERVER_SOFTWARE: thin 1.3.1 codename Triple Espresso
+      SERVER_NAME: localhost
+      rack.input: #&lt;Rack::Lint::InputWrapper:0x007fbe7b8484b0&gt;
+      rack.version: [1, 0]
+      rack.errors: #&lt;Rack::Lint::ErrorWrapper:0x007fbe7b848438&gt;
+      rack.multithread: false
+      rack.multiprocess: false
+      rack.run_once: false
+      REQUEST_METHOD: GET
+      REQUEST_PATH: /
+      PATH_INFO: /
+      REQUEST_URI: /
+      HTTP_VERSION: HTTP/1.1
+      HTTP_HOST: localhost:9292
+      HTTP_CONNECTION: keep-alive
+      HTTP_CACHE_CONTROL: max-age=0
+      HTTP_USER_AGENT: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11
+      HTTP_ACCEPT: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+      HTTP_ACCEPT_ENCODING: gzip,deflate,sdch
+      HTTP_ACCEPT_LANGUAGE: en-US,en;q=0.8
+      HTTP_ACCEPT_CHARSET: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+      GATEWAY_INTERFACE: CGI/1.2
+      SERVER_PORT: 9292
+      QUERY_STRING: 
+      SERVER_PROTOCOL: HTTP/1.1
+      rack.url_scheme: http
+      SCRIPT_NAME: 
+      REMOTE_ADDR: 127.0.0.1
+      async.callback: #&lt;Method: Thin::Connection#post_process&gt;
+      async.close: #&lt;EventMachine::DefaultDeferrable:0x007fbe7b8443b0&gt;
+
+= slide 'Изход' do
+  list:
+    Трябва да върнете списък с три елемента:
+    `[http_status_code, headers, content]`
+    `http_status_code` е число, по HTTP спецификацията (напр. 200 или 404)
+    `headers` е хеш с HTTP хедъри
+    `content` е нещо, което трябва да отговаря на `each` и да връща парчета данни
+
+= slide 'The Rack lobster' do
+  list:
+    Малко примерно Rack приложение
+    Свалете <a href="14/lobster.rb" target="_blank">lobster.rb</a> и <a href="14/lobster.ru" target="_blank">lobster.ru</a>
+    Пуснете го с `rackup lobster.ru`
+    Отворете <a href="http://localhost:9292/" target="_blank">localhost:9292</a>
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
+
+= slide '' do
+  list:
+    TODO
