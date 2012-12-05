@@ -618,10 +618,37 @@
     Без top-level DSL
     `require 'sinatra/base'` вместо `require 'sinatra'`
     `class MyApp < Sinatra::Base ... end`
+    DSL-ът вика методи от `Sinatra::Base`
+    Следователно, в контекста на нашия клас, все още можем да го ползваме
 
-= slide 'Модулен стил', 'пример' do
+= slide 'Модулен стил', 'работещ пример' do
   example:
-    # TODO
+    require 'sinatra/base'
+
+    class Welcome < Sinatra::Base
+      get '/' do
+        'Welcome to modular Sinatra!'
+      end
+
+      run!
+    end
+
+= slide 'Модулен стил', 'псевдо-пример' do
+  example:
+    class Blog < Sinatra::Base
+      set :root, 'some/path'
+
+      Article.each do |article|
+        get "/#{article.slug}" do
+          erb :post, locals: {article: article}
+        end
+      end
+
+      get '/' do
+        @articles = Article.all_sorted_by_publish_date
+        erb :index
+      end
+    end
 
 = slide 'sinatra-contrib' do
   blockquote Collection of common Sinatra extensions, semi-officially supported.
