@@ -1,0 +1,139 @@
+= slide 'Днес' do
+  list:
+    Фреймуъркът "Ruby on Rails" — общ поглед, функционалност, компоненти, архитектура, демонстрация
+
+= slide 'Rails', 'Що е то?' do
+  list:
+    Фреймуърк
+    Дава солидна основа за разработка на уеб-приложения
+    Спестява ви значително количество хамалогия
+    Прави ви по-щастливи уеб-програмисти :)
+
+= slide 'Защо Rails?' do
+  list:
+    Защо да ползваме Ruby on Rails? Защо Ruby?
+    "Целта на Ruby е да прави програмистите щастливи." — Мацумото Юкихиро
+    "Rails is the killer app for Ruby." — Мацумото Юкихиро
+    Качество
+    Иновативност
+    Сигурност и производителност
+    Community
+
+= slide 'Принципи' do
+  list:
+    Convention over configuration
+    DRY
+    TDD/BDD
+    REST (Representational state transfer)
+    Много, удобни DSL-и
+    Получавате пълен комплект (дори с включени батерии :)
+
+= slide 'Възможности', 'aka "фийчъри"' do
+  list:
+    Open-source!
+    Готови адаптери за работа с бази данни, плюс ORM-та; дори можете да минете без да пишете SQL
+    Добре се интегрира в Unix/Linux-среди (command-line управление, Rails console, Rake задачи и т.н.)
+    Environments: разграничаване на различните среди, в които работи вашето приложение — режим на разработка (development), по време на изпълнение на тестове (test) или по време на реална работа (production); може да имате и други environments
+    Database migrations
+    Вградена възможност за I18n (интернационализация и многоезичност)
+    Където има нужда от конфигурация, може да ползвате удобния YAML-формат за целта
+    Asset Pipeline
+    Интеграция на неща като CoffeeScript и SASS
+
+= slide 'Възможности (2)' do
+  list:
+    Чиста и консистентна схема за дефиниране на routes на приложението
+    Валидации на данните, идващи от форми
+    Вградено управление на сигурни сесии (криптирани)
+    Full-blown caching — page, action, fragment
+    Управление на layout-и (headers & footers)
+    Управление на рендериращи формати (.html, .js, .xml и т.н.)
+    Множество помощна функционалност за генериране на форми, URL-и и различни HTML-компоненти
+    Вградена поддръжка на AJAX-форми и линкове посредством `remote: true` (`data-remote="true"`)
+    Unobtrusive JavaScript — посредством адаптер, напр. rails.js; може да се ползва и друг
+    Много, много други
+
+= slide 'Кратка история' do
+  ul
+    li.action Създаден е от небезизвестния (вече) датчанин David Heinemeier Hansson (DHH)
+    li.action <a href="https://github.com/rails/rails/commit/db045dbbf60b53dbe013ef25554fd013baf88134">първият публичен commit на Rails е от ноември 2004 г.</a>
+    li.action Rails се е родил като изваден код от съществуващи проекти на фирмата на DHH (37 Signals), който е решавал generic проблеми, възникващи при разработката на уеб-приложения
+
+= slide 'Версии' do
+  ul
+    li.action Rails се разпространява под формата на няколко Ruby gem-а, обединени в един общ "meta gem" — <code>rails</code>
+    li.action Следва <a href="http://semver.org/">semantic versioning</a> схемата
+    li.action Най-новата версия към момента е в 3.1-клона — 3.1.3
+
+= slide 'Архитектура' do
+  list:
+    Вариант на MVC
+    ORM
+
+= slide 'Компоненти' do
+  list:
+    `Action Pack` — съставен от `Action Controller`, `Action Dispatch` и `Action View`
+    `Action Mailer` — изпращане на мейли по културен начин
+    `Active Model` — валидации, преводи, callback-функции и много други
+    `Active Record` — ORM към релационни бази от типа на PostgreSQL, MySQL, SQLite и т.н.
+    `Active Resource` — CRUD на отдалечени ресурси
+    `Active Support` — разширения на стандартната Ruby библиотека с различни благинки
+    `Railties` — код-лепило между отделните компоненти, документация, guides и прочее
+
+= slide 'Генериране на изгледи', 'в HTML или друг формат' do
+  list:
+    За това е отговорен `ActionView`
+    Налични са различни renderer-и
+    ERB (по подразбиране)
+    <a href="http://haml-lang.com/">Haml</a>
+    <a href="http://slim-lang.com/">Slim</a> и т.н.
+
+= slide 'Пример с ERB' do
+  example:
+    <div id="profile">
+      <div class="left column">
+        <div id="date"><%= print_date %></div>
+        <div id="address"><%= current_user.address %></div>
+      </div>
+      <div class="right column">
+        <div id="email"><%= current_user.email %></div>
+        <div id="bio"><%= current_user.bio %></div>
+      </div>
+    </div>
+
+= slide 'Пример с Haml' do
+  pre
+    | #profile
+      .left.column
+        #date= print_date
+        #address= current_user.address
+      .right.column
+        #email= current_user.email
+        #bio= current_user.bio
+
+= slide 'Пример със Slim' do
+  example:
+    doctype html
+    html
+      head
+        title Slim Core Example
+        meta name="keywords" content="template language"
+
+      body
+        h1 Markup examples
+
+        div id="content" class="example1"
+          p Nest by indentation
+
+= slide 'Демонстрация' do
+  ul
+    li Ще ви демонстрираме някои от нещата, които може Rails, като направим едно малко уеб-приложение
+    li Можете да намерите <a href="https://github.com/mitio/quizzes/tree/part-1">кода на приложението в GitHub</a> и да видите <a href="https://github.com/mitio/quizzes/commits/part-1">няколкото прости промени</a>, които направихме
+
+= slide 'Документация и ресурси' do
+  list:
+    Тонове из нета
+    <a href="https://github.com/rails/rails">https://github.com/rails/rails</a>
+    <a href="http://rubyonrails.org/">http://rubyonrails.org е официалният сайт</a>
+    <a href="http://guides.rubyonrails.org/">http://guides.rubyonrails.org</a>
+    <a href="http://apidock.com/rails">http://apidock.com/rails</a>
