@@ -4,7 +4,7 @@
 
 = slide 'Rails', 'Що е то?' do
   list:
-    Фреймуърк
+    Фреймуърк!
     Дава солидна основа за разработка на уеб-приложения
     Спестява ви значително количество хамалогия
     Прави ви по-щастливи уеб-програмисти :)
@@ -14,24 +14,36 @@
     Защо да ползваме Ruby on Rails? Защо Ruby?
     "Целта на Ruby е да прави програмистите щастливи." — Мацумото Юкихиро
     "Rails is the killer app for Ruby." — Мацумото Юкихиро
-    Качество
-    Иновативност
+    Качество (production ready)
+    Иновативност и авангардност
     Сигурност и производителност
     Community
+
+= slide 'Кой ползва Rails?' do
+  list:
+    Twitter
+    GitHub
+    SoundCloud
+    Shopify
+    Songkick
+    Groupon
+    Basecamp
+    Сигурно около 1/3 от стартъпите в Щатите...
+    Ние! (Вижте [сайта на курса](https://github.com/skanev/evans))
 
 = slide 'Принципи' do
   list:
     Convention over configuration
     DRY
     TDD/BDD
-    REST (Representational state transfer)
+    REST (REpresentational State Transfer)
     Много, удобни DSL-и
-    Получавате пълен комплект (дори с включени батерии :)
+    Получавате пълен комплект (направо с батерии, както се казва)
 
 = slide 'Възможности', 'aka "фийчъри"' do
   list:
     Open-source!
-    Готови адаптери за работа с бази данни, плюс ORM-та; дори можете да минете без да пишете SQL
+    Готови адаптери за работа с бази данни, плюс ORM-та; може да минете без да пишете грам SQL
     Добре се интегрира в Unix/Linux-среди (command-line управление, Rails console, Rake задачи и т.н.)
     Environments: разграничаване на различните среди, в които работи вашето приложение — режим на разработка (development), по време на изпълнение на тестове (test) или по време на реална работа (production); може да имате и други environments
     Database migrations
@@ -54,21 +66,23 @@
     Много, много други
 
 = slide 'Кратка история' do
-  ul
-    li.action Създаден е от небезизвестния (вече) датчанин David Heinemeier Hansson (DHH)
-    li.action <a href="https://github.com/rails/rails/commit/db045dbbf60b53dbe013ef25554fd013baf88134">първият публичен commit на Rails е от ноември 2004 г.</a>
-    li.action Rails се е родил като изваден код от съществуващи проекти на фирмата на DHH (37 Signals), който е решавал generic проблеми, възникващи при разработката на уеб-приложения
+  list:
+    Създаден е от небезизвестния (вече) датчанин David Heinemeier Hansson (DHH)
+    <a href="https://github.com/rails/rails/commit/db045dbbf60b53dbe013ef25554fd013baf88134">първият публичен commit на Rails е от ноември 2004 г.</a>
+    Rails се е родил като изваден код от съществуващи проекти на фирмата на DHH (37 Signals), който е решавал generic проблеми, възникващи при разработката на уеб-приложения
 
 = slide 'Версии' do
-  ul
-    li.action Rails се разпространява под формата на няколко Ruby gem-а, обединени в един общ "meta gem" — <code>rails</code>
-    li.action Следва <a href="http://semver.org/">semantic versioning</a> схемата
-    li.action Най-новата версия към момента е в 3.1-клона — 3.1.3
+  list:
+    Rails се разпространява под формата на няколко Ruby gem-а, обединени в един общ "meta gem" — <code>rails</code>
+    Следва <a href="http://semver.org/">semantic versioning</a> схемата
+    Най-новата версия към момента е в 3.2-клона — 3.2.9
+    Rails 4 е на хоризонта
 
 = slide 'Архитектура' do
   list:
     Вариант на MVC
     ORM
+    Други шаблони
 
 = slide 'Компоненти' do
   list:
@@ -125,15 +139,525 @@
         div id="content" class="example1"
           p Nest by indentation
 
+= slide 'ORM', 'или как си говорим с бази данни' do
+  list:
+    По подразбиране е `ActiveRecord`
+    Заменяем е (напр. с `Mongoid` за `MongoDB`)
+    Поддържа PostgreSQL, MySQL, SQLite, MSSQL, Oracle...
+    Може да си напишете и ваш адаптер при нужда
+    CRUD API с query interface
+
+= slide 'ActiveRecord' do
+  example:
+    class User < ActiveRecord::Base
+      # Много неща идват наготово по конвенция
+      # Таблицата в случая е users (по конвенция)
+    end
+
+= slide 'ActiveRecord' do
+  example:
+    class User < ActiveRecord::Base
+      scope :admins, where(admin: true)
+    end
+
+    admin = User.admins.where(email: 'root@foo.bar').first
+
+    # Ще генерира следната заявка към MySQL база:
+    #
+    # SELECT `users`.* FROM `users` WHERE `users`.`admin` = 1
+    #   AND `users`.`email` = 'root@foo.bar' LIMIT 1
+
+= slide 'ActiveRecord' do
+  example:
+    admin.email # 'root@foo.bar'
+    admin.name  # 'Charlie Sheen'
+    admin.name = "Charlie's Angels"
+
+    admin.save
+
+    # UPDATE `users` SET
+    #   `users`.`name` = 'Charlie\'s Angels',
+    #   `users`.`updated_at` = '2012-12-10 19:48:03'
+    # WHERE `users`.`id` = 42
+
+= slide 'ActiveRecord', 'dynamic finders' do
+  p Няма да ги има в Rails 4!
+  example:
+    david = User.find_by_name_and_age('David', 33)
+
+    # SELECT `users`.* FROM `users` WHERE
+    #   `users`.`name` = 'David' AND `users`.`age` = 33
+    # LIMIT 1
+
+= slide 'ActiveRecord', 'query DSL & chaining' do
+  example:
+    lastest_signups = User.where(confirmed: true)
+                          .order(:created_at).last(5)
+
+    # SELECT `users`.* FROM `users` WHERE `users`.`confirmed` = 1
+    # ORDER BY created_at DESC LIMIT 5
+
+= slide 'ActiveRecord асоциации' do
+  example:
+    class Book < ActiveRecord::Base
+    end
+
+    class Publisher < ActiveRecord::Base
+      has_many :books
+    end
+
+    vintage = Publisher.find(42)
+    vintage.books
+
+    # SELECT `publishers`.* FROM `publishers` WHERE `publishers`.`id` = 42 LIMIT 1
+    # SELECT `books`.* FROM `books` WHERE `books`.`publisher_id` = 42
+
+= slide 'ActiveRecord асоциации (2)' do
+  example:
+    class Book < ActiveRecord::Base
+    end
+
+    class Publisher < ActiveRecord::Base
+      has_many :books
+    end
+
+    vintage = Publisher.find(42)
+    vintage.books.create name: 'Rails Recipes'
+
+    # INSERT INTO `books` (`name`, `publisher_id`, `created_at`, `updated_at`)
+    # VALUES ('Rails Recipes', 42, '2012-12-10 19:58:13', '2012-...')
+
+= slide 'ActiveRecord асоциации (3)' do
+  example:
+    class Author < ActiveRecord::Base; end
+    class Book < ActiveRecord::Base
+      belongs_to :author
+    end
+
+    class Publisher < ActiveRecord::Base
+      has_many :books
+      has_many :authors, through: :books
+    end
+
+    Publisher.find(42).authors
+
+    # SELECT `authors`.* FROM `authors` INNER JOIN
+    #   `books` ON `books`.`author_id` = `authors`.`id`
+    # WHERE `books`.`publisher_id` = 42
+
+= slide 'ActiveRecord query API' do
+  list:
+    Използва [ARel](https://github.com/rails/arel) (gem `arel`), за да конструира SQL
+    Има малка част собствени разширения
+    Поддържа доста сложни комбинации от релации, условия, групиране, агрегиране и прочее
+    `where`, `order`, `joins`, `include`, `limit`, `take(x)`, `last(x)`, `count`, `size`, ...
+
+= slide 'ActiveRecord query API' do
+  example:
+    module Institute
+      class Workshop < ActiveRecord::Base
+        has_many :events
+      end
+
+      class Event < ActiveRecord::Base
+        def self.past
+          # Използваме ARel да конструираме по-сложни условия
+          where arel_table[:end_date].lt(Date.current)
+        end
+      end
+    end
+
+= slide 'ActiveRecord query API' do
+  example:
+    Institute::Workshop.joins(:events).merge(Institute::Event.past)
+
+    # SELECT `institute_workshops`.* FROM `institute_workshops`
+    #   INNER JOIN `institute_events` ON
+    #   `institute_events`.`workshop_id` = `institute_workshops`.`id`
+    # WHERE (`institute_events`.`end_date` < '2012-12-10')
+
+= slide 'ActiveModel валидации' do
+  list:
+    Валидация на данните, постъпващи към вашите модели
+    Задължителни полета
+    Полета, които трябва да са само числа
+    Числа в определен интервал
+    Низове с определена дължина
+    Низове, отговарящи на определен формат
+    Ваши валидатори
+
+= slide 'ActiveModel валидации' do
+  example:
+    class Product < ActiveRecord::Base
+      validates_presence_of :price, :description
+      validates_numericality_of :price, greater_than_or_equal_to: 0
+    end
+
+    # Не запазва нищо в базата следствие на
+    # неуспешна валидация.
+    product = Product.create
+
+    product.errors.full_messages
+    # ["Price can't be blank", "Description can't be blank",
+    #  "Price is not a number", "Price must be greater than or equal to 0"]
+
+= slide 'ActiveModel валидации', 'как изглеждат грешките в браузър' do
+  img src="15/validation-errors.png" style="width: auto; max-width: 90%; max-height: 70%;"
+
+= slide 'NoSQL' do
+  list:
+    Можете да ползвате и NoSQL бази данни
+    MongoDB се поддържа през `Mongoid`
+    API-то му е подобно на `ActiveRecord`
+    Също поддържа валидации и асоциации
+    Валидациите всъщност идват от `ActiveModel`
+
+= slide 'Контролери' do
+  list:
+    Свързващото звено между модели и изгледи
+    Без прекалено много код вътре
+    Имат достъп до HTTP request-а (`request`)
+    Както и до `params`, `session`, `cookies`, `response`, ...
+    Указват кои изгледи да се рендерират или какъв HTTP код да се върне
+
+= slide 'Контролери' do
+  example:
+    class ProjectsController < ApplicationController
+      def show
+        @project = Project.find(params[:id])
+      end
+    end
+
+  list:
+    `params` е хеш с параметрите от query string + URI + POST body
+    Рендерира `app/views/projects/show.html.erb`
+    `@project` е достъпно в изгледа
+
+= slide 'Контролери', 'филтри' do
+  example:
+    class ProjectsController < ApplicationController
+      def show
+        @project = Project.find(params[:id])
+      end
+
+      def edit
+        @project = Project.find(params[:id])
+      end
+    end
+
+= slide 'Контролери', 'филтри' do
+  example:
+    class ProjectsController < ApplicationController
+      before_filter :load_project
+
+      def show() end
+      def edit() end
+
+      private
+
+      def load_project
+        @project = Project.find(params[:id])
+      end
+    end
+
+= slide 'Контролери', 'конвенции' do
+  list:
+    `show` "визуализира" ресурса, достъпно само през `HTTP GET`
+    `new` форма за създаване на ресурс, POST-ва към `create`
+    `edit` форма за редактиране на ресурса, ще POST-не към `update`
+    `create` за създаване на ресурс, достъпно през `HTTP POST`
+    `update` за обновяване на ресурс, достъпно през `HTTP PUT`
+    `destroy` за унищожаване на ресурс, достъпно през `HTTP DELETE`
+
+= slide 'Контролери', 'create/update конвенции' do
+  example:
+    class ProjectsController < ApplicationController
+      before_filter :load_project
+
+      def update
+        if @project.update_attributes(params[:project])
+          # Препраща към ProjectsController#show()
+          redirect_to @project, notice: 'Промените са съхранени успешно.'
+        else
+          render action: :edit
+        end
+      end
+    end
+
+= slide 'Контролери', 'create/update конвенции' do
+  list:
+    В случай на успех, прави `HTTP 302` към `show`
+    Горното решава "Please confirm page reload" проблема
+    При валидационна грешка, рендерира формата отново и показва грешките (`edit`)
+    Същият е и моделът при `new`/`create`
+
+= slide 'Маршрути' do
+  list:
+    Връзката между HTTP URL-и и глаголи и методи в контролери (двупосочна)
+    Централизирано знание
+    Какви URL-и обслужва вашето приложение
+    Коя част от кода обслужва даден URL
+    И обратната посока — какъв е URL-ът, обслужван от даден код
+    RESTful маршрути и ресурси
+    Дефинира се в `config/routes.rb` със собствен DLS
+    `bundle exec rake routes` ще ви покаже списък с текущите маршрути
+
+= slide 'Маршрути' do
+  example:
+    Todo::Application.routes.draw do
+      resources :projects
+    end
+
+  .action
+    img src="15/resource-routes.png" style="max-width: 90%; max-height: 70%;"
+
+= slide 'Маршрути' do
+  example:
+    Rails.application.routes.draw do
+      resources :activations, constraints: {id: /.+/}
+      resources :vouchers, only: [:index, :new, :create]
+      resources :announcements, except: [:show, :destroy]
+      resources :quizzes
+
+      resource :profile
+      resource :dashboard, only: :show
+
+      resources :tasks, except: :destroy do
+        get :guide, on: :collection
+        resources :solutions
+        resource :check, controller: :task_checks, only: :create
+      end
+
+      mount Sidekiq::Web => '/queue'
+      root to: 'home#index'
+    end
+
+= slide 'Маршрути', 'обратната връзка' do
+  p Генериране на URL-и посредством "route helpers"
+
+  example:
+    new_project_path()                  # "/projects/new"
+    project_path(project)               # "/projects/123"
+    new_project_document_path(project)  # "/projects/123/documents/new"
+
+= slide 'Application Server' do
+  list:
+    Вашето приложение се "стартира" веднъж
+    Вашият и кодът на Rails се прочитат веднъж
+    Един request = един процес (или нишка)
+    Multi-process или multi-threaded архитектура
+    200+ MB RAM на процес
+    Веднъж заредено, вашето приложение отговаря бързо
+
+= slide 'Application Server' do
+  list:
+    Старт в рамките на четвърт минута
+    Кешира дефиниции на класове, модули и т.н.
+    При промяна на кода — рестарт
+    В режим "разработка" презарежда автоматично променените файлове с разни магии
+
+= slide 'Обкръжения', 'environments' do
+  list:
+    Ясно разделение на обкръженията
+    Три обкръжения по подразбиране
+    Development
+    Test
+    Production
+    Може да добавяте ваши
+
+= slide 'Development' do
+  list:
+    Ползва се по подразбиране при разработка
+    Автоматично презарежда само кода на вашето приложение при нужда
+    Не кешира дефиниции на класове и модули
+    Виждате backtrace при изключения
+    Не конкатенира или компресира asset-и (CSS и JavaScript файлове)
+    Има и някои други малки разлики
+
+= slide 'Production' do
+  list:
+    На "production" сървъра
+    Кешира много неща
+    Рестарт за нова версия на кода
+    Без backtrace при изключения
+    Сервира само конкатенирани и компресирани asset-и (CSS и JavaScript файлове)
+    Други малки разлики
+
+= slide 'Test' do
+  list:
+    Оптимизирано за пускане на тестове
+    Кешира дефиниции на класове
+    Изпозлва отделна конфигурация за база
+    Въпросната база се забърсва след всяко пускане на тестовете
+
+= slide 'Asset Pipeline' do
+  list:
+    Зряло решение на сериозен проблем
+    "Пакетира" вашите asset-и (CSS, JavaScript, картинки и прочее)
+    Комбинира JavaScript файловете ви в един и го minify-ва и gzip-ва
+    Същото прави и за CSS
+    Имената на резултатните файлове съдържат хеш от съдържанието на файла
+
+= slide 'Asset Pipeline' do
+  list:
+    Лесен cache invalidation — при промяна съдържанието на файла се сменя хеша и следователно името му
+    Кеширате во веки веков
+    Поддръжка на CDN
+    Ползвате помощни функции, за да вкарвате линкове към вашите статични файлове
+    Горното важи за и за HTML, и за CSS
+
+= slide 'Asset Pipeline' do
+  pre
+    |
+      # Source
+      &lt;header&gt;
+        &lt;%= image_tag 'logo.png', class: 'logo' %&gt;
+      &lt;/header&gt;
+
+      # В development
+      &lt;header&gt;
+        &lt;img src="/assets/logo.png" alt="Logo" class="logo" /&gt;
+      &lt;/header&gt;
+
+      # В production
+      &lt;header&gt;
+        &lt;img src="/assets/logo<span class="highlight">-9692fa42c3</span>.png" alt="Logo" class="logo" /&gt;
+      &lt;/header&gt;
+
+= slide 'Asset Pipeline', 'ползи' do
+  list:
+    По-малко HTTP заявки = по-бързо
+    По-малки файлове = по-бързо
+    Кеширани файлове = по-бързо
+    Употреба на CDN = по-бързо
+    Без главоболие от ваша страна
+    Бонус — pre-processor-и на CSS и JavaScript! (CoffeeScript, SASS, ...)
+
+= slide 'SASS', 'CSS препроцесор' do
+  img src="15/sass.png"
+
+= slide 'SASS' do
+  list:
+    Вграден в asset pipeline-а от Rails 3.1+
+    Влагане на селектори за по-DRY CSS
+    Променливи
+    Нещо близко до функции
+    Аритметика с пиксели
+    Аритметика с цветове (lighten/darken)
+    [sass-lang.com](http://sass-lang.com/)
+
+= slide 'CoffeeScript', 'JavaScript препроцесор' do
+  img src="15/coffeescript-1.png"
+
+= slide 'CoffeeScript', 'JavaScript препроцесор' do
+  img src="15/coffeescript-2.png"
+
+= slide 'CoffeeScript' do
+  list:
+    "Вграден" в asset pipeline-а от Rails 3.1+
+    JavaScript с по-приятен синтаксис
+    Покрива доста проблеми на JS
+    Вкарва нови и готини неща
+    [coffeescript.org](http://coffeescript.org/)
+
+= slide 'Миграции' do
+  list:
+    Структурата на базата ви е описана с код (DSL)
+    Създаване и премахване на таблици
+    Добавяне/премахване на колони, индекси и прочее
+    Всичко е във вашия код
+    Улеснява колаборацията
+    Улеснява deployment-а на вашето приложение
+
+= slide 'Миграции и deployment' do
+  list:
+    Имат `up()` и `down()` методи
+    Тоест, могат да бъдат "обръщани"
+    Качвате новата версия на базата заедно с новата версия на кода
+    Ако нещо се обърка, има rollback, който вика `down()` на миграциите
+    Произволен Ruby-код в миграциите
+
+= slide 'Миграции' do
+  example:
+    class CreateTodos < ActiveRecord::Migration
+      def up
+        create_table :todos do |t|
+          t.text :text, null: false
+          t.boolean :done, null: false, default: false
+          t.integer :user_id, null: false
+          t.timestamps # created_at, updated_at
+        end
+        add_index :todos, :user_id
+      end
+
+      def down
+        remove_index :todos, :user_id
+        drop_table :todos
+      end
+    end
+
+= slide 'Миграции', 'auto-rollback (Rails 3+)' do
+  example:
+    class CreateTodos < ActiveRecord::Migration
+      def change
+        create_table :todos do |t|
+          t.text :text, null: false
+          t.boolean :done, null: false, default: false
+          t.integer :user_id, null: false
+          t.timestamps # created_at, updated_at
+        end
+        add_index :todos, :user_id
+      end
+    end
+
+= slide 'Тестове' do
+  list:
+    Готова структура за писане на тестове
+    Unit-тестове за вашите модели и класове
+    Контролер-тестове
+    Тестове на вашите изгледи
+    Интеграционни тестове
+    Самият Rails е много добре тестван
+    Култура на тестване
+
+= slide 'Тестове' do
+  list:
+    Заменяеми тестови фреймуърци
+    Test::Unit, RSpec, MiniTest — изборът е ваш
+    Само оставада пишете тестове... :)
+
+= slide 'Други аспекти' do
+  list:
+    Култура на добри практики и качествен код
+    Convention over configuration
+    The Rails Way™
+    VCS — Git
+    Управление на зависимости от външни библиотеки — Bundler
+    Инфраструктура за пращане на мейли, с подобна на MVC-архитектура
+
+= slide 'Инсталация' do
+  list:
+    `gem install rails`
+    Има и [Rails Installer](http://railsinstaller.org/) (за Windows и Mac OS)
+    Горното на експерти като вас не ви е нужно
+
+= slide 'Върхът на айсберга' do
+  list:
+    Това беше само върхът на айсберга
+    Отдолу има поне още 10 пъти по толкова информация
+    Ако искате да научите повече за Rails — изцапайте си ръцете!
+
+= slide 'Документация и ресурси' do
+  list:
+    Тонове из нета, много книги
+    [github.com/rails/rails](https://github.com/rails/rails)
+    [rubyonrails.org е официалният сайт](http://rubyonrails.org/)
+    [guides.rubyonrails.org](http://guides.rubyonrails.org)
+    [rubyonrails.org/documentation](http://rubyonrails.org/documentation)
+    [rubyonrails.org/screencasts](http://rubyonrails.org/screencasts) (напр. RailsCasts)
+    [apidock.com/rails](http://apidock.com/rails)
+
 = slide 'Демонстрация' do
   ul
     li Ще ви демонстрираме някои от нещата, които може Rails, като направим едно малко уеб-приложение
     li Можете да намерите <a href="https://github.com/mitio/quizzes/tree/part-1">кода на приложението в GitHub</a> и да видите <a href="https://github.com/mitio/quizzes/commits/part-1">няколкото прости промени</a>, които направихме
-
-= slide 'Документация и ресурси' do
-  list:
-    Тонове из нета
-    <a href="https://github.com/rails/rails">https://github.com/rails/rails</a>
-    <a href="http://rubyonrails.org/">http://rubyonrails.org е официалният сайт</a>
-    <a href="http://guides.rubyonrails.org/">http://guides.rubyonrails.org</a>
-    <a href="http://apidock.com/rails">http://apidock.com/rails</a>
