@@ -1,0 +1,301 @@
+= slide 'Днес' do
+  list:
+    Процеси
+    Нишки
+    Fibers
+    Размисли на тема конкурентност
+
+= slide 'Disclaimer' do
+  p Няма да говорим за паралелни алгоритми и други подобни неща
+  p Ще говорим за конкурентност на по-практическо ниво
+
+= slide 'IO-bound vs. CPU-bound' do
+  list:
+    CPU-bound са програми, които главно зависият от време прекарано в процесора
+    IO-bound са програми, които главно зависят от време, прекарано в чакане (мрежа, памет, диск)
+
+= slide 'Processes vs. Threads (Green & Native)' do
+  list:
+    Три начина за конкурентност
+    Кой ще обясни разликите?
+
+= slide 'fork' do
+  p Системен примитив
+  example:
+    child_id = fork()
+    if child_id
+      puts "This is the parent"
+    else
+      puts "This is the child speaking!"
+    end
+
+= slide 'fork (2)' do
+  p Има и друга версия:
+  example:
+    fork do
+      puts "This is the child"
+    end
+
+    puts "This is the parent"
+
+= slide 'module Process' do
+  p Всъщност, повечето неща са в модул `Process`:
+
+  example:
+    Process.fork
+    Process.wait
+    Process.waitall
+    Process.waitpid
+
+= slide 'Process.wait' do
+  p
+    ' <code>Process.wait</code> чака някое от децата да приключи и връща pid-а му,
+      а <code>$?</code> съдържа <code>Process::Status</code>.
+
+  annotate:
+    fork { exit 99 } #=>
+    Process.wait     #=>
+    $?.exitstatus    #=>
+
+= slide 'Process.wait2' do
+  p
+    ' <code>Process.wait2</code> е сходно, но връща масив от pid и <code>Process::Status</code>:
+
+  annotate:
+    fork { exit 99 } #=>
+    Process.wait2    #=>
+
+= slide 'Process.waitpid' do
+  p
+    ' <code>Process.waitpid(pid)</code> чака детето конкретно дете да приключи:
+
+  annotate:
+    pid = fork do
+      sleep 1
+      puts "Child"
+    end
+
+    Process.waitpid(pid)
+    puts "Parent"
+
+= slide 'Process.waitall' do
+  p
+    ' <code>Process.waitall</code> чака всички деца да приключат
+
+  annotate:
+    fork { sleep 1; puts "1" }
+    fork { sleep 2; puts "2" }
+
+    Process.waitall
+    puts "3"
+
+= slide 'Process.exec' do
+  p
+    ' <code>Process.exec</code> заменя текущия процес с изпълнение на команда:
+
+  example:
+    fork do
+      exec('ls')
+      puts "Unreachable code"
+    end
+
+= slide 'Process.daemon' do
+  p
+    ' <code>Process.daemon</code> "откача" процеса от терминала и го пуска в background.
+
+  example:
+    fork do
+      Process.daemon
+      loop do
+        system "echo Spam >> ~/Desktop/spam"
+        sleep 1
+      end
+    end
+
+= slide 'Process.methods' do
+  list:
+    `Process.pid` връща process id на текущия процес
+    `Process.ppid` връща parent process id
+    `getpgid`, `gid`, `setpgid`, `uid` и т.н.
+    `spawn` е швейцарско ножче за пускане на процеси
+
+= slide 'Нишки' do
+  list:
+    В Ruby, очевидно, има нишки.
+    В Ruby 1.8 имплементацията е green threads
+    В Ruby 1.9 се ползват native threads, с GIL
+    В JRuby се ползват нишките на Java, без GIL
+
+= slide 'Thread.new' do
+  p Създаването на нишка в Ruby е лесно:
+
+  example:
+    thread = Thread.new do
+      puts "This is run in the thread"
+      puts "The thread is started immediatelly"
+    end
+
+    puts "This is run in the main thread"
+
+= slide 'Thread#join' do
+  p
+    ' Процесът приключва, когато основната нишка приключи. Ако искате да изчакате
+      някоя от създадените нишки да приключи преди процеса да излезе, ползвайте
+      <code>Thread#join</code>.
+
+  example:
+    thread = Thread.new do
+      sleep 1
+      puts "Thread done"
+    end
+
+    thread.join
+    puts "Process done"
+
+= slide 'Thread#value' do
+  p
+    ' <code>Thread#value</code> блокира докато нишката не приключи и връща последния
+      оценен израз
+
+  annotate:
+    thread = Thread.new do
+      2 + 2
+    end
+
+    thread.value #=>
+
+= slide 'Изключения' do
+  p
+    ' Ако една нишка предизвика изключение, то няма да убие интерпретатора. Вместо това,
+      ще се появи в нишката, извикваща <code>#value</code> или <code>#join</code>.
+
+  annotate:
+    thread = Thread.new do
+      raise "Oh noes!"
+    end
+
+    thread.join #!
+
+= slide 'Изключения (2)' do
+  p Можете да промените последното с <code>Thread.abort_on_exception</code>.
+
+  annotate:
+    Thread.abort_on_exception = true
+
+= slide 'Thread.methods' do
+  list:
+    `Thread.main` връща основната нишка
+    `Thread.current` връща текущата нишка
+    `Thread.list` връща всички нишки
+
+= slide 'Thread#priority' do
+  ul
+    li Всяка нишка има приоритет.
+    li
+      ' Той може да се достъпи и промени с <code>Thread#priority</code> и
+        <code>Thread#priority=</code>
+    li Една нишка с по-нисък приоритет няма да се пусне докато има нишки с по-висок
+
+= slide 'Променливи (1)' do
+  p Променливи дефинирани в блога на нишката са (очевидно) локални за нишката
+
+  annotate:
+    thread = Thread.new { something = 1 }
+    thread.join
+
+    something #!
+
+= slide 'Променливи (2)' do
+  p Блокът на нишката вижда променливите отвън.
+
+  annotate:
+    answer = 1
+    thread = Thread.new { answer = 2 }
+
+    thread.join
+    answer # =>
+
+= slide 'Променливи (3)' do
+  p Можете да подавате стойности на нишката през <code>Thread.new</code>
+
+  annotate:
+    n = 10
+    thread = Thread.new(n) do |number|
+      n      #=>
+      number #=>
+    end
+    n = 20
+
+    thread.join
+
+= slide 'Променливи (4)' do
+  p
+    ' Всяка нишка функционира като хеш от символи. Така може да правите
+      thread-local променливи
+
+  annotate:
+    Thread.current[:x] = 10
+    thread = Thread.new do
+      Thread.current[:x] #=>
+      Thread.current[:x] = 20
+    end
+    thread.join
+    Thread.current[:x]   #=>
+
+= slide 'Синхронизация на нишки' do
+  list:
+    Синхронизирането на нишки става с нещо, наречено "критични секции"
+    Основен примитив за това е mutex
+    Всъщност, основен примитив е семафор, но ще ви оставим да си четете за това отделно.
+
+= slide 'Mutex (1)' do
+  list:
+    Mutex-ите са или "заключени" или "отключени"
+    Два важни метода - `lock` и `unlock`
+    `lock`: Ако mutex-а е отключен го заключва и продължава нататък
+    `lock`: Ако mutex-а е заключен, приспива нишката докато се отключи, след това прави горното
+    `unlock`: Отключва mutex-а
+    Тези неща трябва да са имплементирани на ниво операционна система
+
+= slide 'Mutex (2)' do
+  example:
+    $mutex = Mutex.new
+
+    def stuff
+      # pre-lock
+      $mutex.lock
+      # critical
+      $mutex.unlock
+      # post-lock
+    end
+
+    t1 = Thread.new { loop { stuff } }
+    t2 = Thread.new { loop { stuff } }
+
+    t1.join
+    t2.join
+
+= slide 'Mutex (3)' do
+  example:
+    $mutex = Mutex.new
+
+    def stuff
+      # pre-lock
+      $mutex.synchronize do
+        # critical
+      end
+      # post-lock
+    end
+
+    t1 = Thread.new { loop { stuff } }
+    t2 = Thread.new { loop { stuff } }
+
+    t1.join
+    t2.join
+
+// conmap
+// priorities
+// mutexes
+// queues
+
+
