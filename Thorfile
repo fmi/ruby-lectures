@@ -11,13 +11,15 @@ class Default < Thor
   include Thor::Actions
   source_root File.dirname(__FILE__)
 
+  COMPILED_PATH = 'compiled-lectures'
+
   desc 'rebuild', 'Rebuilds all presentations'
   def rebuild
-    empty_directory 'compiled'
+    empty_directory COMPILED_PATH
     %w(js css images).each do |folder|
-      directory "html/#{folder}", "compiled/#{folder}"
+      directory "html/#{folder}", "#{COMPILED_PATH}/#{folder}"
     end
-    copy_file 'lectures/index.yml', 'compiled/index.yml'
+    copy_file 'lectures/index.yml', "#{COMPILED_PATH}/index.yml"
 
     slides.keys.each do |number|
       lecture number
@@ -42,8 +44,8 @@ class Default < Thor
   def lecture(index)
     builder = builder_for(index)
 
-    create_file "compiled/#{builder.output_filename}", builder.html.force_encoding('BINARY')
-    directory "lectures/#{index}", "compiled/#{index}" if File.directory?("lectures/#{index}")
+    create_file "#{COMPILED_PATH}/#{builder.output_filename}", builder.html.force_encoding('BINARY')
+    directory "lectures/#{index}", "#{COMPILED_PATH}/#{index}" if File.directory?("lectures/#{index}")
   end
 
   no_tasks do
