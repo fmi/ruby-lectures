@@ -1,0 +1,443 @@
+= slide 'Какво предстои' do
+  ul
+    li Прости условни конструкции
+    li Масиви (списъци)
+    li Хешове
+    li Методи
+    li Обекти
+    li Класове
+
+= slide 'Пред-предговор', 'идната сряда ще пием бира' do
+  list:
+    Вместо лекция, следващата сряда (16-ти) няма да сме във ФМИ, а на "по бира"
+    Има <a href="https://www.facebook.com/events/537931419620371/">събитие във Facebook</a>
+    Ако ще идвате, моля известете ни по някакъв начин (например Facebook)
+    Вероятно ще е в <a href="http://rockit.bg/">RockIT</a>, но ще кажем това по-късно
+
+= slide 'Предговор' do
+  ul
+    li.action Сайт на курса: <a href="http://fmi.ruby.bg/">http://fmi.ruby.bg</a>
+    li.action Лекциите са там, задачите са там, форумите са там, животът ви е там
+    li.action Регистрацията е задължителна, ако ще участвате в курса
+    li.action
+      ' За записали курса в СУСИ след 3-ти октомври или за хора извън ФМИ, ни пишете на
+      a href="mailto:fmi@ruby.bg" fmi@ruby.bg
+    li.action Лекциите ги има и в GitHub — #{github_repo 'fmi/ruby-lectures'}
+
+= slide 'GitHub приноси', 'pull request-ите и животът ви' do
+  list:
+    Open source философията е част от нас и от идеята на курса
+    Съществен момент от настоящето, който ще става още по-съществен в бъдеще
+    Важно житейско умение е да може да правите pull request-и
+    Този курс е добър повод да се научите; ще ви съдействаме
+
+= slide 'Pull request-ите и общуването' do
+  list:
+    Неслучайно се твърди, че GitHub е Facebook за програмисти - силни социални елементи
+    Добрите pull request-и са еквивалентни на добро общуване
+    За да сме добри в занаята си, трябва да можем да общуваме добре
+    Общуване на ниво код (изразяване на идеи)
+    Общуване на ниво документация, общуване с клиенти, общуване с колеги...
+
+= slide 'Pull request-и: някои насоки' do
+  p Преди да пуснете pull request с вашето предложение за промяна:
+
+  list:
+    Прочитате readme-то на проекта, търсите инструкции за принос
+    Преглеждате списъка с активни, а понякога и затворени pull request-и
+    Цел - избягване на дублиращ се труд и запознаване със съществуващи дискусии и аргументация
+    Преглеждате отворените билетчета (issues) за нещо по темата
+    Fork-вате репозиторията, правите нов клон (branch), правите промяната там и пускате PR от там
+    Общувате внимателно и с уважение, не се засягате от коментари, бележки, или ако ви затворят PR-а
+
+= slide 'Бонус точки', 'отвъд сникерсите (последно напомняне)' do
+  p Първите ви точки:
+
+  list:
+    Ако все още не сте, то:
+    Регистрирайте се и си качете снимка.
+    Качете си Ruby 2.1 и го <a href="/topics/1">удостоверете със screenshot</a>, има още малко време за тази промоция
+    Представете се с няколко изречения в <a href="/topics/58">тази тема във форумите</a>
+    Помагайте на колегите си във форумите; ще даваме бонус точки за смислена и навреемнна помощ
+
+= slide 'Първа задача' do
+  ul
+    li.action
+      ' Публикувана е, крайният й срок е идната сряда и може да я намерите на
+      a href="/tasks/1" сайта на курса
+    li.action
+      ' Може да задавате въпроси в
+      a href="/topics/90" съответната тема на форумите
+    li.action Днес ще научите достатъчния минимум Ruby, за да я решите
+    li.action Трябва да се регистрирате, за да предадете решение
+    li.action Ако в последния ден откриете, че не може да се регистрирате, това е ваш проблем
+    li.action Ако пропуснете повече от три задачи, ще се видим септември
+    li.action Може да има промени. Следете форумите и лога.
+
+= slide 'Стил' do
+  ul
+    li.action Имаме style guide на #{github_repo 'fmi/ruby-style-guide'}
+    li.action Напомняме &mdash; не е актуален
+    li.action Ваша задача е да го обновите
+    li.action Обменяме pull request-и за точки
+    li.action Искаме да го спазвате в първа задача колкото можете повече
+
+= slide 'Споделяне на решения', 'a.k.a. преписване' do
+  list:
+    Не си споделяйте решенията. Въобще. Има време за това след крайния срок.
+    Вярваме, че е очевидно, но: не преписвайте един от друг.
+    Много добри сме във хващането на преписващи - ако искате, провайте.
+    Ако ви хванем да преписвате, се виждаме догодина. Не наесен - догодина.
+    Ако ви хванем да преписвате, ще ви информираме на защитата на проекта.
+
+= slide 'Малко тривиа', 'където ние питаме, а вие отговаряте' do
+  p (ако сте записали курса)
+
+= slide 'Въпрос 1' do
+  p Каква е разликата между тези имена?
+
+  example:
+    foo  = 1
+    Bar  = 2
+    $baz = 3
+
+  p.action.answer
+    ' <code>foo</code> е локална променлива, <code>Bar</code> е константа, <code>$baz</code> е глобална променлива
+
+= slide 'Въпрос 2' do
+  p Кои от следните неща се оценяват до неистина?
+
+  pre 0 [] nil {} ""
+
+  p.action.answer Само <code>false</code> и <code>nil</code> са неистина.
+
+= slide 'Въпрос 3' do
+  p Каква е разликата между единични и двойки кавички?
+
+  .action.answer
+    p В единичните няма интерполация, в двойните - има.
+    p В единичните могат да се екранират само <code>\\</code> и <code>\'</code>. В двойните има ред екранирания и специални символи.
+
+= slide 'Булеви оператори' do
+  ul
+    li.action <code>and</code>, <code>or</code> и <code>not</code> правят това, което очаквате
+    li.action <code>&&</code>, <code>||</code> и <code>!</code> &mdash; също
+    li.action Разликата между тях е тънка. Придържайте се към първите
+
+= slide 'Сравнение', '...когато размерът има значение' do
+  pre
+    ' >> 20 > 20
+      →  false
+      >> "perl" < "ruby"
+      →  true
+      >> 5 <= 5
+      →  true
+      >> "foo" <=> "bar"
+      →  1
+
+= slide 'Равенство', '...където става оплетено' do
+  p В Ruby има четири оператора за равенство
+
+  example:
+    one == two
+    one === two
+    one.eql? two
+    one.equal? two
+
+= slide 'Равенство', '== и equal?' do
+  p Това е стандартното поведение на Ruby. Има специални случаи.
+  annotate:
+    one = 'chunky bacon'
+    two = 'chunky bacon'
+    one == two           #=>
+    one.equal? two       #=>
+
+= slide 'Равенство', 'Специалните случаи' do
+  p Можете ли да произнесете "интерниране"?
+
+  annotate:
+    one, two = 42, 42
+    one == two      #=>
+    one.equal? two  #=>
+
+  p Същото важи и за символи.
+
+= slide 'Условия' do
+  p Ключовата дума е <code>if</code>
+
+  example:
+    if hungry? and sad?
+      eat_chocolate
+      listen_to_music
+      go :outside
+    end
+
+= slide 'Условия', 'или' do
+  p Разбира се, има и <code>else</code>
+  example:
+    if hungry?
+      eat
+    else
+      drink
+    end
+
+= slide 'Условия', 'ако пък' do
+  example:
+    if hungry?
+      eat
+    elsif thirsty?
+      drink
+    else
+      philosophize
+    end
+
+= slide 'Условия', '...където научавате, че всяко условие е израз' do
+  example:
+    classification = if age < 13
+                       'young person'
+                     elsif age < 20
+                       'teenager'
+                     else
+                       'old dude'
+                     end
+
+= slide 'Условия', 'на един ред' do
+  example:
+    eat if hungry?
+
+  p Яко, а? Може и:
+
+  example:
+    order = if hungry? then 'food' else 'coffee' end
+
+= slide 'Условия', 'освен ако' do
+  p <code>unless</code> е като <code>if not</code>.
+  p Всичко за <code>if</code> е приложимо
+  p Не ползвайте <code>unless</code> с <code>else</code> (style warning!)
+
+  example:
+    unless tired?
+      go_out_and_run
+    end
+
+= slide 'Рационални числа' do
+  list:
+    Има такъв вграден тип в Ruby, класът им е `Rational`
+    Просто двойка цели числа - числител и знаменател (> 0)
+    Поддържат стандартните аритметични операции
+    Единственият точен вариант за делене
+    Създават се с `Rational(a, b)` или с литерален синтаксис (само в 2.1): `0.1r`
+    Има и други начини, вижте <a href="http://ruby-doc.org/core-2.1.0/Rational.html">документацията на Rational</a>
+
+= slide 'Кратко проучване' do
+  p Колко от вас са запознати със следните неща:
+
+  ul
+    li.action Свързани списъци
+    li.action Масиви с променлива дължина
+    li.action Хеш таблици
+    li.action Анонимни функции
+    li.action <code>map</code> и <code>filter</code>
+
+  p.action Минимално необходимо знание за всеки програмист
+
+= slide 'Отклониение', '#to_s и #inspect' do
+  p
+    | Един обект се обръща до низ с <code>#to_s</code>. Има и друг вариант, <code>#inspect</code>,
+      който го обръща до текстов низ, изглеждащ като ruby код. Целта е инспектиране.
+
+  ul
+    li <code>puts(something)</code> извежда <code>something.to_s</code>
+    li <code>p(something)</code> извежда <code>something.inspect</code>
+
+= slide 'Преди това', 'хилядите значение на диез' do
+  ul
+    li.action В рамките на един ред, всичко след <code>#</code> е коментар
+    li.action В контекст на документация означава инстанционен метод — <code>#puts</code>, <code>Array#inject</code>
+    li.action В низ с двойни кавички, предшества интерполация – `"The answer: #{40 + 2}"
+    li.action Нота, обозначена с диез, се свири полутон по-високо &mdash; <code>C#</code>
+
+= slide 'Масиви' do
+  ul
+    li.action Класът се казва <code>Array</code>. Разбира се, има литерален синтаксис
+    li.action Дефинират се така: <code>[1, 2, 3, 4]</code>
+    li.action Хетерогенни: <code>[18, :female, 'Burgas']</code>
+    li.action Напълно mutable
+    li.action Могат да се влагат, както всички колекции
+    li.action Неограчиен, нестатичен размер
+    li.action Пазят референции, а не копия към елементите си
+    li.action Имплементирани са като C масив
+
+= slide 'Масиви', 'индексиране' do
+  annotate:
+    numbers = [:zero, :one, :two]
+    numbers[1]   # =>
+    numbers[10]  # =>
+    numbers[-1]  # =>
+
+    numbers[5] = :five
+    numbers[5]   # =>
+    numbers      # =>
+
+= slide 'Масиви', 'fetch' do
+  p <code>Array#fetch</code> хвърля грешка или връща друга стойност, при индексиране извън обема на масива:
+
+  annotate:
+    numbers = [:zero, :one, :two]
+
+    numbers.fetch(1)            # =>
+    numbers.fetch(10, :dunno)   # =>
+    numbers.fetch(10)           #!
+
+    numbers[10] or :dunno       # като предното, ама не точно
+
+  p Ползва се по-рядко, отколкото си мислите.
+
+= slide 'Масиви', 'типичните методи' do
+  annotate:
+    numbers = [3, 1, 2, 4]
+    numbers.length  # =>
+    numbers.size    # =>
+    numbers.sort    # =>
+    numbers.reverse # =>
+    numbers[1..2]   # =>
+
+  p <code>sort</code> и <code>reverse</code> връщат нов масив, без да променят <code>numbers</code>.
+
+= slide 'Масиви', '#include?' do
+  p <code>#include?</code> ви казва дали масив съдържа даден елемент.
+
+  annotate:
+    prime_digits = [2, 3, 5, 7]
+
+    prime_digits.include? 2    # =>
+    prime_digits.include? 4    # =>
+
+  p Внимание: линейно търсене. Подходящо за малки списъци.
+
+= slide 'Масиви', 'забавни оператори' do
+  annotate:
+    [:a, :b, :c] + [:d, :e]             # =>
+    [:a, :b, :c, :b, :a] - [:b, :c, :d] # =>
+    [:a, :b, :c] & [:b, :c, :d]         # =>
+    [:a, :b, :c] | [:b, :c, :d]         # =>
+
+  p <code>&</code> и <code>|</code> конкатенират списъците и премахват повторенията.
+  p В Ruby има множества, които са по-удачни в повечето случаи.
+
+= slide 'Масиви', 'мутиране' do
+  annotate:
+    numbers = [1, 2, 3]
+
+    numbers << 4
+    p numbers   # =>
+
+    numbers.insert 0, :zero
+    p numbers   # =>
+
+    result = numbers.delete_at(0)
+    p result    # =>
+    p numbers   # =>
+
+= slide 'Масиви', 'push и pop' do
+  annotate:
+    stack = [1, 2, 3]
+
+    stack.push 4
+    p stack         # =>
+
+    top = stack.pop
+    p stack         # =>
+    p top           # =>
+
+  p <code>#shift</code> и <code>#unshift</code> са аналогични, но работят с началото на масива.
+
+= slide 'Масиви', 'разни други методи' do
+  annotate:
+    [1, 2, 3].join("-")        # =>
+    [1, 2, 3].permutation      # сещате се какво връща
+    [1, 2].product([3, 4])     # =>
+    [[1, 2], [3, 4]].transpose # =>
+    [1, 2, 3, 4].shuffle       # разбърква масива произволно
+
+  p
+    ' Има ред такива методи, които може да намерите в
+    a href="http://ruby-doc.org/core-2.1.0/Array.html" Ruby Doc
+    ' .
+
+= slide 'Документация', 'свиквайте с нея отсега' do
+  ul
+    li <a href="http://www.ruby-doc.org/">Ruby Doc (core и std-lib)</a>
+    li <a href="http://apidock.com/">APIDock</a>
+
+= slide 'Масиви', 'последната запетая' do
+  p
+    ' Може да оставите запетая след последния елемент на масива. Така редовете
+      се разместват по-лесно. Важи и за хешове.
+
+  example:
+    songs = [
+      'My Favorite Things',
+      'Alabama',
+      'A Love Supreme',
+    ]
+
+= slide 'Масиви', 'пърладжийски истории' do
+  p Има специален синтаксис за масив от думи.
+
+  example:
+    %w(chunky bacon)     == ['chunky', 'bacon']
+    %w[a b c]            == ['a', 'b', 'c']
+    %w{cool stuff}       == ['cool', 'stuff']
+    %w<coffee tea water> == ['coffee', 'tea', 'water']
+    %w|foo bar|          == ['foo', 'bar']
+
+  p Може да използвате различни видове символи, които да ограждат думите от масива:
+  pre
+    | ! @ # $ * - _
+  p Този списък от символи е непълен.
+
+= slide 'Масиви', 'Array#slice voodoo' do
+  ul
+    li.action Всички списъци имат метод <code>slice</code> (<a href="http://www.ruby-doc.org/core-1.9.3/Array.html#method-i-slice">документация</a>)
+    li.action "Операторът" за индексиране <code>[]</code> е всъщност метод на <code>Array</code>, който е синоним на <code>slice</code>
+    li.action Може да приема индекс, област (range), както и индекс плюс брой елементи
+    li.action Следователно може да връща един елемент или цял подмасив
+    li.action Методът-setter <code>[]=</code> от своя страна позволява и да променяте въпросните отрязъци от масива
+
+= slide 'Масиви', 'Array#slice' do
+  annotate:
+    numbers = [1, 2, 3, 4, 5, 6]
+
+    numbers[0..2]   # =>
+    numbers[-3..-1] # =>
+    numbers[1, 1]   # =>
+
+    numbers[0..2] = [:wat]
+
+    numbers         # =>
+
+= slide 'Масиви', 'итерация' do
+  p Итерира се с <code>#each</code>, както всичко останало в Ruby:
+  example:
+    primes = [2, 3, 5, 7, 11]
+
+    primes.each { |n| puts n }
+
+    primes.each do |n|
+      puts n
+    end
+
+= slide 'Sidenote: for', '...или как де губим точки' do
+  list:
+    В Ruby има оператор `for`
+    Вътрешно вика `#each`
+    Намираме го за ужасно лош стил
+    По-голяма част от community-то също
+    Курсът е под наслов: "всеки for - пирон в ковчега на добрата оценка"
+
+= slide '"Къдрави скоби" и do/end' do
+  ul
+    li.action По конвенция, фигурни скоби се ползват, когато целия блок е на един ред
+    li.action <code>do</code>/<code>end</code> се ползва, когато блокът е няколко реда
+    li.action Това е конвенцията, която ще спазваме ние
