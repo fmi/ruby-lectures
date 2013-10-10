@@ -45,7 +45,6 @@ class Default < Thor
     index   = '%02d' % index
     builder = builder_for(index)
 
-
     create_file "#{COMPILED_PATH}/#{builder.output_filename}", builder.html.force_encoding('BINARY')
     directory "lectures/#{index}", "#{COMPILED_PATH}/#{index}" if File.directory?("lectures/#{index}")
   end
