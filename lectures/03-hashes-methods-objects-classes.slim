@@ -288,10 +288,10 @@
 
   example:
     def factorial(n)
-      unless n == 1
-        factorial(n - 1) * n
-      else
+      if n == 1
         1
+      else
+        factorial(n - 1) * n
       end
     end
 
