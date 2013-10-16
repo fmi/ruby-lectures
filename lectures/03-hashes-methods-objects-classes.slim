@@ -60,9 +60,9 @@
     Настройте си редактора - да показва trailing whitespace, интервали и табулации; да идентира правилно
     Запазвам си правото да не коментирам на решения, които са просто изсипана купчина символи
 
-= slide 'Именоване' do
+= slide 'Именуване' do
   list:
-    Именоване – полагайте големи усилия, когато го правите; нека ви стане навик
+    Именуване – полагайте големи усилия, когато го правите; нека ви стане навик
     `tmp` е епитома на лошите имена
     Лоши са и `data`, `result`, `array`, `hash` – прекалено общи
     Лоши са `size1`, `size2` – със сигурност има някаква друга разлика между тях
@@ -70,7 +70,7 @@
     Има малко изключения на горното (например `i`, когато се използва като индексна променлива)
     В много ситуации може да избегнете създаването на променлива съвсем
 
-= slide 'Именоване', 'не съкращавайте' do
+= slide 'Именуване', 'не съкращавайте' do
   list:
     С неща от типа на `curr`, `prev`, `el`, `elem`, `num` не печелите нищо, но губите много
     Стремете се да спазвате [Clarity over brevity](http://37signals.com/svn/posts/3250-clarity-over-brevity-in-variable-and-method-names)
@@ -80,7 +80,7 @@
       Comments are generally only needed when you failed to be clear enough in naming. Treat them as a code smell.
     p — DHH
 
-= slide 'Именоване', 'Clarity over brevity' do
+= slide 'Именуване', 'Clarity over brevity' do
   example:
     def make_person_an_outside_subscriber_if_all_accesses_revoked
       person.update_attribute(:outside_subscriber, true) if person.reload.accesses.blank?
@@ -97,7 +97,7 @@
       end
     end
 
-= slide 'Именоване', 'лоши примери' do
+= slide 'Именуване', 'лоши примери' do
   .action
     p Какво прави следният код?
     example:
@@ -108,7 +108,7 @@
     example:
       absolute_value = self > 0 ? self : -self
 
-= slide 'Именоване', 'лоши примери' do
+= slide 'Именуване', 'лоши примери' do
   p В контекста на метод, проверяващ дали число е просто:
 
   .action
@@ -120,7 +120,7 @@
     example:
       upper_limit = Math.sqrt(self)
 
-= slide 'Именоване', 'и преводи' do
+= slide 'Именуване', 'и преводи' do
   list:
     `divider` означава "разделител, преграда, ..."
     `divisor` е делител
@@ -618,7 +618,7 @@
     end
 
     doubler = make_block { |n| n * 2 }
-    doubler.(2) # =>
+    doubler.call 2 # =>
 
 = slide 'Сряда', 'където пием бира' do
   list:
