@@ -267,7 +267,7 @@
   p Стандартните функционални неща:
 
   example:
-    numbers   = [-9, -4, -1, 0, 1, 4, 9]
+    numbers  = [-9, -4, -1, 0, 1, 4, 9]
 
     positive = numbers.select { |n| n >= 0 }
     even     = numbers.reject { |n| n.odd? }
@@ -280,7 +280,7 @@
       <code>#find_all</code> и <code>#map</code>:
 
   example:
-    numbers   = [-9, -4, -1, 0, 1, 4, 9]
+    numbers  = [-9, -4, -1, 0, 1, 4, 9]
 
     squares  = numbers.map { |n| n ** 2 }
     positive = numbers.find_all { |n| n >= 0 }
@@ -400,7 +400,7 @@
     last   # =>
 
   list:
-    <code>middle</code> и <code>head</code> обират всичко останало
+    <code>middle</code> и <code>tail</code> обират всичко останало
     Очевидно, може да имате само една splat-променлива на присвояване
 
 = slide 'Паралелно присвояване', 'splat аргументи отдясно' do
