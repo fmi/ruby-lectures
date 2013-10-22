@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'slim'
 require 'yaml'
-require 'albino'
+require 'pygments'
 require 'fileutils'
 require 'rcodetools/xmpfilter'
 
@@ -13,6 +13,7 @@ autoload :List,        'list'
 autoload :SlideHelper, 'slide_helper'
 autoload :Lecture,     'lecture'
 autoload :Builder,     'builder'
+autoload :Code,        'code'
 
 Slim::Engine.default_options[:disable_escape] = true
 
