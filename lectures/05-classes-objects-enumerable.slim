@@ -473,7 +473,7 @@
       %w(foo plugh larodi).map(&:length)        # =>
 
 = slide 'Symbol#to_proc', 'с повече от един аргумент' do
-  p Всъщност, малко по сложно е:
+  p Всъщност, малко по-сложно е:
   example:
     block = ->(obj, *args) { obj.method_name *args }
     block = :method_name.to_proc
@@ -540,7 +540,7 @@
   p Модулите в Ruby имат няколко предназначения:
 
   ul
-    li Именовани пространства,
+    li Именовани пространства
     li Съдържане на "не-instance" методи
     li Mixins
 
@@ -644,7 +644,7 @@
     Ползва се постоянно
     [Документация на Enumerable](http://ruby-doc.org/core-2.1.0/Enumerable.html)
 
-= slide '#collect, #select и #inject' do
+= slide '#collect, #find_all и #inject' do
   p Помните ли тези методи и техните синоними?
 
   annotate:
