@@ -1,0 +1,878 @@
+= slide 'Днес' do
+  list:
+    Ще ви разкажем малко за обектите и класовете в Ruby
+    Ще си поговорим за `Enumerable`
+
+= slide 'Ruby и ООП' do
+  list:
+    Всичко е обект
+    Duck typing
+    Няма функции, има само методи
+    Няма множествено наследяване, но има mixin-и
+
+= slide 'Класове', 'прост пример' do
+  p
+    | Дефинират се с <code>class</code>. Методите, дефинирани в тялото на класа,
+      стават методи на инстанциите му. Инстанцират се се с <code>ИмеНаКласа.new</code>.
+
+  annotate:
+    class Bacon
+      def chunky?
+        'yes, of course!'
+      end
+    end
+
+    bacon = Bacon.new
+    bacon.chunky?      # =>
+
+= slide 'Класове', 'полета' do
+  p Полетата (още: instance variables) имат представка <code>@</code>.
+
+  annotate:
+    class Vector
+      def initialize(x, y)
+        @x = x
+        @y = y
+      end
+
+      def length
+        (@x * @x + @y * @y) ** 0.5
+      end
+    end
+
+    vector = Vector.new 2.0, 3.0
+    vector.length()     # =>
+    vector.length       # =>
+
+= slide 'Класове', 'полета (2)' do
+  p По подразбиране имат стойност <code>nil</code>.
+
+  example:
+    class Person
+      def soul
+        @nothingness
+      end
+    end
+
+    person = Person.new
+    person.soul      # nil
+
+= slide 'Класове', 'викане на методи' do
+  p
+    ' В метод може да извикате друг със <code>self.име_на_метод</code>
+      или просто <code>име_на_метод</code>:
+
+  example:
+    class Person
+      def initialize(name) @name = name                end
+      def say_hi()         puts "My name is #{@name}!" end
+      def sound_smart()    puts "1101000 1101001"      end
+
+      def talk
+        self.say_hi
+        sound_smart
+      end
+    end
+
+    mel = Person.new 'Mel'
+    mel.talk
+
+  p Такова подравняване на методи е гадно, но пък се събира в слайд.
+
+= slide 'Класове', 'self' do
+  p
+    ' В методите на класа, <code>self</code> е референция към обекта,
+      на който е извикан методът. Като <code>this</code> в Java или C++.
+
+  annotate:
+    class Person
+      def me
+        self
+      end
+    end
+
+    person = Person.new
+    person           # =>
+    person.me        # =>
+    person.me.me     # =>
+
+= slide 'Атрибути' do
+  p Полетата не са публично достъпни. Може да ги достигнете само чрез метод.
+
+  annotate:
+    class Person
+      def initialize(age)
+        @age = age
+      end
+
+      def age
+        @age
+      end
+
+      def set_age(age)
+        @age = age
+      end
+    end
+
+    person = Person.new(33)
+    person.age          # =>
+    person.set_age 20
+    person.age          # =>
+
+= slide 'Атрибути', 'setter-и' do
+  p Разбира се, <code>set_age</code> е гадно име на метод. Може и по-добре:
+
+  annotate:
+    class Person
+      def age
+        @age
+      end
+
+      def age=(value)
+        @age = value
+      end
+    end
+
+    person = Person.new
+    person.age = 33  # Същото като person.age=(33)
+
+    person.age       # =>
+
+= slide 'Атрибути', 'attr_accessor' do
+  p Последното е досадно за писане. Затова:
+
+  annotate:
+    class Person
+      attr_accessor :age
+    end
+
+    person = Person.new
+    person.age = 33
+
+    person.age # =>
+
+= slide 'Атрибути', 'другите макроси' do
+  p Ако ви трябва само getter или setter, може така:
+
+  example:
+    class Person
+      attr_reader :name
+      attr_writer :grade
+      attr_accessor :age, :height
+    end
+
+= slide 'Атрибути', 'какво е attr_accessor?' do
+  p
+    ' <code>attr_accessor</code> е метод, който генерира два метода &mdash; <code>#foo</code>
+      и <code>#foo=</code>. Достъпен е в дефинициите на класове. Неформален термин за такива
+      методи е "class macro".
+  p Има ги в изобилие.
+
+= slide 'Атрибути', "Meyer's Uniform Access Principle" do
+  p Обърнете внимание, че следните два реда правят едно и също:
+
+  example:
+    person.age()
+    person.age
+
+  p
+    ' Няма разлика между достъпване на атрибут и извикване на метод, който го изчислява. Това се нарича
+      <a href="http://en.wikipedia.org/wiki/Uniform_access_principle">Uniform Access Principle</a>
+      и като цяло е хубаво нещо.
+
+= slide 'Конвенции', 'напомняне' do
+  p В Ruby важат следните конвенции.
+
+  list:
+    Имената на класове (и модули) са всъщност константи
+    Такива константи се изписват с `UpperCamelCase`
+    За обикновени константи (разни стойности) се ползва `SCREAMING_SNAKE_CASE`
+    Методите и променливите се изписват с `plain_snake_case` (в т.ч. и инстанционните променливи)
+
+= slide '"Отваряне" на класове' do
+  p Във всеки момент може да "отворите" клас и да му добавите методи. Това вече дори сте го правили.
+
+  annotate:
+    class Person
+      def name
+        'River'
+      end
+    end
+
+    class Person
+      def say_hi
+        "Hi, I am #{name}."
+      end
+    end
+
+    Person.new.say_hi # =>
+    Person.new.name   # =>
+
+= slide 'Повторно дефиниране на метод' do
+  p Ако дефинирате един метод два пъти, втората дефиниция измества първата.
+
+  example:
+    class Someone
+      def name
+        'Tom Baker'
+      end
+
+      def name
+        'Colin Baker'
+      end
+    end
+
+    Someone.new.name # => 'Colin Baker'
+
+= slide 'Тялото на класа', 'където става странно' do
+  p Тялото на класа е напълно изпълним код:
+
+  annotate:
+    class Something
+      a = 1
+      b = 2
+      a + b #=>
+    end
+
+= slide 'Тялото на класа (2)' do
+  p Понякога дори е полезно:
+
+  annotate:
+    class Object
+      if RUBY_VERSION <= '1.8.6'
+        def tap
+          yield self
+          self
+        end
+      end
+    end
+
+= slide 'Синоними на методи в Ruby', 'като говорим за код в тялото на методи...' do
+  list:
+    Можете да дефинирате синоними на методи в Ruby, посредством:
+    Ключовата дума `alias`
+    Метода `Module#alias_method` (клас макро)
+    И двете правят достъпно копие на тялото на даден метод под друго име
+    Използват се много във вградените в Ruby-методи, например `String#size` и `String#length`
+
+= slide 'Синтаксис за синоними на методи' do
+  list:
+    С ключовата дума `alias`: `alias :new_method :old_method`
+    Или: `alias new_method old_method` (забележете, че това не са символи или низове, a идентификатори)
+    С метода от стандартната библиотека `Module#alias_method`:
+    `alias_method :new_method, :old_method`
+    Или: `alias_method 'new_method', 'old_method'`
+
+= slide 'Семантика на синоними на методи' do
+  list:
+    Alias-ите не са обикновени синоними, symlink-ове, указатели и прочее
+    Това, което се случва при "alias"-ване на методи, е приблизително еквивалентно на копиране на тялото на оригиналния метод
+    Ако модифицирате тялото на оригиналния метод след като сте го "alias"-нали, alias-ът ще запази старото тяло
+
+= slide 'Пример с alias' do
+  p Въпреки името си, <code>alias</code> прави копие на метод.
+
+  annotate:
+    class Array
+      alias old_inject inject
+
+      def inject(*args, &block)
+        puts "I see you are using #inject. Let me help!"
+        old_inject(*args, &block) * 0.01
+      end
+    end
+
+    [1, 2, 3, 4, 5, 6].inject { |a, b| a + b } # =>
+
+= slide 'Синоними на методи' do
+  p Пример за реална употреба:
+  .action
+    example:
+      def to_s
+        to_html
+      end
+  .action
+    p По-добре да се запише така:
+    example:
+      alias_method :to_s, :to_html
+  .action
+    p Или така:
+    .action
+      example:
+        alias to_s to_html
+
+= slide 'Разлики между alias и alias_method' do
+  list:
+    На първо място, `alias` е ключова дума, докато `alias_method` е обикновен метод от `Module` (клас макро)
+    От горното следват и повечето разлики между двете:
+    При `alias` може да подавате като аргументи направо идентификатори на методи, например:
+    `alias original_to_s to_s` ще направи нов синоним на `to_s` под името `original_to_s`
+    `alias_method original_to_s, to_s` ще интерпретира `original_to_s` и `to_s` като имена на променливи
+    Зад тези имена трябва да стои низ или символ, указващ име на метод
+    По този начин може да правите синоними на методи динамично, докато с `alias` това не става
+
+= slide 'Разлики между alias и alias_method', 'създаване на синоними по време на изпълнение' do
+  annotate:
+    class Array
+      [:size, :count, :length].each do |method_name|
+        alias_method "old_#{method_name}", :size
+      end
+
+      def size
+        0
+      end
+    end
+
+    [1, 2, 3].size     # =>
+    [1, 2, 3].old_size # =>
+
+= slide 'Забележки относно синоними на методи' do
+  list:
+    Някои инструменти, които генерират документация от вашия код, имат проблеми с тази техника
+    Тъй като `alias` е ключова дума и подлежи на статичен синтактичен анализ, такива инструменти разпознават тези синоними
+    За разлика от това, `Module#alias_method` обикновено не се разпознава в тези случаи, понеже не може да ползвате статичен синтактичен анализ за целта
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Object#methods' do
+  p
+    ' Ако извикате <code>#methods</code> на нещо, ще получите масив от символи
+      с имената на методите му.
+
+  p Помните ли <code>Array#-</code>?
+
+  annotate:
+    class Person
+      def foo() end
+      def bar() end
+    end
+
+    Person.new.methods - Object.new.methods # =>
+
+= slide 'Предефиниране на оператори' do
+  p Много интуитивно.
+
+  annotate:
+    class Vector
+      attr_accessor :x, :y
+
+      def initialize(x, y)
+        @x, @y = x, y
+      end
+
+      def +(other)
+        Vector.new(x + other.x, y + other.y)
+      end
+
+      def inspect
+        "Vector.new(#@x, #@y)"
+      end
+    end
+
+    Vector.new(1, 5) + Vector.new(3, 10) # =>
+
+= slide 'private' do
+  annotate:
+    class Person
+      def say_hi
+        "Hello! I am #{name}"
+      end
+
+      private
+
+      def name
+        'the Doctor'
+      end
+    end
+
+    person = Person.new
+    person.say_hi     # =>
+    person.name       #!
+
+= slide 'private (2)' do
+  p
+    ' Ако един метод е <code>private</code>, не може да го викате с явен получател.
+      Дори със <code>self.</code>
+
+  annotate:
+    class Person
+      def say_hi
+        "Hello! I am #{self.name}"
+      end
+
+      private
+
+      def name
+        'the Doctor'
+      end
+    end
+
+    person = Person.new
+    person.say_hi     #!
+
+= slide 'protected' do
+  list:
+    В Ruby има и `protected`
+    Не е точно това, което очаквате
+    Ползва се много рядко
+    Основно ползвате `private`
+    Ще си говорим за `protected` и `private` отново в следващи лекции
+
+= slide 'Object#tap' do
+  p <code>Object#tap</code> извиква блока със себе си и връща обекта, на който е извикан.
+
+  annotate:
+    array = [].tap do |items|
+      items              # =>
+      items.equal? array # =>
+
+      items << 'foo'
+      'other thing'
+    end
+
+    array                # =>
+
+= slide 'Object#tap', 'за debug-ване' do
+  p Имате следния код
+  example:
+    (1..10).select { |x| x.odd? }.map { |x| x ** 2 }
+
+  p Искате да видите какво остава след <code>select</code>-а:
+  example:
+    (1..10).select { |x| x.odd? }.tap { |x| p x }.map { |x| x ** 2 }
+
+= slide 'Object#tap', 'друг пример' do
+  annotate:
+    class Array
+      def occurences_count
+        Hash.new(0).tap do |result|
+          each { |item| result[item] += 1 }
+        end
+      end
+    end
+
+    [nil, 1, 2, 1, :a, 'X', 1, nil].occurences_count # =>
+
+= slide 'Symbol#to_proc' do
+  p Следните два реда са (почти) еквивалентни:
+
+  example:
+    name = ->(object) { object.name }
+    name = :name.to_proc
+
+  .action
+    p
+      ' Когато подавате блок на метод с <code>&block</code>, Ruby извиква
+        <code>#to_proc</code>, ако <code>block</code> не е ламбда или proc.
+
+  .action
+    p Съответно, следните два реда са еквивалентни
+    annotate:
+      %w(foo plugh larodi).map { |s| s.length } # =>
+      %w(foo plugh larodi).map(&:length)        # =>
+
+= slide 'Symbol#to_proc', 'с повече от един аргумент' do
+  p Всъщност, малко по сложно е:
+  example:
+    block = ->(obj, *args) { obj.method_name *args }
+    block = :method_name.to_proc
+
+  .action
+    p Това значи, че може да направите така:
+    annotate:
+      [{a: 1}, {b: 2}, {c: 3}].reduce { |a, b| a.merge b } # =>
+      [{a: 1}, {b: 2}, {c: 3}].reduce(&:merge)             # =>
+
+  .action
+    p Или дори:
+    annotate:
+      [1, 2, 3, 4].reduce { |sum, b| sum + b } # =>
+      [1, 2, 3, 4].reduce(&:+)             # =>
+
+= slide 'Symbol#to_proc', 'Употреба' do
+  ul
+    li Ползва се често
+    li Дори да не го ползвате често, трябва да знаете как работи
+
+  example:
+    ['Foo' :bar, 3].map(&:to_s).map(&:upcase)
+
+= slide 'Symbol#to_proc', 'Примерна имплементация' do
+  example:
+    class Symbol
+      def to_proc
+        # ...?
+      end
+    end
+
+= slide 'Object#send' do
+  list:
+    Всеки обект в Ruby има метод `send`
+    Може да ползвате `send`, за да викате произволни методи на този обект
+    Дори `private` или `protected` такива
+    Може да ползвате `public_send`, ако искате да не прекрачвате този праг
+    Нарпимер:
+
+  .action
+    annotate:
+      3.send :+, 4 # =>
+
+= slide 'Symbol#to_proc', 'Примерна имплементация' do
+  example:
+    class Symbol
+      def to_proc
+        ->(object, *args) { object.public_send self, *args }
+      end
+    end
+
+= slide 'pry', '$ gem install pry' do
+  list:
+    По-як шел
+    Highlighting
+    Удобно инспектиране
+    Помага за редактиране на грешки
+    Показва документация
+    Показва код на метод
+    Идете на [pry.github.com](http://pry.github.com)
+
+= slide 'Модули' do
+  p Модулите в Ruby имат няколко предназначения:
+
+  ul
+    li Именовани пространства,
+    li Съдържане на "не-instance" методи
+    li Mixins
+
+  p Днес ще разгледаме последното.
+
+= slide 'Модули', 'като колекция от методи' do
+  p Модулите в Ruby просто съдържат методи. Дефинират се подобно на класове:
+
+  example:
+    module UselessStuff
+      def almost_pi
+        3.1415
+      end
+
+      def almost_e
+        2.71
+      end
+    end
+
+= slide 'Модули', 'миксиране' do
+  p
+    ' Модулите могат да се "миксират" с клас. Тогава той получава всички методи
+      на модула като инстанционни методи.
+
+  annotate:
+    module UselessStuff
+      def almost_pi
+        3.1415
+      end
+    end
+
+    class Something
+      include UselessStuff
+    end
+
+    Something.new.almost_pi # =>
+
+= slide 'Модули', 'self' do
+  p
+    ' В метод на модула, <code>self</code> е инстанцията от класа, в който модулът е бил миксиран и на която е извикан даденият метод.
+
+  annotate:
+    module Introducable
+      def introduction
+        "Hello, I am #{name}"
+      end
+    end
+
+    class Person
+      include Introducable
+      def name() 'The Doctor' end
+    end
+
+    doctor = Person.new
+    doctor.introduction # =>
+
+= slide 'Модули', 'приоритет на методите' do
+  p Методите на класа имат приоритет пред методите на модула.
+
+  annotate:
+    module Includeable
+      def name() 'Module' end
+    end
+
+    class Something
+      def name() 'Class' end
+      include Includeable
+    end
+
+    Something.new.name # =>
+
+= slide 'Модули', 'приоритет на методите (2)' do
+  p Ако два модула дефинират един и същи метод, ползва се методът от последно миксирания модул:
+
+  annotate:
+    module Chunky
+      def name() 'chunky' end
+    end
+
+    module Bacon
+      def name() 'bacon' end
+    end
+
+    class Something
+      include Chunky
+      include Bacon
+    end
+
+    Something.new.name # =>
+
+= slide 'Модули', 'приоритет на методите (3)' do
+  p Просто за информация: методите на mixin-ите имат приоритет пред тези на родителя.
+  p
+    ' Всичко това е свързано с нещо, наречено <em>ancestor chain</em>, за което
+      ще си говорим следващия път.
+
+= slide 'Enumerable' do
+  list:
+    Най-важният модул в Ruby
+    Дава много полезни методи за обработка на масиви
+    Ползва се постоянно
+    [Документация на Enumerable](http://ruby-doc.org/core-2.1.0/Enumerable.html)
+
+= slide '#collect, #select и #inject' do
+  p Помните ли тези методи и техните синоними?
+
+  annotate:
+    [1, 2, 3, 4, 5].select(&:odd?)     # =>
+    %w(foo plugh barney).map(&:length) # =>
+    [1, 2, 3, 4, 5].reduce(&:*)        # =>
+
+  .action
+    p Те са имплементирани в <code>Enumerable</code>, а не в <code>Array</code>.
+    p Всяка колекция в Ruby ги има.
+
+= slide 'Други методи на Enumerable' do
+  pre
+    ' all?          any?        chunk       collect          collect_concat
+      count         cycle       detect      drop             drop_while
+      each_cons     each_entry  each_slice  each_with_index  each_with_object
+      entries       find        find_all    find_index       first
+      flat_map      grep        group_by    include?         inject
+      map           max         max_by      member?          min
+      min_by        minmax      minmax_by   none?            one?
+      partition     reduce      reject      reverse_each     select
+      slice_before  sort        sort_by     take             take_while
+      to_a          zip
+
+  p После ще видите как генерирах тази таблица.
+
+= slide 'Hash < Enumerable' do
+  p Хешовете също са <code>Enumerable</code>:
+
+  annotate:
+    hash = {2 => 3, 4 => 5}
+
+    hash.to_a                                 # =>
+    hash.map { |p| p[0] + p[1] }              # =>
+    hash.map { |k, v| k + v }                 # =>
+    hash.reduce(0) { |s, p| s + p[0] * p[1] } # =>
+
+= slide 'Hash < Enumerable', 'бележка под линия' do
+  p Някои от <code>Enumerable</code> методите в <code>Hash</code> са предефинирани.
+
+  annotate:
+
+    hash = {2 => 3, 4 => 5, 6 => 7, 8 => 9}
+
+    hash.select { |k, v| v > 6 }      # =>
+    hash.to_a.select { |k, v| v > 6 } # =>
+
+  p <code>Enumerable#select</code> връща списък, но <code>Hash#select</code> връща хеш.
+
+= slide 'Други неща за обхождане' do
+  list:
+    Разбира се, `Hash`, `Array`
+    Класът `Range` от числа, дати, символи и прочее
+    Класът за множество `Set` и други...
+
+= slide '#all? и #any?' do
+  p
+    ' <code>#all?</code>/<code>#any?</code> връщат истина, ако всички/един елемент(и) от
+      колекцията отговарят на някакво условие.
+
+  annotate:
+    [1, 2, 3, 4].all? { |x| x.even? } # =>
+    [1, 2, 3, 4].any? { |x| x.even? } # =>
+
+    [2, 4, 6, 8].all? { |x| x.even? } # =>
+    [2, 4, 6, 8].any? { |x| x.odd? }  # =>
+
+    # И разбира се:
+    [1, 2, 3, 4].any?(&:even?)        # =>
+
+= slide '#all? и #any? без блок' do
+  p
+    ' <code>#all?</code> и <code>#any?</code> могат да работят и без блок:
+
+  annotate:
+    [1, 2, 3, nil].all?     # =>
+    [1, 2, 3, :nil].all?    # =>
+    [1, 2, 3, false].any?   # =>
+
+= slide '#one? и #none?' do
+  p Аналогични на <code>#all?</code> и <code>#any?</code>. Също могат да работят без блок.
+
+  annotate:
+    %w(foo bar larodi).one? { |word| word.length == 6 }  # =>
+    %w(foo bar larodi).one? { |word| word.length == 3 }  # =>
+
+    [1, 5, 3].none? { |number| number.even? }   # =>
+    [1, 2, 3].none? { |number| number.even? }   # =>
+
+    [1, 2, 3].one?     # =>
+    [1, nil, nil].one? # =>
+
+= slide '#each_with_index' do
+  p <code>#each_with_index</code> yield-ва всеки елемент с индекса му в масива:
+
+  example:
+    %w[foo bar baz].each_with_index do |word, index|
+      puts "#{index}. #{word}"
+    end
+
+  p Горното извежда:
+
+  pre
+    ' 0. foo
+      1. bar
+      2. baz
+
+= slide '#group_by' do
+  p Името казва всичко, което ви е нужно да знаете.
+
+  annotate:
+    words  = %w(foo bar plugh larodi)
+    groups = words.group_by { |word| word.length }
+
+    groups # =>
+
+= slide '#each_slice' do
+  p <code>#each_slice(n)</code> <code>yield</code>-ва елементите на части по <code>n</code>:
+
+  example:
+    %w(a b c d e f g h).each_slice(3) do |slice|
+      p slice
+    end
+
+  p Извежда
+  pre
+    ' ["a", "b", "c"]
+      ["d", "e", "f"]
+      ["g", "h"]
+
+= slide '#each_cons' do
+  p <code>#each_cons(n)</code> <code>yield</code> "подмасиви" с <code>n</code> елемента:
+
+  example:
+    [1, 2, 3, 4, 5].each_cons(3) do |cons|
+      p cons
+    end
+
+  p Извежда
+  pre
+    ' [1, 2, 3]
+      [2, 3, 4]
+      [3, 4, 5]
+
+= slide '#include? и #member?' do
+  p Вече знаете какво прави:
+
+  annotate:
+    [1, 2, 3, 4].include? 3   # =>
+    [1, 2, 3, 4].member? 5    # =>
+
+  p Двете са синоними.
+
+= slide '#zip' do
+  annotate:
+    [1, 2, 3].zip([4, 5, 6])    # =>
+    [1, 2].zip([3, 4], [5, 6])  # =>
+
+= slide '#take, #drop, #take_while и #drop_while' do
+  annotate:
+    [1, 2, 3, 4, 5].take(2)  # =>
+    [1, 2, 3, 4, 5].drop(2)  # =>
+
+    [1, 3, 5, 6, 7, 9].take_while(&:odd?)  # =>
+    [1, 3, 5, 6, 7, 9].drop_while(&:odd?) # =>
+
+= slide 'Как генерирах таблицата с методите?' do
+  pre
+    ' all?          any?        chunk       collect          collect_concat
+      count         cycle       detect      drop             drop_while
+      each_cons     each_entry  each_slice  each_with_index  each_with_object
+      entries       find        find_all    find_index       first
+      flat_map      grep        group_by    include?         inject
+      map           max         max_by      member?          min
+      min_by        minmax      minmax_by   none?            one?
+      partition     reduce      reject      reverse_each     select
+      slice_before  sort        sort_by     take             take_while
+      to_a          zip
+
+= slide 'Как генерирах таблицата с методите?', 'кодът' do
+  example:
+    Enumerable.instance_methods.
+      sort.
+      map { |name| name.to_s.rjust(16) }.
+      each_slice(5) { |row| puts row.join '' }
+
+  p.action
+    em Disclaimer: Леко редактирах whitespace-а, за да се събере в слайд.
+
+= slide 'include Enumerable', 'или как да го ползваме за наши класове' do
+  list:
+    Разбира се, започвате с `include Enumerable`
+    Като минимум, трябва да дефинирате `#each`
+    Той ви дава всичко останало
+
+= slide 'include Enumerable', 'пример' do
+  annotate:
+    class FibonacciNumbers
+      include Enumerable
+
+      def initialize(limit)
+        @limit = limit
+      end
+
+      def each
+        current, previous = 1, 0
+
+        while current < @limit
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new(100).to_a # =>
+
+= slide 'include Enumerable', 'пример' do
+  annotate:
+    class StepRange
+      include Enumerable
+
+      def initialize(first, last, step)
+        @first, @last, @step = first, last, step
+      end
+
+      def each
+        @first.step(@last, @step) { |n| yield n }
+      end
+    end
+
+    StepRange.new(1, 10, 2).select { |n| n > 5 } # =>
