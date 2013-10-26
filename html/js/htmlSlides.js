@@ -76,7 +76,7 @@ var htmlSlides = {
     });
 
     //Swipe gestures
-    $('.slide').swipe({
+    $('#deck').swipe({
       threshold: {
         x: 20,
         y: 30

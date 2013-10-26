@@ -59,7 +59,9 @@ nav button { float: left; border: 0; width: 26px; height: 25px; text-indent: -99
 .slide .fullscreen { position: absolute; left:0; top:0; width:100%; z-index:1; }
 
 /* Additional styles */
-body{ background:#f5f6f6; }
+html,
+body { background: #f5f6f6; height: 100%; }
+#deck { min-height: 100%; }
 #deck h1 { font-family: 'Marker Felt', Impact, Arial, sans-serif; font-size:50px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
 #deck h2 { font-family: 'Marker Felt', Impact, Arial, sans-serif; font-size: 30px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8); }
 #deck p,
