@@ -1,0 +1,525 @@
+= slide 'Днес' do
+  list:
+    Наследяване
+    Ancestor chain
+    Именовани пространства
+    Преди това...
+
+= slide '#occupySU' do
+  p.action
+    em Програмистите са следващите господари на света.
+
+  list:
+    [Общество](http://obshtestvo.bg/)
+    [Игра "Опознай депутата"](http://deputati.obshtestvo.bg/game/play)
+    [Известия за държавни документи](http://alerts.obshtestvo.bg/)
+    [#ДАНСwithMe разширение за браузър](https://github.com/open-media/dancewithme)
+    И други...
+
+= slide 'Обратно към Ruby...' do
+  / Slide left intentionally blank.
+  p
+
+= slide 'Въпрос 1' do
+  p Какво прави <code>alias</code>?
+
+  example:
+    class Something
+      def name() 'baba' end
+      alias relative name
+      def name() 'dyado' end
+    end
+
+    p Something.new.relative
+
+  p.action.answer Прави копие на метода
+
+= slide 'Въпрос 2' do
+  p Каква е разликата между <code>alias</code> и <code>alias_method</code>?
+
+  .action.answer
+    p <code>alias_method</code> е метод, докато <code>alias</code> е синтаксис
+
+  .action
+    example:
+      class Something
+        1.upto(5).each do |index|
+          alias_method "to_s_#{index}", :to_s
+        end
+      end
+
+= slide 'Въпрос 3' do
+  p Кой (и как) може да вика <code>private</code> методи?
+
+  example:
+    class Something
+      private
+
+      def foo
+      end
+    end
+
+  .action.answer
+    ul
+      li Могат да се викат от други методи на обекта
+      li Могат да се видат от методи в наследници
+      li Не могат да се викат с явен target (<code>self.foo</code>)
+
+= slide 'Въпрос 4' do
+  p Какви са конвенциите за имена на методи, променливи, константи и имена на класове?
+
+  .action.answer
+    ul
+      li <code>UpperCamelCase</code> - константи (включва имена на класове)
+      li <code>normal_snake_case</code> - променвили, методи
+      li <code>SCREAMING_SNAKE_CASE</code> - константи, които не са имена на класове или модули
+
+= slide 'Въпрос 5' do
+  p На какво могат да завършват методите в Ruby?
+
+  .action.answer
+    ul
+      li На <code>?</code> ако са предикати
+      li На <code>!</code> ако имат две версии
+      li На <code>=</code> ако са setter
+      li Технически погледнато, и на някои "оператори", напр. <code>%</code>
+
+= slide 'Наследяване' do
+  p Наследяването в Ruby става така:
+
+  annotate:
+    class Person
+      def name() 'The Doctor' end
+    end
+
+    class PolitePerson < Person
+      def introduction
+        "Hi, I am #{name}"
+      end
+    end
+
+    PolitePerson.new.introduction # =>
+
+= slide 'Наследяване', 'ограничения' do
+  list:
+    Може да наследите най-много от един родител
+    В наследника имате достъп до всички методи
+    В наследника имате достъп до всички полета
+    Ако не определите родител, класът наследява от `Object`
+    Всеки клас в Ruby наследява от `Object` (с изключение на родителя на `Object`...)
+
+= slide 'private методи' do
+  p Имате достъп до <code>private</code> методите:
+
+  annotate:
+    class Person
+      private
+      def name() 'The Doctor' end
+    end
+
+    class PolitePerson < Person
+      def introduction() "Hi, I am #{name}" end
+    end
+
+    PolitePerson.new.introduction # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of?' do
+  annotate:
+    class Base; end
+    class SpaceStation < Base; end
+
+    base    = Base.new
+    station = SpaceStation.new
+
+    base.is_a? Base            # =>
+    station.is_a? SpaceStation # =>
+    station.is_a? Base         # =>
+
+    base.instance_of? Base            # =>
+    station.instance_of? SpaceStation # =>
+    station.instance_of? Base         # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of? (2)' do
+  p <code>#is_a?</code> има синоним <code>#kind_of?</code>
+  annotate:
+    class Base; end
+    class SpaceStation < Base; end
+
+    base    = Base.new
+    station = SpaceStation.new
+
+    base.kind_of? Base            # =>
+    station.kind_of? SpaceStation # =>
+    station.kind_of? Base         # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of? (3)' do
+  list:
+    Ползвайте `#is_a?` по принцип.
+    Ползвайте `#instance_of?` само когато искате да не бъде наследник.
+    Гледайте да не ги ползвате въобще &mdash; duck typing
+
+= slide 'super' do
+  p Може да предефинирате метод и да извикате версията на родителя със <code>super</code>.
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super("Mr. #{other}") + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') # =>
+
+= slide 'super (2)' do
+  p Ако извикате <code>super</code> без скоби родителският метод получава същите аргументи.
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') # =>
+
+= slide 'super (3)' do
+  p <code>super</code> и <code>super()</code> са различни:
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super() + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') #!
+
+= slide 'Ancestor chain' do
+  list:
+    Методи могат да се дефинират само в класове и модули
+    Всеки клас има родител и миксирани модули
+    Ако един метод не се намери в класът, той се търси в миксираните модули
+    Модулите се претърсват обратно на реда, в който са `include`-нати
+    Ако не се намери в тях се търси в родителя
+    Ако го няма там, се търси в неговите модули и после в неговия родител
+    Рекурсия, брат
+    Този списък от модули и класове в които се търси се нарича `ancestor chain`
+
+= slide 'Ancestor chain (2)' do
+  annotate:
+    module Foo; end
+    module Bar; end
+    module Qux; end
+
+    class Base
+      include Foo
+    end
+
+    class Derived < Base
+      include Bar
+      include Qux
+    end
+
+    Derived.ancestors # =>
+
+= slide 'Ancestor chain (3)', 'модули, миксирани в други модули' do
+  annotate:
+    module Foo; end
+    module Bar; end
+
+    module Qux
+      include Foo
+      include Bar
+    end
+
+    class Thing
+      include Qux
+    end
+
+    Thing.ancestors # =>
+
+= slide 'Ancestor chain (4)' do
+  p Има само една версия на метода:
+
+  annotate:
+    module Talking
+      def greeting() "Hello, #{name}" end
+    end
+
+    class Base
+      include Talking
+      def name()        'Base'   end
+      def say_hi_base() greeting end
+    end
+
+    class Derived < Base
+      include Talking
+      def name()           'Derived' end
+      def say_hi_derived() greeting  end
+    end
+
+    derived = Derived.new
+    derived.say_hi_base    # =>
+    derived.say_hi_derived # =>
+
+= slide 'methodfinder', '$ gem install methodfinder' do
+  p Интересен gem:
+
+  list:
+    Помага ви да търсите методи
+    `MethodFinder.find('abc', 'ABC')`
+    `%w[a b c].find_method { |a| a.unknown(1) ; a == %w[a c] }`
+    Внимавайте, вика всички методи
+    [github.com/citizen428/methodfinder](http://github.com/citizen428/methodfinder)
+
+= slide 'Основните класове в Ruby' do
+  p
+    em "Всичко наследява от <code>Object</code>"
+
+  list:
+    Очевидно, не е съвсем така – `Object` не наследява от `Object`
+    Родителят му е `BasicObject`
+    Родителят на `BasicObject` е `nil`
+    `BasicObject` е минималистичен клас, подходящ за проксита
+
+= slide 'Основните класове в Ruby' do
+  list:
+    `Kernel` е миксиран в `Object`
+    "Глобалните методи" са дефинирани в `Kernel` (`#puts`, `#eval` и т.н.)
+    Общите методи за всички инстанции са в `Object` (`#inspect`, `#tap`, `#methods` и т.н.)
+    Ако дефинирате методи извън модул или клас, той отива като private метод на `Object`
+    Всеки път като правите това, котенце някъде умира
+
+= slide 'protected' do
+  p Само обекти от същия клас могат да викат protected методи
+
+  annotate:
+    class Vector
+      def initialize(x, y) @x, @y = x, y          end
+      def inspect()        "Vector.new(#@x, #@y)" end
+
+      def +(other)
+        Vector.new(*coords.zip(other.coords).map { |a, b| a + b })
+      end
+
+      protected
+      def coords() [@x, @y] end
+    end
+
+    vector = Vector.new(1, 2) + Vector.new(3, 4)
+    vector        # =>
+    vector.coords #!
+
+= slide 'private и protected', 'още известни като Private Public и General Specific' do
+  list:
+    `private` се ползва постоянно
+    `protected` почти никога
+    Има school of thought, който предпочита `protected`, защото могат да се викат със `self.` отпред
+    Ние не сме от тази клика
+    Има и `public`. Не го ползваме, а просто слагаме публичните методи отгоре
+    Впрочем, не са ключови думи, а методи на `Module` и `Class`
+
+= slide 'Клас-макросите private и protected (1)' do
+  p Понеже <code>private</code> и <code>protected</code> са методи:
+
+  example:
+    class Person
+      def name() end
+      def age()  end
+
+      private :name, :age
+    end
+
+  p Или дори:
+
+  annotate:
+    class String
+      private :upcase!, :downcase!
+    end
+
+    "Foo".upcase! #!
+
+= slide 'Клас-макросите private и protected (1)' do
+  p Помните ли, че дефиницията на метод връща името на метод като символ?
+
+  example:
+    def foo() end # :foo
+
+  p Значи може да направите така:
+
+  example:
+    class Person
+      private def name
+        "My name is a secret."
+      end
+
+      private def age
+        "I'm feeling feminine, so my age is a secret, too."
+      end
+    end
+
+= slide 'Именовани пространства' do
+  p Класовете и модулите могат да служат като именовани пространства.
+
+  annotate:
+    module Useless
+      class Thing
+      end
+    end
+
+    class Grandfather
+      class StraightRazor
+      end
+    end
+
+    Useless::Thing.new             # =>
+    Grandfather::StraightRazor.new # =>
+
+= slide 'Именовани пространства (2)' do
+  p Ако се намирате в модул, няма нужда да квалицирате константите:
+
+  annotate:
+    module Useless
+      class Thing
+      end
+
+      Thing.new         # =>
+    end
+
+    Useless::Thing.new  # =>
+    Thing.new           #!
+
+= slide 'Търсене на променливи в Ruby' do
+  ul
+    li Променливите в Ruby се търсят лексикално, докато не се стигне до "scope gate".
+    li Scope gate-ове в Ruby са <code>def</code>, <code>module</code> и <code>class</code>
+    li Важи и за полета (<code>@foo</code>)
+
+  example:
+    bacon = 2
+
+    def foo
+      chunky = 10
+
+      1.times do
+        chunky       # 10
+        chunky = 44
+      end
+
+      chunky         # 44
+      bacon          # error: NameError
+    end
+
+    foo()
+
+= slide 'Правила за търсене на константи' do
+  list:
+    Константите и променливите в Ruby се търсят по различен начин
+    Константите са организирани в дървовидна структура
+    Всеки ред код се намира някъде в тази дървовидна структура
+    Когато напишете константа, тя се търси първо в текущия клон, след което в родителите
+    `module` и `class` ви местят из дървото на константите
+    Може да достъпите константа в "корена" с `::` отпред (`::Foo`)
+    "Коренът" на константите са тези, дефинирани в `Object`
+
+= slide 'Малък пример' do
+  annotate:
+    PLACE = 'root'
+    module Outer
+      PLACE = 'intermediate'
+      module Inner
+        PLACE = 'deep'
+      end
+    end
+
+    PLACE               # =>
+    Outer::Inner::PLACE # =>
+    module Outer
+      module Inner
+        PLACE           # =>
+        ::PLACE         # =>
+      end
+      PLACE             # =>
+      Inner::PLACE      # =>
+    end
+
+= slide 'Класови методи' do
+  p Може да дефинирате класови методи така:
+
+  annotate:
+    class Something
+      def Something.answer
+        42
+      end
+    end
+
+    Something.answer   # =>
+
+= slide 'Класови методи (2)' do
+  p Не може да ги викате неквалифицирано от инстанцията:
+
+  annotate:
+    class Something
+      def Something.answer
+        42
+      end
+
+      def do_stuff
+        answer             #!
+        Something.answer   # =>
+      end
+    end
+
+    thing = Something.new
+    thing.answer           #!
+    Something.answer       # =>
+
+    thing.do_stuff
+
+= slide 'Класови методи (3)' do
+  p Достъпни са в наследниците:
+
+  annotate:
+    class Base
+      def Base.answer() 42 end
+    end
+
+    class Derived < Base
+      def Derived.say_answer
+        answer         # =>
+        Base.answer    # =>
+      end
+    end
+
+    Derived.answer     # =>
+    Base.answer        # =>
+
+    Derived.say_answer
+
+= slide 'Класови методи (4)' do
+  list:
+    Показах ви как се дефинират и викат
+    Не ви показах как са реализирани и къде стоят
+    Имат доста оплетена семантика в Ruby
+    Засега се опитвайте да не ползвате класови методи
