@@ -392,6 +392,27 @@
     block_or_no_block     # =>
     block_or_no_block {}  # =>
 
+= slide 'Proc.new и yield' do
+  list:
+    Блокът не е обект, а синтактична конструкция
+    `Proc.new` ще върне блока, асоцииран с обкръжаващия го метод, като обект
+    Ако извикаме `Proc.new` извън контекста на метод, без блок, ще се продуцира грешка
+    Когато `yield`-ваме даден блок, той не се обръща в обект
+
+= slide 'Proc.new' do
+  p Пример с Proc.new:
+
+  annotate:
+    def foo
+      Proc.new if block_given?
+    end
+
+    foo         # =>
+    foo {}      # =>
+
+    proc = foo { "hello" }
+    proc.call   # =>
+
 = slide 'ObjectSpace' do
   list:
     Класът `ObjectSpace` ви дава прост интерфейс за манипулация на обектите в паметта
