@@ -1,0 +1,638 @@
+= slide 'Днес' do
+  list:
+    Още метапрограмиране и Ruby вътрешности
+    Някои бележки относно ваши решения от втора задача и предизвикателство
+    По-късно днес - трета задача
+
+= slide 'Разходка тази неделя' do
+  img src="10/k2.jpg"
+
+= slide 'Разходка в неделя (17-ти)' do
+  list:
+    Ще бъде из Плана планина
+    Среща в 10:50 на спирката на автобус №3 до Метро ([карта](https://mapsengine.google.com/map/edit?mid=zhq0hNvl7O3c.khXYf8FqLQ6s))
+    Oбути подходящо, с дъждобранче (за всеки случай)
+    Елате навреме, защото автобусът е през час и няма да чакаме закъснелите
+    Тема във [форума](/topics/428)
+    [Събитието във Фейсбук](https://www.facebook.com/events/180596178804995/) - отбележете, ако ще идвате
+
+= slide 'Осмото предизвикателство' do
+  list:
+    [Искахме](/challenges/8) да напишете клас `Spy`, който е по същество едно прокси
+    Да събира извикванията на методи в списък, достъпен отвън чрез `Spy#calls`
+    Да хвърля `Spy::Error` (наследник на `NoMethodError`), ако target-а не отговаря на даден метод
+
+= slide 'Какво очаквахме от вас?' do
+  list:
+    Да наследите от `BasicObject` (даже имаше подсказка за това във форумите)
+    Да изпозлвате `respond_to?` и `public_send`
+    Да се сблъскате с някои проблеми, произтичащи от факта, че наследявате от `BasicObject`
+
+= slide 'Проблеми - constant resolution' do
+  list:
+    Много от вас са се усетили, че трябва да ползват `::` пред външни константи в проксито
+    Примерите са `::NoMethodError`, `::Kernel` и т.н.
+    Причината е, че `Spy.ancestors` не съдържа `Object` и `Spy` е клас
+    Затова не можем да разчитаме на стандартния път за търсене на константи, които не са дефинирани в `Spy`
+
+= slide 'Проблеми - викане на някои методи' do
+  list:
+    Ако някой е опитал да извика `raise`, е усетил, че това не работи
+    `raise` идва от `Kernel`
+    Ако наследявате от `BasicObject`, не получавате нищо от `Kernel`
+    Как можем да извикаме `raise`, тогава?
+    Бихме могли да направим това: `Object.new.send :raise, ...`
+    Или, можем да подходим по-умно
+
+= slide 'Kernel.raise' do
+  list:
+    Както знаете, `Kernel` се миксира (include-ва) в `Object`
+    Инстанционните методи в този модул са `private`
+
+  .action
+    p Представете си нещо такова:
+
+    example:
+      module Kernel
+        private
+
+        def puts()  ... end
+        def raise() ... end
+        ...
+      end
+
+= slide 'Kernel.raise (2)' do
+  list:
+    В нашето решение, ние ползваме `Kernel.raise`
+    `Kernel` прави `extends self`
+
+  .action
+    example:
+      module Kernel
+        extends self
+
+        private
+
+        def puts()  ... end
+        def raise() ... end
+        ...
+      end
+
+= slide 'Някои грешки' do
+  p Не ползвате <code>attr_*</code>:
+
+  example:
+    def calls
+      @called_methods
+    end
+
+= slide 'Твърде много достъп' do
+  p Ползвате <code>attr_accessor</code>:
+
+  example:
+    class Spy
+      attr_accessor :calls
+    end
+
+= slide 'Излишен достъп' do
+  p Ползвате <code>attr_accessor</code> за неща, които не трябват:
+
+  example:
+    class Spy
+      attr_accessor :instance, :calls
+    end
+
+  p Собствените методи на едно прокси трябва да бъдат свеждани до минимум.
+
+= slide 'Не ползвате respond_to?' do
+  p Това <code>@instance.methods.include? name</code> го видях на поне три места:
+
+  example:
+    def method_missing(name, *args, &block)
+      if not @instance.methods.include? name
+        raise Error.new
+      else
+        @called_metods = @called_methods << name
+        @instance.method(name).call *args, &block
+      end
+    end
+
+  p.action Няколко други проблема тук:
+  list:
+    `if not` - по-добре `unless` или обръщане на клаузите
+    Зацикляне - класическият капан на `method_missing`
+    `foo = foo << bar`
+
+= slide 'Дефинирате Spy::Error отвън' do
+  example:
+    class Spy::Error < NoMethodError
+    end
+
+  list:
+    Вложени класове обикновено се дефинират вътре в класа
+    Използвате `::NoMethodError`, за да работи в случая
+
+= slide 'He went too far...' do
+  example:
+    class Spy
+      # the ultimate spy
+      instance_methods.each do |method|
+        undef_method method unless method.to_s.start_with? '__'
+      end
+    end
+
+  .action
+    p И това също:
+    example:
+      class Spy
+        [:!, :!=, :==, :equal?].each { |method| undef_method method }
+      end
+
+= slide 'Не наследявате от BasicObject' do
+  p Това е очевидно и е проблем за проксито.
+
+= slide 'Стилови бележки' do
+  p Долното не е честа практика, излишно е и е по-добре на два реда:
+
+  example:
+    def initialize(object)
+      @object, @calls = object, []
+    end
+
+= slide 'Оставяте "боклук" в кода си' do
+  example:
+    #!/usr/local/bin/ruby -w
+
+    class Spy ...
+
+  p Не го правете.
+
+= slide '"Умно" именоване' do
+  example:
+    class Spy
+      attr_accessor :victim, :method_calls
+      ...
+    end
+
+  p Не.
+
+= slide 'Стил' do
+  example:
+    class Spy
+      def method_missing(name, *args)
+        if @object.class.instance_methods(false).include? name then
+          ...
+      end
+    end
+
+  list:
+    `respond_to? :wat?!`
+    `if` ... `then`
+
+= slide 'Излишни неща' do
+  example:
+    def method_missing(name, *args, &block)
+      unless @object.respond_to? name
+          raise Error, "Undefined method #{name} called on object of class #{@object.class}."
+      end
+
+      @calls << name unless name == :inspect
+      @object.send(name, *args, &block)
+    end
+
+  list:
+    `@calls << name unless name == :inspect` - защо?
+    Проблеми с идентацията!
+    Ненужно съобщение за грешка в случая (не го искахме в условието)
+
+= slide 'Стил и конвенции!' do
+  list:
+    Все още има решения с проблеми в идентацията
+    Крайно недопустимо
+    В тази връзка, подготвяме нови skeptic правила
+    Stay tuned...
+
+= slide 'Least surprise' do
+  p Не ползвате най-простото работещо решение:
+
+  example:
+    def method_missing(name, *args, &block)
+      begin
+        result = @class_instance.public_send(name, *args, &block)
+      rescue NoMethodError
+        raise Error
+      else
+        @calls << name.to_sym
+        result
+      end
+    end
+
+  list:
+    Това може да има странични ефекти
+    `to_sym` е излишно
+    Нуждата от `result` тук трябва да е сигнал
+
+= slide 'Хитрувате :)' do
+  p Това с <code>Error.error</code> е любопитен начин за заобикаляне на липсата на <code>raise</code> в контекста на <code>Spy</code>, признавам:
+
+  example:
+    class Spy < BasicObject
+      def method_missing(name, *args, &block)
+        if @object.respond_to? name
+          @calls << name
+          @object.method(name).call *args, &block
+        else
+          Error.error
+        end
+      end
+
+      class Error < ::NoMethodError
+        def self.error
+          raise Error
+        end
+      end
+    end
+
+  p Само че <code>foo.public_send :bar</code>, а не <code>foo.method(:bar).call</code>.
+
+= slide 'Игнориране на аргументите' do
+  p Между другото, това е интересен трик, който не сме споменавали:
+
+  example:
+    class Spy
+      def respond_to_missing?(method, *)
+        # I don't care about all other args except "method"
+      end
+    end
+
+= slide 'Нашето решение' do
+  example:
+    class Spy < BasicObject
+      class Error < ::NoMethodError; end
+      attr_reader :calls
+
+      def initialize(target)
+        @target = target
+        @calls  = []
+      end
+
+      def method_missing(method, *args, &block)
+        if @target.respond_to? method
+          @calls << method
+          @target.public_send method, *args, &block
+        else
+          ::Kernel.raise Error
+        end
+      end
+    end
+
+= slide 'Въпрос 1' do
+  p Как Ruby пази полета и методи?
+
+  .answer.action
+    ul
+      li Полетата се пазят в обекти
+      li Методите се пазят в модули
+      li Обеките нямат методи (освен ако не са модули)
+
+= slide 'Въпрос 2' do
+  p Кажете ми всичко, което знаете за instance променливите.
+
+  .answer.action
+    ul
+      li Достъпни са в наследници
+      li Не са директно достъпни извън обекта
+      li Трябва да се ползват методи за достъп (напр. <code>attr_accessor</code>)
+      li Могат да се достъпят "заобиколно" с <code>instance_variable_get</code> и компания
+
+= slide 'Въпрос 3' do
+  p Кой е класът на <code>"foo"</code>? На <code>Integer</code>? На <code>Class</code>?
+
+  p Кой е родителят на <code>String</code>? На <code>Object</code>? На <code>Class</code>?
+
+  .answer.action
+    annotate:
+      "foo".class == String  # =>
+      Integer.class == Class # =>
+      Class.class == Class   # =>
+
+      String < Object        # =>
+      Object < BasicObject   # =>
+      Class < Module         # =>
+
+= slide 'Въпрос 4' do
+  p Какво прави <code>instance_eval</code>?
+
+  p.answer.action Изпълнява блока с променен <code>self</code>.
+
+= slide 'Въпрос 5' do
+  p Как Ruby знае къде да постави метод, дефиниран с <code>def</code>?
+
+  p.answer.action
+    ' Винаги има текущ клас, в който този метод отива. Той може да се промени
+      с <code>module</code>, <code>class</code> и <code>class_eval</code>. Всъщност,
+      дори с <code>instance_eval</code>, но за това — по-късно.
+
+= slide 'def object.method' do
+  p Може да (пре)дефинирате метод в конркетен обект.
+
+  annotate:
+    things = [22, :f, 'Sofia']
+
+    def things.size
+      -5
+    end
+
+    def things.asl
+      "#{self[0]}/#{self[1]}/#{self[2]}"
+    end
+
+    things        # =>
+    things.size   # =>
+    things.length # =>
+    things.asl    # =>
+
+    [].asl        #!
+    [].size       # =>
+
+= slide 'Singleton класове' do
+  list:
+    Само модули могат да съдържат методи
+    Когато дефинирате метод на конкретен обект, Ruby го добавя в специален клас за този обект
+    Всеки обект има специален клас, наречен singleton class, който съдържа специалните за него методи
+    Горното е полу-истина. Такъв клас се създава само ако има нужда
+    Известен е още като metaclass, eigenclass и собствен клас
+
+= slide 'Singleton класове', 'визуализация' do
+  img src="11/metaclass.svg" style="width: 80%"
+
+= slide 'Object#singleton_class' do
+  p Собственият клас е достъпен чрез <code>#singleton_class</code>
+
+  annotate:
+    things = []
+
+    def things.answer
+      42
+    end
+
+    things.singleton_class # =>
+    things.singleton_class.instance_methods(false) # =>
+
+    [].singleton_class.instance_methods(false)     # =>
+
+= slide 'Symbol и Integer', '...и техните метакласове' do
+  p
+    ' Целите числа и символите нямат собствени класове. Това е заради оптимизация.
+      В Ruby интерпретатора, те се представят по много различен начин от всички други
+      обекти.
+
+  annotate:
+    1_000.singleton_class #!
+    :blah.singleton_class #!
+
+= slide 'class << thing', 'алтернативен синтаксис' do
+  p Можете да отворите собствения клас на обект с <code>class &lt;&lt;</code>
+
+  annotate:
+    things = [22, :f, 'Sofia']
+
+    class << things
+      def size
+        -5
+      end
+
+      def asl
+        "#{self[0]}/#{self[1]}/#{self[2]}"
+      end
+    end
+
+    things.asl  # =>
+    things.size # =>
+
+= slide 'super и eigenclass' do
+  p Оригиналният метод е достъпен чрез <code>super</code>.
+
+= slide 'super и eigenclass (2)' do
+  annotate:
+    things = [22, :f, 'Sofia']
+
+    class << things
+      def each
+        super
+        yield :P
+      end
+    end
+
+    aggregated = []
+    for thing in things
+      aggregated << thing
+    end
+
+    aggregated # =>
+
+= slide 'super и eigenclass', 'OMG момент' do
+  p Някой има ли идея защо <code>super</code> работи?
+
+  .action
+    annotate:
+      things = []
+
+      def things.answer
+        42
+      end
+
+      things.singleton_class # =>
+      things.singleton_class.superclass # =>
+
+    p Да, eigenclass-ът е наследник на класа на обекта
+
+= slide 'superclass и eigenclass', 'визуализация' do
+  img src="11/metaclass-superclass.svg" style="width: 80%"
+
+= slide 'Класови методи' do
+  p Вероятно помните, че класови методи могат да се дефинират така:
+
+  annotate:
+    class Something
+      def Something.foo() 42 end
+      def self.bar() 42 end
+
+      class << self
+        def qux() 42 end
+      end
+    end
+
+= slide 'Класови методи', '...всъщност' do
+  p Класовите методи се пазят в собствения клас на класа
+
+  annotate:
+    class Something
+      def self.answer() 42 end
+    end
+
+    Something.singleton_class # =>
+    Something.singleton_class.instance_methods(false) # =>
+
+= slide 'Класови методи', 'визуализация' do
+  img src="11/class-metaclass.svg" style="width: 80%"
+
+= slide 'extend', '...върху клас' do
+  p Помните ли <code>extend</code>?
+
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something
+      extend Knowledge
+    end
+
+    Something.answer # =>
+
+= slide 'extend', '...върху не-клас' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    text = "fourty-two"
+    text.extend Knowledge
+
+    text.answer # =>
+
+  p.action Сещате ли се как може да се имплементира?
+
+= slide 'extend', '...с class <<' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something; end
+
+    class << Something
+      include Knowledge
+    end
+
+    Something.answer # =>
+
+= slide 'extend', '...чрез instance_eval и eigenclass' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something; end
+
+    Something.singleton_class.instance_eval { include Knowledge }
+
+    Something.answer # =>
+
+= slide 'extend', '...чрез include' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something; end
+
+    Something.singleton_class.include Knowledge
+
+    Something.answer # =>
+
+  p Изводът е, че <code>include</code> и <code>extend</code> са просто методи, викащи се на определени обекти.
+
+= slide 'Класови методи и наследяване' do
+  p Класовите методи на родителя са достъпни в класовите методи на наследника:
+
+  annotate:
+    class Something
+      def self.answer() 42 end
+    end
+
+    class Other < Something
+      def self.better_answer() answer * 2 end
+    end
+
+    Other.better_answer # =>
+
+= slide 'Класови методи и наследяване', 'друг OMG момент' do
+  p Собственият клас на наследника наследява собствения клас на родителя:
+
+  annotate:
+    class Something; end
+    class Other < Something; end
+
+    Something.singleton_class        # =>
+    Other.singleton_class.superclass # =>
+
+    Something.singleton_class == Other.singleton_class.superclass # =>
+
+= slide 'Класови методи и наследяване', 'визуализация' do
+  img src="11/class-metaclass-superclass.svg" style="width: 80%"
+
+= slide 'Класови методи и наследяване', 'визуализация' do
+  list:
+    Това продължава още едно ниво нагоре – до `BasicObject` и неговия метаклас
+    Метакласът на `BasicObject` наследява от `Class`
+    Тук "цикълът" се затваря и нещата започват да изглеждат както при метакласове на обикновени обекти
+    Обърнете внимание на разликата в родителя на метакласа при обикновени обекти и при обекти тип "клас"
+    При класове (които също са обекти), йерархията е по-различна
+
+= slide 'Класови методи и наследяване', 'takeaway' do
+  blockquote
+    ' Метакласът на суперкласа е суперкласът на метакласа.
+
+= slide 'Grand Unified Theory' do
+  ol
+    li.action Има само един вид обекти - били те обикновени или модули
+    li.action Има само един вид модули - били те обикновени или клас
+    li.action Има само един вид методи - живеят в модули, които често са класове
+    li.action Всеки обект има "реален клас" - бил той обикновен клас или собствен клас
+    li.action Всеки клас има точно един суперклас - с изключение на <code>BasicObject</code>
+    li.action Суперкласът на метакласа на обект е класът на обекта. Суперкласът на метакласа на клас е метакласът на родителя на класа.
+    li.action При извикване на метод, Ruby взема "реалния клас" и търси в неговия ancestor chain
+
+  p.action &#8718;
+
+= slide 'Ancestor chains' do
+  list:
+    Викайки метод на <em>произволен</em> обект `object`, Ruby го търси в `object.singleton_class.ancestors`
+    Тоест, за всеки инстанционен метод, в това число и "класовите", се гледа ancestor chain-а на singleton класа на обекта
+    А класовите методи са просто инстанционни методи и инстанцията е обектът от тип "клас"
+    Толкова просто е
+
+= slide 'Няколко примера за ancestor chains' do
+  p Относно търсенето на (инстанционни) методи на обектите от тип <code>String</code>:
+
+  example:
+    ''.singleton_class.ancestors
+    # => [#<Class:#<String:0x007f8788e51bd8>>, String,
+    #     Comparable, Object, Kernel, BasicObject]
+
+    ''.class.ancestors
+    # => [String, Comparable, Object, Kernel, BasicObject]
+
+    String.ancestors
+    # => [String, Comparable, Object, Kernel, BasicObject]
+
+= slide 'Ancestor chains', 'за "класови" методи' do
+  p По отношение на "класовите" методи, викани върхy <code>String</code>:
+
+  example:
+    String.singleton_class.ancestors
+    # => [#<Class:String>, #<Class:Object>, #<Class:BasicObject>,
+    #    Class, Module, Object, Kernel, BasicObject]
+
+    String.class.ancestors
+    # => [Class, Module, Object, Kernel, BasicObject]
+
+    Class.ancestors
+    # => [Class, Module, Object, Kernel, BasicObject]
+
+= slide 'Идната седмица...' do
+  list:
+    Стефан ще ви поговори за тестване (най-накрая)
+    И вероятно за lambda смятане :)
