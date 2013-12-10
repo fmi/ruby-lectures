@@ -293,7 +293,7 @@
       def bar() end
     end
 
-    Foo.new.respond_to? :larodi     # false и на екрана се извежда "Looking for bar"
+    Foo.new.respond_to? :larodi     # false и на екрана се извежда "Looking for larodi"
     Foo.new.respond_to? :bar        # false и на екрана се извежда "Looking for bar"
     Foo.new.respond_to? :bar, true  # true
 
