@@ -1,0 +1,408 @@
+= slide 'Днес' do
+  list:
+    Ще опознаем Git с помощта на [Георги](/users/10)
+    Ще погледнем под капака
+    Ще го издигнем в култ
+    В края на презентацията ще дадем информация за проектите към курса
+    Ще ви дадем и трета задача
+
+= slide 'Бъдещето на образованието', 'лирическо отклонение' do
+  list:
+    На 30 ноември в Благоевград се проведе [BlagoevgradConf](http://blagoevgradconf.com/)
+    Последното събитие от серия такива, които правим из страната и които сме кръстили гръмко "Турнето"
+    Извън столицата, защото там има страшна нужда от такива събития
+    Там [Радо (HackFMI) говори (запис)](http://blagoevgradconf.com/#schedule) за проблемите в образованието днес и [вижданията си за възможни решения (слайдове)](http://www.slideshare.net/HackBulgaria/blagoevgradconf)
+    (Дайте му [feedback](https://www.facebook.com/mitio/posts/10153597438575607))
+
+= slide 'Flipped Classrooms' do
+  img src="15/flipped-classroom.jpg"
+
+= slide 'Образование' do
+  ul
+    li Аз искам да съм част от такъв модел
+    li За съжаление, все още сме далеч от възможността да го приложим
+    li Вярвам, обаче, че можем да работим в тази посока
+
+= slide 'Образование' do
+  img src="15/educate-your-mate.jpg"
+
+= slide 'Образование', 'и вашата роля' do
+  list:
+    Днес, например, [Георги](/users/10) ще ни поговори малко за VSC и защо Git е скалпелът на програмиста
+    Искам да има повече такива включвания от ваша страна - пишете на [fmi@ruby.bg](mailto:fmi@ruby.bg)
+
+= slide 'Защо отделяме два часа, за да говорим за Git?' do
+  list:
+    Защото очевидно е нещо, което е необходимо и се ползва ежедневно
+    Дори да си мислим, че го знаем, все ще има нещо ново, което ще научим
+    Git e интересен пример за елегантно и семпло техническо решение на сравнително сложен проблем
+
+= slide 'Version Control System (VCS)' do
+  h2 Не просто система, следяща промени в код!
+  list:
+    Съхранение
+    Сигурност - всичко е обратимо
+    Лесна работа в екип
+    Различни версии на кода
+    Нещо, без което не можем
+
+= slide 'Познавате ли този човек?' do
+  img src="15/Linus-Torvalds.jpg"
+
+  h2.action.center Linus Torvalds
+  h2.action.center Бащата на Linux
+  h2.action.center Създател на Git
+
+= slide 'Малко история' do
+  h2 Linux kernel
+  list:
+    15,803,499 реда код към юли 2013
+    ~22 години история
+
+  h2.action Какво е нужно
+  list:
+    Епична бързина
+    'Леки' branch-ове - много версии на кода
+    Много опции
+    Дистрибутираност
+
+= slide 'Централизирана VCS' do
+  list:
+    Един централен сървър
+    Всички теглят и публикуват кода на него
+
+= slide 'Децентрализирана VCS' do
+  list:
+    Всеки, който си 'клонира' хранилището е пълноправен сървър.
+    Цялата история на хранилището се съхранява локално - всеки има свое собствено копие.
+    Почти винаги отново има един основен сървър.
+    Повечето от операциите се правят локално - не ви е необходим интернет.
+    Когато решите - синхронизирате се с който и да е друг сървър.
+
+= slide 'Защо точно git?' do
+  list:
+    Страшно гъвкав
+    Страшно бърз
+    Страшен на пръв поглед, може би и на втори
+    Щом го разберете - ще се превърнете в хакери
+    Ще ви отнеме много време да откриете всичко, на което е способен
+    Но не е нужно да знаете всичко, за да ви е полезен
+
+= slide 'В началото беше git init' do
+  example:
+    git init
+  p Създава празно хранилище в текущата директория.
+
+  pre.action Виждате папката .git - съхранява всичко, което му е нужно.
+
+= slide 'Клониране на хранилище' do
+  example:
+    git clone https://github.com/fmi/ruby-lectures.git
+
+  list:
+    Компресия - сваля се бързо
+    Криптиран трафик - https
+    Ако за някоя операция са ви нужни права - ще ви попита
+
+= slide '4 състояния на файл' do
+  list:
+    `Untracked` - не се следят от git (нови файлове)
+    `Unmodified` - вече част от предишен commit и няма промени
+    `Modified` - направени са промени, които не са готови за commit
+    `Staged` - променени и готови за commit
+  pre.action Staging area - .git/index
+
+= slide '4 състояния на файл' do
+  img src="15/file-states.png"
+
+= slide 'Да разгледаме индекса' do
+  example:
+    git status
+  p.action Списък с всички променени, изтрити и нови файлове
+  example:
+    git diff
+  p.action Промени на файловете в работната директория спрямо тези в индекса.
+           С --cached - промени на файлове в индекса, спрямо последния commit.
+  example:
+    git add new_or_modified.rb
+  p.action Добавя файла към индекса
+  example:
+    git add lectures/11
+  p.action Добавя всички променени файлове в директорията
+  example:
+    git rm old.rb
+  p.action Изтрива файл от индекса (и от файловата система) и го маркира като изтрит.
+
+= slide 'Workflow' do
+  img src="15/git-flow.png"
+
+= slide 'Типове обекти' do
+  list:
+    Файл (`blob`) - конкретна негова версия, компресиран
+    Дърво (`tree`) - списък от (указатели към) файлове и дървета
+    `Commit` - за него след малко
+    `Tag` - указател към конкретен commit
+    Съхраняват се в `.git/objects`
+    Всеки обект се идентифицира с `sha1` хеш
+
+= slide 'Commits 1' do
+  h2 Конкретна версия на дърво (snapshot)
+  p Състои се от:
+  list:
+    Уникален идентификатор
+    Автор и committer - може да са различни хора
+    Съобщение
+    Време на добавяне
+    Указател към предходния commit
+    Указател към дървото, за което се отнася
+    Други метаданни...
+
+= slide 'Commits 2' do
+  p Списък с commit-и
+  example:
+    git log
+    git log --stat
+    git log --since=2.weeks
+    git log --since=5.days.15.minutes
+    git log --until=2013-11-30
+    git log --grep 'Proc.new'
+    git log --author 'Dimitar Dimitrov'
+    git log -- lectures/01-introduction-to-ruby.slim
+
+= slide 'Commits 3' do
+  p Да разгледаме
+  example:
+    git show 5fae69568cd5420e13a34c06f6f495ea9bcb9a4e
+    git show 5fae695
+    git show HEAD
+    git show HEAD^
+    git show HEAD^^^
+    git show HEAD~3
+    git diff HEAD~3..HEAD
+  list:
+    `HEAD` е указател към последния commit (не точно)
+    `HEAD^^^` - Броят стрелкички е поредният номер на commit-a (0 е най-скорошният)
+    `HEAD~n` - същото като `HEAD^` с `n` на брой стрелкички
+
+= slide 'Commits 4' do
+  p Красотата идва отвътре
+  example:
+    git cat-file -p 5fae695
+
+= slide 'Commits 5' do
+  example:
+    git commit -m "Fix a typo on slide 3"
+  p.action Commit-вайте възможно най-малките, логически свързани промени, които не чупят нищо.
+  p.action Добри практики за съобщението:
+  list:
+    Кратко и описателно
+    Сегашно време
+    До 70 символа на ред
+    Първи ред - обобщение
+    Останалите - допълнително описание
+
+= slide 'Branches 1' do
+  list:
+    Указател към commit, който се счита за последен (в branch-a)
+    Този указател се нарича връх на branch-а (branch tip)
+    Първи елемент на свързан списък от commit-и
+  p.action Особености
+  list:
+    Branch по подразбиране - `master`
+    `HEAD` - указател към текущия branch
+    Локалните и отдалечените са различни - `master` vs `origin/master`
+    `.git/refs/heads/<branch name>`
+
+= slide 'Branches 1' do
+  img src='15/graph-branch.png'
+
+= slide 'Branches 2' do
+  h2 Създаване
+  example:
+    git branch killer-feature
+    git checkout -b killer-feature
+  h2 Превключване между вече създадени
+  example:
+    git checkout killer-feature
+    git checkout master
+  / Create branch and show .git/refs/heads/...
+
+= slide 'Branches 2' do
+  img src='15/graph-branch-create.png'
+
+= slide 'Branches 3' do
+  h2 Обновяване
+  example:
+    git pull
+    git pull origin
+  h2 Публикуване
+  example:
+    git push
+    git push origin killer-feature
+  list:
+    `origin` е име на отдалечено хранилище - това, от което сме клонирали.
+
+= slide 'Сливане' do
+  example:
+    git merge killer-feature
+    git merge --squash killer-feature
+  list:
+    Слива промени от (най-често) 2 клона
+    Често създава нов commit
+  p.action Различни стратегии на сливане. Основните са 2:
+  list:
+    Fast-Forward
+    Recursive
+
+= slide 'Fast-Forward стратегия' do
+  p Просто премества указателя за клона.
+
+= slide 'Recursive стратегия' do
+  p Слива 2 разделили се клона с обща история.
+  img src='15/graph-branch-merge.png'
+
+= slide 'Recursive стратегия' do
+  p Жълтото e merge commit-a. Той съдържа промените и от двата клона.
+  img src='15/graph-branch-merge-2.png'
+
+= slide 'Branch 4' do
+  h2 Изтриване
+  example:
+    git branch -d killer-feature
+    git push origin --delete killer-feature # Ако сте го push-нали
+  list:
+    Премахва само указателя, commit-ите се пазят
+    Дори ако е останал commit, който е извън историята, пак може да се възстанови
+    За възстановяване - след малко
+
+= slide 'Branch 4' do
+  img src='15/graph-branch-delete.png'
+
+= slide 'Машината на времето' do
+  h2 Или как да върнем "безвъзвратно" загубените промени.
+  example:
+    git reset
+    git checkout
+    git commit --amend
+    git revert
+    git reflog
+
+= slide 'Машината на времето' do
+  example:
+    git reset <commit> -- <files>
+    git reset HEAD -- lectures/git.slim
+  list:
+    Променя индекса (staging area), като връща файловете в тяхно предишно състояние
+    НЕ променя самите файлове в работната директория, а само индекса
+    Използва се, когато искате да махнете нещо от индекса, но да запазите промените
+
+= slide 'Машината на времето' do
+  example:
+    git checkout -- <files>
+  list:
+    Премахва не-commit-натите промени върху съответните файлове
+    Внимание! Може да изгубите код!
+
+= slide 'Машината на времето' do
+  example:
+    git commit --amend
+    git push --force   # Ако вече сте push-нали
+  list:
+    Променя последния commit. А дали наистина?
+    Всъщност създава нов commit, чийто предшественик е предшественика на последния commit
+    Старият commit все още може да бъде възстановен
+    Не е хубаво да се прави ако вече сте push-нали - пренаписва историята
+
+= slide 'Машината на времето' do
+  example:
+    git revert <commit>
+  list:
+    Премахва промените, направени от `commit`
+    Всъщност създава нов commit, който прави същото като `commit`, но наобратно.
+    Ако все пак решите, че искате тези промени можете да revert-нете revert commit-a. Yo Dawg!
+
+= slide 'Машината на времето' do
+  example:
+    git reflog
+  list:
+    Показва ви последните операции, които сте правили, заедно с ID-та на разни обекти
+    Можете да намерите ID-тата на изгубени commit-и и да ги възстановите
+    Понякога се чисти
+
+= slide 'Игнориране на файлове' do
+  h2 Файлът .gitignore
+  list:
+    Често има файлове, които не искаме git да следи
+    Например компилирани двоични файлове, временни файлове, конфигурационен файл с API ключове и т.н.
+    Всеки ред в `.gitignore` е шаблон за файлове/директории, които трябва да бъдат игнорирани
+    Това означава, че няма да се виждат в `git status`
+
+= slide 'Игнориране на файлове' do
+  h2 Формат на .gitignore
+  example:
+    \/bin           # Файла/директорията bin в главната директория на проекта
+    bin             # Всички файлове и директории с име bin
+    bin/            # Всички директории с име bin
+    compiled/*.html # Всички файлове с разширение html в compiled-lectures
+    lib/**/*.txt    # Всички текстови файлове в lib или нейна поддиректория
+    *.exe           # Всички изпълними файлове за Windows
+
+= slide 'Git rebase' do
+  h2 Пренаписване на историята в пълния му смисъл
+  example:
+    git checkout killer-feature
+    git rebase master
+    git rebase -i master
+    git rebase -i HEAD~4
+  list:
+    Пресъздава промените от текущия branch все едно са направени върху сегашното състояние на `master`
+    С -i ви позволява да си премахнете, промените или слеете commit-и от историята
+    Трябва да направите `git push --force` ако вече сте push-нали branch-a, който променяте
+    Отново - избягвайте да го правите ако промените вече са публикувани
+
+= slide 'Git blame' do
+  h2 Или "Кой написа това извращение?"
+  example:
+    git blame -- lectures/index.yml
+  list:
+    За всеки ред от файла показва кога последно е променян и от кой
+
+= slide 'Изводи' do
+  list:
+    Няма да минете без него...
+    ...затова започвайте да го използвате...
+    ...с терминала - научават се много неща.
+    Може да ви се струва труден - не е
+
+  p.action Искайте помощ:
+  list:
+    `git command --help`
+    `man git`
+    `man git-command`
+
+= slide 'Графичен интерфейс', 'GitX' do
+  img src="15/gitx-screenshot.jpg"
+
+= slide 'Графичен интерфейс', 'TortoiseGit' do
+  img src="15/tortoisegit.gif"
+
+= slide 'Графичен интерфейс', 'GitHub' do
+  img src="15/github-gui.png"
+
+= slide 'Материали' do
+  p
+  list:
+    Добър туториал за начинаещи с терминалния интерфейс - [Try git](http://try.github.io/levels/1/challenges/1)
+    Безплатна книга с много подробни обяснения - [Pro Git](http://git-scm.com/book)
+
+= slide 'Въпроси по Git?' do
+  p Сега е добър момент да ги зададете.
+
+= slide 'Проекти' do
+  list:
+    Носят до 60 точки, срокът за писането им е до датата на защита (в сесията)
+    Вие си избирате тема и ни пишете на [fmi@ruby.bg](mailto:fmi@ruby.bg), ние я одобряваме
+    Крайният срок да си изберете тема и да ви я одобрим, е <strong>24.12.2013</strong>, 23:59:59 (ще има новина с инструкции)
+    Запознайте се с [ръководството и някои ЧЗВ около проектите](https://github.com/fmi/ruby-course-guides/blob/master/course_projects.md#readme)
+    Размер и сложност - 10 задачи или 60 предизвикателства :)
+    Най-важното е да си изберете тема, която ви харесва
