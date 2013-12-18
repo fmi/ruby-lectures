@@ -59,6 +59,10 @@
   slug: 14-solutions-best-practices-misc
   date: 2013-12-09
 15:
-  title: Git
+  title: 15. Git
   slug: 15-git
   date: 2013-12-11
+16:
+  title: 16. Web с Ruby. Sinatra
+  slug: 16-web-and-sinatra
+  date: 2013-12-18
