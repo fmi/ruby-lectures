@@ -1,0 +1,299 @@
+= slide 'Днес' do
+  list:
+    Полезни Ruby gems
+    Добри практики при структуриране на кода
+    Ruby Standard Library (продължение)
+
+= slide 'Дати за изпита', '(повторение)' do
+  list:
+    Вторият тест ще се проведе на 9 февруари 2014 г., от 09 ч. в зала 01
+    За защита на проекти сте разделени на две групи
+    Четните факултетни номера ще защитават на 9 февруари, от 11:00 ч., в зала 01
+    Нечетните факултетни номера ще защитават на 22 февруари, от 09:00 ч., в зала 307
+    Ако имате уважителна причина да не можете на определената за вас дата, [пишете ни](/team) навреме
+
+= slide 'Ruby ядро и стандартна библиотека' do
+  list:
+    Функционалността, която идва с Ruby, е разделена на две
+    Ruby Core – винаги заредени в паметта ([документация](http://ruby-doc.org/core-2.1.0/))
+    Ruby Stdlib (стандартна библиотека) – като gem-ове ([документация](http://ruby-doc.org/stdlib-2.1.0/))
+
+= slide 'Полезни класове от Ruby core', 'които разгледахме на предната сбирка' do
+  list:
+    `Struct` – мини-класове, представляващи колекция от атрибути ([документация](http://ruby-doc.org/core-2.1.0/Struct.html))
+    `Comparable` – дава ви методи `<`, `<=`, `==`, `>=`, `>` и `between?` ([документация](http://ruby-doc.org/core-2.1.0/Comparable.html))
+    `Marshal` – сериализиране и десериализиране на Ruby обекти ([документация](http://ruby-doc.org/core-2.1.0/Marshal.html))
+
+= slide 'IO и File' do
+  list:
+    Все още не сме говорили за работа с файлове в Ruby
+    Употребата е тривиална; достатъчно ви е да разгледате документацията на [`File`](http://ruby-doc.org/core-2.1.0/File.html) и [`IO`](http://ruby-doc.org/core-2.1.0/IO.html)
+    `IO` е родителят на файл и представлява входно-изходен поток от данни
+    Други класове, наследяващи от `IO` са `TCPSocket` и `UDPSocket`
+    Много от методите на `File` идват от `IO`
+
+= slide 'File - два примера' do
+  p Прочитане на цял файл като низ:
+  example:
+    File.read('/etc/resolv.conf') # => "The contents of the file as a string."
+
+  p Отваряне на файл, работа с обекта и автоматично затваряне на файла при излизане от блока:
+  example:
+    File.open('foo/bar.txt', 'w') do |file|
+      file.write 'Some data.'
+      file.puts  'Some other data, with a newline at the end.'
+      file.puts  'File will be closed automatically, even in case of an exception in the block.'
+    end
+
+= slide 'RubyVM::InstructionSequence' do
+  list:
+    Не толкова полезен, колкото забавен клас
+    Дава поглед към начина, по който парче Ruby код изглежда, компилиран в Ruby bytecode
+    Специфичен за MRI (CRuby), може да го няма в други имплементации като JRuby, Rubinius и прочее
+    [Документаця](http://ruby-doc.org/core-2.1.0/RubyVM/InstructionSequence.html)
+
+= slide 'RubyVM::InstructionSequence', 'пример' do
+  example:
+    code = 'puts ["a" * 10].first'
+    compiled = RubyVM::InstructionSequence.compile(code)
+    puts compiled.disasm
+
+  p Резултат:
+  pre
+    |
+      == disasm: &lt;RubyVM::InstructionSequence:&lt;compiled>@&lt;compiled>>==========
+      0000 trace            1                                               (   1)
+      0002 putself
+      0003 putstring        "a"
+      0005 putobject        10
+      0007 opt_mult         &lt;callinfo!mid:*, argc:1, ARGS_SKIP>
+      0009 newarray         1
+      0011 opt_send_simple  &lt;callinfo!mid:first, argc:0, ARGS_SKIP>
+      0013 opt_send_simple  &lt;callinfo!mid:puts, argc:1, FCALL|ARGS_SKIP>
+      0015 leave
+
+= slide 'RubyVM::InstructionSequence', 'още един пример' do
+  example:
+    puts RubyVM::InstructionSequence.compile('a, b = 1, 2').disasm
+
+  p Можем да видим, че <code>a, b = 1, 2</code> минава през създаване на един обект тип <code>Array</code>:
+  pre
+    |
+      == disasm: &lt;RubyVM::InstructionSequence:&lt;compiled>@&lt;compiled>>==========
+      local table (size: 3, argc: 0 [opts: 0, rest: -1, post: 0, block: -1, keyword: 0@4] s1)
+      [ 3] a          [ 2] b
+      0000 trace            1                                               (   1)
+      0002 duparray         [1, 2]
+      0004 dup
+      0005 expandarray      2, 0
+      0008 setlocal_OP__WC__0 3
+      0010 setlocal_OP__WC__0 2
+      0012 leave
+
+= slide 'Стандартната библиотека на Ruby' do
+  list:
+    Мислете за нея като за една купчина съвсем обикновени gem-ове, които вървят пакетирани с Ruby
+    Част от нея е написана на C, друга част – на Ruby
+    В [документацията на stdlib](http://ruby-doc.org/stdlib-2.1.0/) може да видите списъка с "gem"-ове
+    За да ползвате нещо от нея, трябва да направите `require 'somelib'`, например `require 'bigdecimal'`
+    Множество дребни и интересни библиотеки - разгледайте ги, за да знаете какво имате наготово
+
+= slide 'Налични библиотеки' do
+  pre
+    |
+      abbrev       base64          benchmark    bigdecimal          cgi            cmath
+      coverage     csv             curses       date                dbm            debug
+      delegate     digest          dl           drb                 e2mmap         English
+      erb          etc             extmk        fcntl               fiddle         fileutils
+      find         forwardable     gdbm         getoptlong          gserver        io/console
+      io/nonblock  io/wait         ipaddr       irb                 json           logger
+      mathn        matrix          minitest     minitest/benchmark  minitest/spec  mkmf
+      monitor      mutex_m         net/ftp      net/http            net/imap       net/pop
+      net/smtp     net/telnet      nkf          objspace            observer       open-uri
+      open3        openssl         optparse     ostruct             pathname       pp
+      prettyprint  prime           profile      profiler            pstore         psych
+      pty          racc            racc/parser  rake                rdoc           readline
+      resolv       resolv-replace  rexml        rinda               ripper         rss
+      rubygems     scanf           sdbm         securerandom        set            shell
+      shellwords   singleton       socket       stringio            strscan        sync
+      syslog       tempfile        test/unit    thread              thwait         time
+      timeout      tk              tmpdir       tracer              tsort          un
+      uri          weakref         webrick      win32ole            xmlrpc         yaml
+      zlib
+
+= slide 'Какво сме ползвали досега от Stdlib?' do
+  list:
+    bigdecimal
+    benchmark
+    minitest
+    И много, много други, пряко и непряко...
+
+= slide 'OpenStruct' do
+  list:
+    Ще разгледаме само един пример от Stdlib - `OpenStruct`
+    Наподобява хеш, но дава достъп до полетата си през методи
+    Получавате го, като направите `require 'ostruct'`
+    Имплементиран на Ruby, може да разгледате кода
+    Дефинира `marshal_load` и `marshal_dump`, може да видите как за пример
+    Имплементира и част от интерфейса на `Hash`, като `each_pair` и методите `[]` и `[]=`
+    Вижте цялата му [документация](http://ruby-doc.org/stdlib-2.1.0/libdoc/ostruct/rdoc/OpenStruct.html)
+
+= slide 'OpenStruct - пример' do
+  annotate:
+    require 'ostruct'
+
+    john = OpenStruct.new
+    john.name = 'John Doe'
+    john.age  = 33
+
+    john.name     # =>
+    john.age      # =>
+    john.address  # =>
+
+= slide 'Въпроси?' do
+  p Ако имате въпроси по стандартната библиотека, Ruby core или друго, може да ги зададете.
+
+= slide 'Полезни Ruby gem-ове и поуки' do
+  list:
+    Ще разгледаме някои популярни и полезни Ruby библиотеки
+    По пътя ще се опитаме да научим нещо ново
+    Например, добри практики при структуриране на проект
+    "Boilerplate" неща, необходими на един Ruby gem
+    Други интересни Ruby трикове от практиката
+    Но преди това...
+
+= slide 'Third-party software – disclaimer' do
+  p Долното е извадка от <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL лиценза за отворен код</a>:
+
+  blockquote
+    p 15. Disclaimer of Warranty.
+    p THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+    p 16. Limitation of Liability.
+    p IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+= slide 'Third-party software – disclaimer' do
+  p Долното е извадка от <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL лиценза за отворен код</a>:
+
+  blockquote
+    p 15. Disclaimer of Warranty.
+    p THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM <span style="outline: 4px solid red;">“AS IS” WITHOUT WARRANTY OF ANY KIND</span>, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+    p 16. Limitation of Liability.
+    p IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+= slide '“AS IS” WITHOUT WARRANTY OF ANY KIND' do
+  p.action Ние, програмистите, не вярваме на собствения си код, та какво остава за чуждия такъв?
+  p.action Така и трябва. Колкото по-малко зависимости от чужд (third-party) код – толкова по-добре.
+  p.action Изобщо, колкото по-малко код – толкова по-добре. Но това е тема за друг ден.
+
+= slide 'Популярни gem-ове', 'статистика от rubygems.org' do
+  a href="https://rubygems.org/stats"
+    img src="18/rubygems-stats.png"
+
+= slide 'Откриване на нови Ruby Gems' do
+  list:
+    Статистики за популярни/най-използвани gem-ове (търсете в Google)
+    [The Ruby Toolbox](https://www.ruby-toolbox.com/)
+    Помощ от приятел
+
+= slide 'Оценка качеството на съществуващи gem-ове' do
+  list:
+    Знаете името на gem и се чудите какво прави и дали е качествен?
+    `rubygems.org/gems/именабиблиотеката` → линк "Source code" или "Homepage"
+    Или търсите направо в GitHub
+    Гледате колко хора са добавили и fork-нали проекта, откога е последния commit, дали има много issues и pull requests и прочее
+    Разглеждате кода
+
+= slide 'Инсталация под Windows' do
+  list:
+    Някои gem-ове използват C-разширения
+    `gem install gemname --platform=ruby`
+    RubyInstaller и Ruby DevKit – [http://rubyinstaller.org/](http://rubyinstaller.org/)
+
+= slide 'RuboCop' do
+  p
+    a href="https://github.com/bbatsov/rubocop" https://github.com/bbatsov/rubocop
+
+= slide 'Skeptic' do
+  p
+    a href="https://github.com/skanev/skeptic" https://github.com/skanev/skeptic
+
+= slide 'Sidekiq' do
+  p
+    a href="https://github.com/mperham/sidekiq" https://github.com/mperham/sidekiq
+
+= slide 'ActiveSupport' do
+  p
+    a href="https://github.com/rails/rails/tree/master/activesupport" https://github.com/rails/rails/tree/master/activesupport
+
+= slide 'Thor' do
+  p
+    a href="https://github.com/erikhuda/thor" https://github.com/erikhuda/thor
+
+= slide 'CarrierWave и Paperclip' do
+  p
+    a href="https://github.com/carrierwaveuploader/carrierwave" https://github.com/carrierwaveuploader/carrierwave
+  p
+    a href="https://github.com/thoughtbot/paperclip" https://github.com/thoughtbot/paperclip
+
+= slide 'Kaminari и will_paginate' do
+  p
+    a href="https://github.com/amatsuda/kaminari" https://github.com/amatsuda/kaminari
+  p
+    a href="https://github.com/mislav/will_paginate" https://github.com/mislav/will_paginate
+
+= slide 'MiniMagick' do
+  p
+    a href="https://github.com/minimagick/minimagick" https://github.com/minimagick/minimagick
+
+= slide 'CanCan' do
+  p
+    a href="https://github.com/ryanb/cancan" https://github.com/ryanb/cancan
+
+= slide 'Devise' do
+  p
+    a href="https://github.com/plataformatec/devise" https://github.com/plataformatec/devise
+
+= slide 'ActiveAdmin' do
+  p
+    a href="https://github.com/gregbell/active_admin" https://github.com/gregbell/active_admin
+
+= slide 'Nokogiri' do
+  p
+    a href="https://github.com/sparklemotion/nokogiri" https://github.com/sparklemotion/nokogiri
+
+= slide 'SASS' do
+  p
+    a href="https://github.com/nex3/sass" https://github.com/nex3/sass
+
+= slide 'SimpleForm и Formtastic' do
+  p
+    a href="https://github.com/plataformatec/simple_form" https://github.com/plataformatec/simple_form
+  p
+    a href="https://github.com/justinfrench/formtastic" https://github.com/justinfrench/formtastic
+
+= slide 'Capistrano' do
+  p
+    a href="https://github.com/capistrano/capistrano" https://github.com/capistrano/capistrano
+  p.action Deploy WordPress with Capistrano!
+
+= slide 'Bundler' do
+  p
+    a href="https://github.com/bundler/bundler" https://github.com/bundler/bundler
+
+= slide 'Passenger, Unicorn, Thin, Puma' do
+  p
+    a href="https://github.com/phusion/passenger" https://github.com/phusion/passenger
+
+= slide 'Fog' do
+  p
+    a href="https://github.com/fog/fog" https://github.com/fog/fog
+
+= slide 'Обобщение' do
+  list:
+    По света има много gem-ове, за почти всичко
+    Трябва да може да откривате такива и да оценявате качеството им
+    Не трябва да им се предоверявате
+    Разровете се в кода и структурата на тези gem-ове
+    Ще научите много от кода и практиката на другите
