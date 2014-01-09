@@ -149,9 +149,7 @@
 = slide '4 състояния на файл' do
   img src="15/file-states.png"
 
-/ Пример
-
-= slide 'Да разгледаме staging областта' do
+= slide 'Да разгледаме staging областта', 'С примери' do
   example:
     git status
   p.action Списък с всички променени, изтрити и нови файлове
@@ -262,8 +260,10 @@
     git checkout killer-feature
     git checkout master
 
-/ Create branch and show .git/refs/heads/...
-/ or create branch by adding a file there.
+= slide 'Branches 2', 'Демонстрация' do
+  list:
+    `git branch`
+    Нов файл в `.git/refs/heads/`
 
 = slide 'Branches 2' do
   img src='15/graph-branch-create.png'
