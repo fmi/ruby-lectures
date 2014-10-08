@@ -1,0 +1,276 @@
+= slide 'Какво предстои', 'днес и в следващите няколко лекции' do
+  list:
+    Процедурни неща
+    Първи сблъсъци с домашните - преглед на резултата
+    Social coding - GitHub pull requests
+    Масиви (списъци)
+    Хешове
+    Методи
+    Обекти
+    Класове...
+
+= slide 'Пред-предговор', 'следващата сряда ще пием бира' do
+  list:
+    Вместо лекция, следващата сряда (15-ти) няма да сме във ФМИ, а на "по бира"
+    Има [събитие във Facebook](https://www.facebook.com/events/969570899735207/)
+    Ако ще идвате, моля известете ни по някакъв начин максимално рано (във Facebook или на имейла ни)
+    Мястото предстои да бъде обявено, според бройката (приемаме предложения)
+
+= slide 'Предговор' do
+  list:
+    Сайт на курса: [http://fmi.ruby.bg](http://fmi.ruby.bg/)
+    Лекциите са там, задачите са там, форумите са там, животът ви е там
+    Регистрацията е задължителна, ако ще участвате в курса
+    За записали курса в СУСИ след 1-ви октомври или за хора извън ФМИ, ни пишете на [fmi@ruby.bg](mailto:fmi@ruby.bg)
+    Лекциите ги има и в GitHub — #{github_repo 'fmi/ruby-lectures'}
+
+= slide 'Бонус точки', 'отвъд сникерсите (последно напомняне)' do
+  p Първите ви точки:
+
+  list:
+    Ако все още не сте, то:
+    Регистрирайте се и си сложете профилна снимка
+    Качете си Ruby 2.1.3 и го [удостоверете със screenshot](/topics/2), има още малко време за тази промоция
+    Представете се с няколко изречения в [тази тема във форумите](/topics/65)
+    Помагайте на колегите си във форумите и споделяйте интересни неща; ще даваме бонус точки за смислена и навременна помощ
+
+= slide 'Малко тривиа', 'където ние питаме, а вие отговаряте' do
+  p (носим сникерси)
+
+= slide 'Въпрос 1' do
+  p Какво е <code>irb</code> ?
+
+  p.action.answer Интерактивна конзола.
+
+= slide 'Въпрос 2' do
+  p Ако не знаем нещо за Руби - къде го търсим?
+
+  .action.answer
+    list:
+      `ri` -> локално
+      [Ruby-doc](http://ruby-doc.org/)
+      APIDock
+      Google/Bing
+
+= slide 'Въпрос 3' do
+  p Как се записват следните:
+  list:
+    локална променлива
+    глобална променлива
+    константа
+
+  .action.answer
+    example:
+      chunky  = 1 # локална променлива
+      Bacon   = 2 # глобална променлива
+      $larodi = 3 # константа
+
+= slide 'Въпрос 4' do
+  p Каква е разликата между <code>:name</code> и <code>"name"</code>
+
+  .action.answer
+    p <code>:name</code> е символ и е immutable, и се интернира.
+    p <code>"name"</code> е низ.
+
+= slide 'Въпрос 5' do
+  p Какво ще изведе и към какво ще се оцени следното?
+  .action
+    example:
+      "Ivan is here: #{0 == false}"
+
+  .action.answer
+
+    p Няма да <em>изведе</em> нищо. Ще се оцени на:
+    example:
+      "Ivan is here: false"
+
+= slide 'Въпрос 6' do
+  p Към какво ще се оцени изразa?
+  p
+    code 010 + 010 > 1.7e1
+
+  .action.answer
+    example:
+      false
+
+= slide 'Предизвикателството', 'Целта?' do
+  list:
+    Да разгледате документацията на [String](http://www.ruby-doc.org/core-2.1.3/String.html)
+    Да се запознаете с [Ruby Style Guide](https://github.com/fmi/ruby-style-guide#readme)
+    Да се опитате да направите нещо сами
+    Ясно е, че това е първият ви Ruby код и няма да е перфектен
+
+= slide 'Предизвикателството', 'Решения' do
+  list:
+    Ще разгледаме някои от решенията
+    Ще ви покажем често срещаните грешки
+    Не се опитваме да ви порицаваме, а да ви помогнем
+
+= slide 'Някои грешки', 'Извеждате текст на екрана' do
+  list:
+    Резултат от функция е изразът, който е последен в нея, или този, който се връща чрез `return`
+    Не очакваме нещо да се изписва на екрана
+    Така резултатът може да бъде обработван допълнително
+
+= slide 'Някои грешки', 'Индентация' do
+  list:
+    Прочетохте ли [Style Guide-а](https://github.com/fmi/ruby-style-guide#readme)?
+    Използваме две празни места отстояние
+    Не табове, не четири спейса
+
+= slide 'Решения' do
+  example:
+    def format_string(text_to_format, width)
+            editted = text_to_format.upcase();
+            editted = editted.gsub(/\s+/, ' ');
+            editted = editted.strip();
+            editted = editted.center(width);
+            return editted;
+    end
+
+  list:
+    `;` е първото в списъка от неща, които не искаме да виждаме
+    `return` е излишен
+    Няма нужда от толкова присвоявания
+
+= slide 'Решения' do
+  example:
+    def format_string(string, width)
+      string.strip!
+      string = string.gsub(/\s+/, " ").strip
+      string.upcase!
+      string = string.center(width)
+    end
+
+  list:
+    Методите с `!` променят обекта - това не е препоръчително
+    String не е immutable
+    Последното присвояване е излишно
+
+= slide 'Решения' do
+  example:
+    def format_string(text, width)
+      # 1) Remove spaces from begining and the end
+      # and save the text value in a new variable just in case
+      format_text = text.strip
+
+      # 2) Replace the multiple spaces with just one
+      format_text = format_text.gsub(/\s+/, ' ')
+
+      # 3) Make all letters uppercase
+      format_text.upcase!
+
+      # 4) Add spaces in the begining and end if the string is too short.
+      # The number of space on both sides must be either equal or one more on the right side
+      text_length = format_text.length
+      if text_length < width
+        remaining = width - text_length
+        left = (remaining / 2).floor
+        right = remaining - left
+
+        format_text = (' ' * left) + format_text + (' ' * right)
+      end
+
+      # 5) We're done. Return the result
+      return format_text
+    end
+
+= slide 'Решения', 'Забележки' do
+  list:
+    Коментарите са излишни
+    Отново има `return`
+    `format_text.upcase!`
+
+= slide 'Няколко съвета (0)', 'Не се грижете за невалиден вход, ако не е казано изрично' do
+  example:
+    unless string.nil?
+      # код ...
+    end
+
+    string
+
+  list:
+    Усложнява кода
+    Ако `string` е `nil`, така или иначе някъде програмата ще се счупи
+
+= slide 'Няколко съвета (1)' do
+  example:
+    fixed_string = string.strip.gsub(/(\s|\u00A0)+/, ' ').upcase
+
+  list:
+    Не сме чак толкова лоши - няма да тестваме с `No-break space`
+    Освен това има поне още 4 вида спейсове
+
+= slide 'Няколко съвета (2)' do
+  list:
+    Търсете по-добри решения
+    Не превеждайте директно от езика X към Ruby
+    Разгледайте методите на [String](http://www.ruby-doc.org/core-2.1.3/String.html) и [Enumerable](http://ruby-doc.org/core-2.1.3/Enumerable.html)
+    Винаги си пускайте тестовете
+    Не предавайте решения с код, който сте използвали само за проверка дали нещо работи
+
+= slide 'Решението', 'без забележки' do
+  example:
+    def format_string(string, width)
+      string.strip.squeeze(' ').upcase.center(width)
+    end
+
+= slide 'Правила на Кент Бек за прост и ясен дизайн' do
+  blockquote
+    p My guiding light is Kent Beck's rules of Simple Design (<a href="http://ghendry.net/refactor.html">източник</a>):
+    ol
+      li.action The code must first be correct (as defined by tests);
+      li.action then it should be a clear statement of the design (what J.B.Rainsberger calls "no bad names");
+      li.action then it should contain no duplication (of text, of ideas, or of responsibility);
+      li.action and finally it must be the smallest code that meets all of the above.
+    p.action It's time to stop refactoring when the code makes a reasonable stab at meeting those goals, and when any further changes would add no further benefit.
+
+= slide 'Първа задача' do
+  list:
+    Ще я публикуваме днес, след лекцията
+    Крайният й срок е идната сряда (следобед) и може да я намерите [на сайта](/tasks/1)
+    Може да задавате въпроси в [съответната тема на форумите](/topics/155)
+    Днес ще научите достатъчния минимум Ruby, за да я решите
+    Трябва да се регистрирате, за да предадете решение
+    Ако в последния ден откриете, че не може да се регистрирате, това няма да е наш проблем
+    Ако пропуснете повече от три задачи, ще се видим септември
+    Може да има промени. Следете форумите и лога на промените в GitHub.
+
+= slide 'Стил' do
+  list:
+    Имаме style guide на #{github_repo 'fmi/ruby-style-guide'}
+    Искаме да го спазвате в първа задача колкото можете повече
+
+= slide 'Споделяне на решения', 'a.k.a. преписване' do
+  list:
+    Не си споделяйте решенията. Въобще. Има време за това след крайния срок.
+    Вярваме, че е очевидно, но: не преписвайте един от друг.
+    Много добри сме в хващането на преписващи - ако искате, пробвайте.
+    Ако ви хванем да преписвате, се виждаме догодина. Не наесен - догодина.
+    Ако ви хванем да преписвате, ще ви информираме на защитата на проекта.
+
+= slide 'GitHub приноси', 'pull request-ите и животът ви' do
+  list:
+    Open source философията е част от нас и от идеята на курса
+    Съществен момент от настоящето, който ще става още по-съществен в бъдеще
+    Важно житейско умение е да може да правите pull request-и
+    Този курс е добър повод да се научите; ще ви съдействаме
+
+= slide 'Pull request-ите и общуването' do
+  list:
+    Неслучайно се твърди, че GitHub е Facebook за програмисти - силни социални елементи
+    Добрите pull request-и са еквивалентни на добро общуване
+    За да сме добри в занаята си, трябва да можем да общуваме добре
+    Общуване на ниво код (изразяване на идеи)
+    Общуване на ниво документация, общуване с клиенти, общуване с колеги...
+
+= slide 'Pull request-и: някои насоки' do
+  p Преди да пуснете pull request с вашето предложение за промяна:
+
+  list:
+    Прочитате readme-то на проекта, търсите инструкции за принос
+    Преглеждате списъка с активни, а понякога и затворени pull request-и
+    Цел - избягване на дублиращ се труд и запознаване със съществуващи дискусии и аргументация
+    Преглеждате отворените билетчета (issues) за нещо по темата
+    Fork-вате репозиторията, правите нов клон (branch), правите промяната там и пускате PR от там
+    Общувате внимателно и с уважение, не се засягате от коментари, бележки, или ако ви затворят PR-а
