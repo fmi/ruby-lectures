@@ -153,11 +153,12 @@
     numbers = [:zero, :one, :two]
 
     numbers.fetch(1)            # =>
-    numbers.fetch(10, :dunno)   # =>
+
     numbers.fetch(10)           #!
+    numbers.fetch(10) { |n| puts "#{n} isn't in array" } # вместо IndexError, се изпълнява кода между { }
 
+    numbers.fetch(10, :dunno)   # =>
     numbers[10] or :dunno       # като предното, ама не точно
-
   p Ползва се по-рядко, отколкото си мислите.
 
 = slide 'Масиви', 'типичните методи' do
