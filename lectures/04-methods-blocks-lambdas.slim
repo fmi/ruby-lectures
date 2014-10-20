@@ -410,9 +410,12 @@
       message
     end
 
-    order drink: 'Latte'                    # You ordered a grande Latte
-    order syrup: 'hazelnut', drink: 'Latte' # You ordered a grande Latte with these options: {:syrup=>"hazelnut"}
-    order                                   # error: ArgumentError: missing keyword: drink
+    order drink: 'Latte'
+    # You ordered a grande Latte
+    order syrup: 'hazelnut', drink: 'Latte'
+    # You ordered a grande Latte with these options: {:syrup=>"hazelnut"}
+    order
+    # error: ArgumentError: missing keyword: drink
 
 = slide 'Истински keyword arguments', 'предимства' do
   list:
@@ -455,7 +458,7 @@
     ' Анонимни функции в Ruby се дефинират с <code>lambda</code>. Имат три начина на извикване:
 
   example:
-    pow = lambda { |a, b| a ** b }
+    pow = lambda { |a, b| a**b }
 
     pow.call 2, 3
     pow[2, 3]
@@ -524,7 +527,7 @@
       "The result for 2 is #{result}"
     end
 
-    calculate { |x| x ** 2 } # =>
+    calculate { |x| x**2 } # =>
 
 = slide 'Блокове', 'един пример' do
   p Или как можем да напишем <code>filter</code>:
