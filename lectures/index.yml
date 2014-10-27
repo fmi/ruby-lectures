@@ -22,3 +22,7 @@
   title: 05. Proc обекти. Паралелно присвояване. Основи на класове. Enumerable
   slug: 05-blocks-procs-parallel-assignment-classes-enumerable
   date: 2014-10-22
+6:
+  title: 06. Класове, именовани пространства, наследяване. Синоними на методи. Класови методи
+  slug: 06-classes-namespaces-inheritance-aliases-class-methods
+  date: 2014-10-27
