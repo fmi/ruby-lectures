@@ -1,0 +1,535 @@
+= slide 'Днес' do
+  list:
+    Класовете като обекти
+    `require`
+    Enumerator-и
+    Code spelunking!
+
+= slide 'Трета задача' do
+  list:
+    Ще е на линия след края на лекцията
+    Срокът ще е по-дълъг от обикновено, до понеделник, 10 ноември, 17:00
+
+= slide 'OpenFest', 'Напомняме отново' do
+  list:
+    [OpenFest](http://openfest.org/) този уикенд (1-2 ноември)
+    [Програмата е много богата](http://www.openfest.org/bg/programa/)
+    Има и [light conferences/unconferences и уъркшопи](http://www.openfest.org/bg/workshopsbg/)
+    Лекциите са интересни, но хората (публика и лектори) са още по-интересни
+    Входът е свободен, мястото е Интерпред
+    Може да идвате и да си тръгвате когато искате
+
+= slide 'Въпрос 1' do
+  p Какво прави <code>alias</code>?
+
+  example:
+    class Something
+      def name() 'baba' end
+      alias relative name
+      def name() 'dyado' end
+    end
+
+    p Something.new.relative
+
+  p.action.answer Прави копие на метода
+
+= slide 'Въпрос 2' do
+  p Каква е разликата между <code>alias</code> и <code>alias_method</code>?
+
+  .action.answer
+    p <code>alias_method</code> е метод, докато <code>alias</code> е синтаксис
+
+    example:
+      class Something
+        1.upto(5).each do |index|
+          alias_method "to_s_#{index}", :to_s
+        end
+      end
+
+= slide 'Въпрос 3' do
+  p Какво ще се случи след изпълнение на примерния код по-долу – грешка, или конкретна оценка? Каква?
+
+  example:
+    module Outer
+      class String
+        def the_answer() '42' end
+      end
+
+      module Inner
+        String.new.the_answer
+      end
+    end
+
+  .action.answer
+    p Кодът по-горе се оценява на низа <code>'42'</code>. Причината е, че "вътрешната" константа <code>String</code> "засенчва" глобалната такава. Допълнително, оценката на кода е последно изпълненият ред, който е <code>String.new.the_answer</code>.
+
+= slide 'Въпрос 4' do
+  p В следния примерен код, по какви начини бихме могли да достъпим константата <code>TREASURE</code> от мястото, отбелязано с коментар?
+
+  example:
+    module Deep
+      module Down
+        module Below
+          TREASURE = 'Ya fools.'
+        end
+      end
+
+      # =>
+    end
+
+  .action.answer
+    p Поне по следните начини:
+
+    example:
+      Down::Below::TREASURE
+      Deep::Down::Below::TREASURE
+      Object::Deep::Down::Below::TREASURE
+      ::Deep::Down::Below::TREASURE
+      ::Object::Deep::Down::Below::TREASURE
+
+= slide 'Call for speakers', 'Подиумът на този курс е и ваш' do
+  list:
+    Обмяна на опит
+    Попълване на дупки в знанията
+    Структуриране на мисълта
+    Трениране на комуникационни умения
+    Слава!
+    Харесайте си тема, дори да не е пряко свързанa с Ruby и ни пишете
+
+= slide 'Класовете като обекти' do
+  list:
+    Знаем, че всичко в Ruby е обект
+    Класовете не правят изключение
+    Можем да викаме методи на тях (напр. `String.methods`)
+    Обектите тип "клас" си имат клас (`String.class`) и той е `Class`
+    Тоест, са негови инстанции
+
+= slide 'Класовете като обекти (2)' do
+  p Долното работи:
+
+  annotate:
+    a_hash_class = Hash
+    a_hash_class.new # =>
+
+= slide 'Класовете като обекти (3)' do
+  list:
+    Можем да създаваме динамично обекти тип "клас" с `Class.new`
+    Тези класове се наричат анонимни класове
+    Абсолютно аналогично е за модули
+    `Module.new` ще създаде инстанция на анонимен модул
+
+  .action
+    annotate:
+      anonymous_class = Class.new
+      anonymous_class.new # =>
+      Class.new.new       # =>
+      Module.new          # =>
+
+= slide 'Класовете като обекти (4)' do
+  p Можем да подадем блок на <code>Class.new</code>:
+
+  annotate:
+    duck = Class.new do
+      def quack_to(creature_name)
+        "Quack, #{creature_name}, quack!"
+      end
+    end
+
+    duck.new.quack_to("swan") # =>
+
+= slide 'Обектите тип "клас" и константи' do
+  example:
+    class Person
+    end
+
+  list:
+    С оглед на това, `class` е просто синтаксис, който прави обект от тип "клас"
+    Припомняме за scope gate-овете – `class` е scope gate, докато блоковете не са
+    Освен да създаде обект, `class` го присвоява и на константа
+    Тоест, примерът по-горе може да се разглежда като присвояване на константа
+    А "имената" на класове са просто константи, сочещи към някакъв обект
+
+= slide 'Класове и константи' do
+  p Когато присвоим анонимен клас на константа, попадаме в специален случай:
+
+  example:
+    Person = Class.new
+
+  annotate:
+    Class.new           # =>
+    Person = Class.new  # =>
+
+    Module.new          # =>
+    Larodi = Module.new # =>
+
+= slide 'Root scope на константи - Object' do
+  list:
+    Миналия път говорихме за root scope-а на константите
+    Той е достъпен със синтаксиса `::`
+    Също така, той се намира в `Object`
+    Тоест, `Object::FOO` и `::FOO` в (почти) всички случаи са едно и също
+    Кога може да не са?
+    `::Object::FOO` и `::FOO` са едно и също винаги
+
+= slide 'Влагане на константи', 'именовани пространства' do
+  list:
+    Защо си говорим всичко това?
+    Защото механизмът за търсене на константи не се интересува накъде сочат те
+    Влагането на константи работи по един и същи начин винаги
+
+= slide 'Таблици с константи' do
+  list:
+    Понякога познаването на вътрешната имплементация помага за разбирането
+    Всяка константа-клас или модул си има хеш-таблица с вложените непосредствено в нея константи
+    Root scope-ът се пази в константата `Object`
+    Така работи влагането и така работи constant resolution-ът
+
+= slide 'Таблици с константи (2)' do
+  p Можете да видите тази "таблица" през <code>constants</code>:
+
+  annotate:
+    module MyLibrary
+      class Object
+      end
+    end
+
+    MyLibrary.constants         # =>
+    MyLibrary::Object == Object # =>
+
+= slide 'Quine', 'програма, принтираща кода си' do
+  example:
+    ->_{_%_}["->_{_%%_}[%p]"]
+
+= slide 'Quine', 'to the eleven' do
+  example:
+    v=0000;eval$s=%q~d=%!^Lcf<LK8,                  _@7gj*LJ=c5nM)Tp1g0%Xv.,S[<>YoP
+    4ZojjV)O>qIH1/n[|2yE[>:ieC       "%.#%  :::##"       97N-A&Kj_K_><wS5rtWk@*a+Y5
+    yH?b[F^e7C/56j|pmRe+:)B     "##%      ::##########"     O98(Zh)'Iof*nm.,$C5Nyt=
+    PPu01Avw^<IiQ=5$'D-y?    "##:         ###############"    g6`YT+qLw9k^ch|K'),tc
+    6ygIL8xI#LNz3v}T=4W    "#            #.   .####:#######"    lL27FZ0ij)7TQCI)P7u
+    }RT5-iJbbG5P-DHB<.   "              ##### # :############"   R,YvZ_rnv6ky-G+4U'
+    $*are@b4U351Q-ug5   "              #######################"   00x8RR%`Om7VDp4M5
+    PFixrPvl&<p[]1IJ   "              ############:####  %#####"   EGgDt8Lm#;bc4zS^
+    y]0`_PstfUxOC(q   "              .#############:##%   .##  ."   /,}.YOIFj(k&q_V
+    zcaAi?]^lCVYp!;  " %%            .################.     #.   "  ;s="v=%04o;ev"%
+    (;v=(v-($*+[45,  ":####:          :##############%       :   "  ])[n=0].to_i;)%
+    360)+"al$s=%q#{  "%######.              #########            "  ;;"%c"%126+$s<<
+    126}";d.gsub!(/  "##########.           #######%             "  |\s|".*"/,"");;
+    require"zlib"||  "###########           :######.             "  ;d=d.unpack"C*"
+    d.map{|c|n=(n||  ":#########:           .######: .           "  )*90+(c-2)%91};
+    e=["%x"%n].pack   " :#######%           :###### #:          "   &&"H*";e=Zlib::
+    Inflate.inflate(   "  ######%           .####% ::          "   &&e).unpack("b*"
+    )[0];22.times{|y|   "  ####%             %###             "   ;w=(Math.sqrt(1-(
+    (y*2.0-21)/22)**(;   " .###:             .#%             "   ;2))*23).floor;(w*
+    2-1).times{|x|u=(e+    " %##                           "    )[y*z=360,z]*2;u=u[
+    90*x/w+v+90,90/w];s[(    " #.                        "    ;y*80)+120-w+x]=(""<<
+    32<<".:%#")[4*u.count((     " .                   "     ;"0"))/u.size]}};;puts\
+    s+";_ The Qlobe#{" "*18+ (       "#  :#######"       ;"Copyright(C).Yusuke End\
+    oh, 2010")}";exit~;_ The Qlobe                  Copyright(C).Yusuke Endoh, 2010
+
+= slide 'Quine' do
+  p Може да пуснете quine-а от предния слайд като го запазите във файл <code>quine.rb</code> и ползвате това скриптче:
+
+  example:
+    #!/bin/sh
+
+    while true
+    do
+      ruby quine.rb | tee quine_result
+      mv quine_result quine.rb
+      sleep 0.2
+    done
+
+= slide 'Hash#to_proc', 'слайдове от бонус нивото' do
+  p Да кажем, че имаме следния код:
+
+  example:
+    CURRENCY_NAMES = {
+      BGN: 'Bulgarian lev',
+      EUR: 'Euro',
+      USD: 'United States dollar',
+      CHF: 'Swiss frank',
+    }.freeze
+
+    [:BGN, :CHF, :EUR].map { |currency_code| CURRENCY_NAMES[currency_code] }
+    # => ["Bulgarian lev", "Swiss frank", "Euro"]
+
+= slide 'Hash#to_proc', 'алтернативна имплементация' do
+  p Нека предположим, че имаме следната имплементация на <code>Hash#to_proc</code>:
+
+  example:
+    class Hash
+      def to_proc
+        proc { |key| self[key] }
+      end
+    end
+
+  list:
+    По идея на [(1)](http://shugo.net/jit/20131107.html) и [(2)](http://blog.rubyenrails.nl/articles/2008/02/26/a-hash-is-a-function-hash-to_proc.html)
+
+= slide 'Hash#to_proc', 'алтернативна имплементация' do
+  p Тогава можем да направим следното:
+
+  example:
+    CURRENCY_NAMES = {
+      BGN: 'Bulgarian lev',
+      EUR: 'Euro',
+      USD: 'United States dollar',
+      CHF: 'Swiss frank',
+    }.freeze
+
+    [:BGN, :CHF, :EUR].map &CURRENCY_NAMES
+    # => ["Bulgarian lev", "Swiss frank", "Euro"]
+
+= slide 'Hash#to_proc', 'още приложения на горното' do
+  p Удобни изглеждат и следните хипотетични употреби:
+
+  example:
+    VALID_CURRENCIES = {
+      BGN: true,
+      EUR: true,
+      USD: true,
+      CHF: true,
+    }.freeze
+
+    valid_currencies = [:BGN, :CHF, :EUR].select(&VALID_CURRENCIES)
+
+    # Or:
+    if currencies.any? &VALID_CURRENCIES
+    end
+
+    # Or:
+    words.reject(&FORBIDDEN_WORDS)
+
+= slide 'Текущ scope при търсене на константи' do
+  example:
+    class Foo::Bar
+      # In the Bar scope, but not in the Foo scope
+    end
+
+  list:
+    Съществува понятието "текущ scope"
+    Той се гледа, ако използвате "релативен" път до дадена константа
+    Сменя се с ключовите думи `class` и `module`
+
+= slide 'Текущ scope при търсене на константи (2)' do
+  p В този пример:
+
+  example:
+    class Foo::Bar
+      Larodi
+    end
+
+  list:
+    Създаваме константа (клас) `Bar` и я записваме в таблицата с константи на `Foo`
+    `Foo` трябва да съществува предварително; може да бъде или модул, или клас
+    Константата `Larodi` ще се търси в таблицата на `Bar` и след това в root scope-а
+    Няма да се търси в таблицата на `Foo`
+
+= slide 'Търсене на константи' do
+  example:
+    module A::B
+      module C::D
+        Foo # Where does Ruby look for Foo?
+      end
+    end
+
+  ol
+    li В таблицата на <code>D</code>
+    li В таблицата на <code>B</code>
+    li В root scope-а (т.е. в таблицата на <code>Object</code>)
+
+= slide 'Constant Autoloading in Rails' do
+  list:
+    Константите са наглед дребна част от езика, но всъщност дълбока
+    За интересуващите се от Rails, там работите стават още по-сложни заради autoloading-а
+    Повече по темата за константите и autoloading-а им в Rails може да видите в тази лекция:
+    ["Constant Autoloading in Rails" by Xavier Noria](http://2012.baruco.org/agenda/constant-autoloading-in-ruby-on-rails)
+
+= slide 'Въпроси по константи и scope-ове' do
+  p Имате ли въпроси?
+
+= slide 'case' do
+  p В Ruby има "switch". Казва се <code>case</code>.
+
+  example:
+    def quote(name)
+      case name
+        when 'Yoda'
+          puts 'Do or do not. There is no try.'
+        when 'Darth Vader'
+          puts 'The Force is strong with this one.'
+        when 'R2-D2'
+          puts 'Beep. Beep. Beep.'
+        else
+          puts 'Dunno what to say'
+      end
+    end
+
+= slide 'case', 'особености' do
+  list:
+    Няма fall-through. Не се пише `break`
+    Ако нито един `when` не мине, изпълнява се `else`
+    Ако нито един `when` не мине, и няма `else`, не става нищо
+    <code>case</code> е израз, което значи, че връща стойност
+
+= slide 'case', 'алтернативен синтаксис' do
+  example:
+    case operation
+      when :& then puts 'And?'
+      when :| then puts 'Or...'
+      when :! then puts 'Not!'
+      else         puts 'WAT?'
+    end
+
+= slide 'case', 'връщана стойност' do
+  p На какво ще се оцени следният код?
+
+  example:
+    case 'Wat?'
+      when 'watnot' then puts "I'm on a horse."
+    end
+
+  .action.answer
+    p Ако няма <code>else</code> и никой <code>when</code> не match-не, се връща <code>nil</code>.
+
+= slide 'case', 'стойности' do
+  p <code>case</code> не сравнява с <code>==</code>. Може да напишете следното:
+
+  example:
+    def qualify(age)
+      case age
+        when 0..12
+          'still very young'
+        when 13..19
+          'a teenager! oh no!'
+        when 33
+          'the age of jesus'
+        when 90..200
+          'wow. that is old!'
+        else
+          'not very interesting'
+        end
+    end
+
+= slide 'case', 'Object#===' do
+  p <code>case</code> сравнява с <code>===</code>. Няколко класа го имплементират:
+
+  list:
+    `Range`
+    `Regexp`
+    `Class`
+    Списъкът не е изчерпателен...
+    По подразбиране се оценява като `==`
+
+= slide 'case', 'Class#===' do
+  example:
+    def qualify(thing)
+      case thing
+        when Integer then 'this is a number'
+        when String  then 'it is a string'
+        when Array   then thing.map { |item| qualify item }
+        else 'huh?'
+      end
+    end
+
+= slide 'case', 'Range#===' do
+  example:
+    case hours_of_sleep
+      when 8..10 then 'I feel fine.'
+      when 6...8 then 'I am a little sleepy.'
+      when 0..3  then 'OUT OF MY WAY! I HAVE PLACES TO BE AND PEOPLE TO SEE!'
+    end
+
+= slide 'case', 'Regexp#===' do
+  example:
+    def parse_date(date_string)
+      case date_string
+        when /(\d{4})-(\d\d)-(\d\d)/
+          Date.new $1.to_i, $2.to_i, $3.to_i
+        when /(\d\d)\/(\d\d)/(\d{4})/
+          Date.new $3.to_i, $1.to_i, $2.to_i
+      end
+    end
+
+= slide 'case', 'с обикновени условия' do
+  list:
+    Можете да слагате и цели изрази в `when`
+    Изпуска се параметърът след `case`, например:
+
+  .action
+    example:
+      thing = 42
+      case
+        when thing == 1 then 1
+        else 'no_idea'
+      end
+
+  list:
+    Не го правете.
+    Ако ви се налага, ползвайте обикновени `if`-ове
+
+= slide 'Въпроси по case' do
+  p Сега е моментът.
+
+= slide 'Импортиране на файлове' do
+  p В Ruby, код от други файлове се импортира с <code>require</code>.
+
+  .action
+    p Например:
+
+    example:
+      require 'bigdecimal'
+      require 'bigdecimal/util'
+
+= slide 'Какво търси require?' do
+  list:
+    `require 'foo'` търси файл `foo.rb` в "пътя за зареждане"
+    Още известен като load path
+    Той съдържа няколко "системни" пътища, плюс пътища от gem-ове, които сте си инсталирали
+    Очевидно, `require 'foo/bar'` търси директория `foo` с файл `bar.rb`
+    Разширението `.rb` отзад не е задължително да присъства
+    `require './foo'` търси `foo.rb` в текущата директория
+    Разбира се, абсолютни пътища също работят: `require '/home/skanev/foo.rb'`
+
+= slide 'Зареждане на файлове от текущата директория' do
+  list:
+    Обикновено във вашия load path текущата директория не присъства
+    Някои хора се осмеляват да си я добавят, променяйки load path
+    Адът се отваря и ги поглъща
+    Ползвайте релативен път, т.е. `require './foo'`
+
+= slide 'Зареждане на файлове от текущата директория', 'require_relative' do
+  list:
+    Алтернатива на горното е `require_relative`
+    `require_relative 'foo'` зарежда 'foo' спрямо <strong>директорията на изпълняващия се файл</strong>
+    `require './foo'` зарежда спрямо <strong>текущата директория на изпълняващия процес</strong>
+
+= slide 'Load path', 'където Ruby търси файлове за require' do
+  list:
+    Достъпен е като `$LOAD_PATH`
+    Още `$:`
+    Може да го променяте. Стандартно с `$:.unshift(path)`
+    Не е много добра практика да го правите
+
+= slide 'Как работи require?' do
+  list:
+    Изпълнява файла
+    Константите, класове, глобални променливи и прочее са достъпни отвън
+    Няма абстракция. Все едно сте inline-нали файла на мястото на `require`-а. Почти
+    Файлът е изпълнен с друг binding. Демек, локалните му променливи са изолирани. Но само те
+    Не че има значение, но `main` обекта е същия
+    Файлът се изпълнява само веднъж. Повторни `require`-и не правят нищо
+    Последното може да се излъже по няколко начина
+    `require` може да зарежда `.so` и `.dll` файлове
+
+= slide 'Библиотеките в Ruby' do
+  list:
+    Знаете, че се наричат gem-ове
+    Де-факто стандартна репозитория за библиотеки е [RubyGems](http://rubygems.org/)
+    Един gem е просто zip-ната папка с файлове
+    Инсталация на gem представлява сваляне на този zip и разархивирането му някъде
+    Това "някъде" е папка на вашия компютър, намираща се в `$LOAD_PATH`
+
+= slide 'Code Spelunking', 'из skeptic' do
+  p Следващия път ще продължим с разглеждане структурата на един gem и ще пробваме да се спуснем в пещерата на skeptic. Ще демонстрираме основни пещернячески умения.
