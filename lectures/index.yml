@@ -30,3 +30,7 @@
   title: 07. Класовете и константи, case, require, Enumerator
   slug: 07-classes-case-require-enumerator
   date: 2014-10-29
+8:
+  title: 08. Enumerator. Lazy. Freeze. Класови методи. Ruby gems. Code spelunking из skeptic
+  slug: 08-enumerators-lazy-freeze-class-methods-gems-spelunking
+  date: 2014-11-03

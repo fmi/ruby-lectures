@@ -1,0 +1,573 @@
+= slide 'Днес' do
+  list:
+    `Enumerator`-и и мързел
+    Още за класови методи
+    Замразяване на обекти
+    Ruby Gems, load path, require
+    Code spelunking из skeptic
+
+= slide 'Въпрос 1' do
+  p Изпълнението на кода по-долу грешка ли ще прод екрана след изпълнение на следния код:
+
+  example:
+    def foo(klass = Class.new { def bar() 'Roll the dice' end })
+      puts klass.new.bar
+      def foo() puts 'You feel it running through your bones' end
+    end
+
+    foo
+    foo
+
+  .action.answer
+    p Кодът няма да продуцира грешки при изпълнението си. На екрана ще се изведе:
+    pre
+      ' Roll the dice
+        You feel it running through your bones
+
+= slide 'Въпрос 2' do
+  p Какво ще се случи при изпълнение на следния код (и защо):
+
+  example:
+    Object::String = Class.new
+    puts String.new('bar').upcase
+
+  .action.answer
+    p Ще се предизвика грешка при извикване на <code>String#new</code>, защото top-level константата <code>String</code> е предефинирана на първия ред и сочи към клас, чийто конструктор не приема аргументи. Дори няма да се достигне до извикване на <code>upcase</code>.
+
+    p Допълнително, Ruby ще иведе warning на STDERR, че предефинираме вече дефинирана константа.
+
+= slide 'Въпрос 3' do
+  p Какво ще се случи при изпълнение на следния код (и защо):
+
+  example:
+    PIE = 'Apple'
+    module Foo
+      PIE = 'Strawberry'
+    end
+
+    module Foo::Bar
+      puts PIE
+    end
+
+  .action.answer
+    p На екрана ще се изведе текстът "Apple". <code>module Foo::Bar</code> ще създаде нов модул <code>Bar</code>, ще запише създадения обект в таблицата с константи на модула <code>Foo</code> и ще отвори нов scope в контекста на <code>Bar</code>, като родителският контекст ще бъде root scope-а, а не този на <code>Foo</code>. Затова и константата <code>PIE</code> ще бъде намерена след един fallback в root scope-a.
+
+= slide 'Въпрос 4' do
+  p Какво ще се случи при изпълнение на следния код (и защо):
+
+  example:
+    class Proc
+      def ===(testable)
+        call testable
+      end
+    end
+
+    case 42
+      when String         then 'This is a string'
+      when :odd?.to_proc  then 'This is an odd number'
+      when :even?.to_proc then 'This is an even number'
+      else                     'I have no f*cking idea what this is.'
+    end
+
+  .action.answer
+    p <code>case</code> използва "оператора" <code>===</code>, за да оценява различните случаи. Всеки <code>when</code> се оценява така: <code>condition === testable</code>.
+
+= slide 'Call for speakers', 'Подиумът на този курс е и ваш' do
+  list:
+    Обмяна на опит, попълване на знанията, тренинг в говоренето
+    Харесайте си тема, дори да не е пряко свързанa с Ruby и ни пишете
+    Последната седмица на ноември Георги ще говори за Git
+
+= slide 'Enumerator-и' do
+  p Някои методи на <code>Enumerable</code> могат да не вземат блок.
+
+  annotate:
+    numbers = []
+    1.upto(5) { |x| numbers << x }
+
+    numbers               # =>
+
+    other = 1.upto(5)
+    other                 # =>
+    other.to_a            # =>
+
+    1.upto(5).map(&:succ) # =>
+
+= slide 'Enumerator-и', 'нещо като итератори' do
+  p Енумераторите могат да се държат като итератори.
+
+  annotate:
+    numbers = 1.upto(3)
+
+    numbers.next   # =>
+    numbers.next   # =>
+    numbers.next   # =>
+    numbers.next   #!
+
+= slide 'Kernel#loop' do
+  p <code>loop</code> прави безкраен цикъл. Спира на <code>StopIteration</code>.
+
+  annotate:
+    numbers = 1.upto(3)
+
+    loop do
+      puts numbers.next
+    end
+
+= slide 'Enumerable и Enumerator' do
+  list:
+    Методите на `Enumerable` връщат `Enumerator`, ако ги извикате без блок
+    Това позволява да "навръзвате" enumerator-и
+    Ако дефинирате обект, който е `Enumerable`, помислете и за съвместимост с enumerator-и
+
+= slide 'Enumerators 101', 'примери' do
+  annotate:
+    enum = [1, 2].each # =>
+
+    enum.next # =>
+    enum.next # =>
+    enum.next #!
+
+= slide 'Enumerators 102', 'примери' do
+  annotate:
+    enum = Enumerator.new do |yielder|
+      yielder << 1
+      yielder << 2
+    end
+
+    enum.next # =>
+    enum.next # =>
+    enum.next #!
+
+= slide 'Object#enum_for' do
+  p Може да извадите енумератор от произволен метод с <code>enum_for</code>.
+
+  annotate:
+    class Numbers
+      def primes
+        yield 2
+        yield 3
+        yield 5
+        yield 7
+      end
+    end
+
+    first_four_primes = Numbers.new.enum_for(:primes)
+    first_four_primes.to_a     # =>
+
+= slide 'Object#to_enum', 'примери' do
+  annotate:
+    o = Object.new
+
+    def o.each
+      yield
+      yield 'hello'
+      yield [1, 2]
+    end
+
+    enum = o.to_enum
+    enum.next # =>
+    enum.next # =>
+    enum.next # =>
+
+= slide 'Enumerable и Enumerator (2)', 'пример' do
+  annotate:
+    class Foo
+      def each
+        return to_enum unless block_given?
+
+        yield 1
+        yield 2
+      end
+    end
+
+    f = Foo.new
+    f.each { |x| puts x } # =>
+    f.each                # =>
+
+= slide '#with_object и #with_index' do
+  p Енумераторите имат някои интересни методи.
+
+  annotate:
+    numbers = 1.upto(3)
+
+    numbers.with_index.to_a      # =>
+    numbers.with_object(:x).to_a # =>
+
+= slide 'map_with_index', 'навръзване на енумератори' do
+  p Ако ви се е случвало да ви трябва индекс в <code>map</code>:
+
+  annotate:
+    words = %w( foo bar baz ).map.with_index do |word, index|
+      "#{index}: #{word.upcase}"
+    end
+
+    words # =>
+
+= slide 'Каква е разликата?', 'Брой на думите в изречение' do
+  annotate:
+    data = "Some really long\ntext with new lines."
+
+    # Решение 1
+    data.lines.map(&:split).map(&:size) #=>
+
+    # Решение 2
+    data.lines.map { |l| l.split.size } #=>
+
+  br
+  h2.action Решение 1 създава междинен масив с всички елементи
+
+= slide 'Мързеливи енумератори' do
+  list:
+    Методът `Enumerable#lazy` връща "мързелив" енумератор
+    Има и `Enumerator#lazy`
+    Дадената стойност се оценява само когато потрябва
+
+= slide 'Примери', 'безкрайни поредици' do
+  example:
+    (1..Float::INFINITY).map { |i| i * i }.first(5) # => ?
+
+  .action
+    annotate:
+      (1..Float::INFINITY).lazy.map { |i| i * i }.first(5) # =>
+
+= slide 'Примери', 'еднократно оценяване на целия chain' do
+  example:
+    [
+      ' a ',
+      ' b ',
+      ' c ',
+    ].lazy.map { |x| p x.strip }.map { |x| p x.upcase }.take(1).to_a
+
+  p Горното ще изведе на екрана:
+  pre
+    ' "a"
+      "A"
+  p И ще върне списъка <code>["A"]</code>.
+
+= slide 'SampleEnumerator' do
+  example:
+    module Enumerator
+      class Sample < Enumerator
+        def initialize(obj)
+          super() do |yielder|
+            obj.each do |val|
+              yielder << val
+            end
+          end
+        end
+      end
+    end
+
+= slide 'Enumerator::Lazy' do
+  example:
+    module Enumerator
+      class Lazy < Enumerator
+        def initialize(obj)
+          super() do |yielder|
+            obj.each do |val|
+              if block_given?
+                yield(yielder, val)
+              else
+                yielder << val
+              end
+            end
+          end
+        end
+      end
+    end
+
+= slide 'Enumerator::Lazy#map', 'примерна дефиниция на map' do
+  example:
+    module Enumerator
+      class Lazy < Enumerator
+        def map
+          Lazy.new(self) do |yielder, val|
+            yielder << yield(val)
+          end
+        end
+      end
+    end
+
+= slide 'Enumerator::Lazy', 'примерна дефиниция на нов lazy метод' do
+  annotate:
+    module Enumerable
+      def filter_map(&block)
+        map(&block).compact
+      end
+    end
+
+    class Enumerator::Lazy
+      def filter_map
+        Lazy.new(self) do |yielder, *values|
+          result = yield *values
+          yielder << result if result
+        end
+      end
+    end
+
+    (1..Float::INFINITY).lazy.filter_map { |i| i * i if i.even? }.first(5) # =>
+
+= slide 'LazyEnumerator methods' do
+  p Методи имплементирани в <a href="http://ruby-doc.org/core-2.1.3/Enumerator/Lazy.html">Enumerator::Lazy (документация)</a> към момента:
+  ul
+    li <code>map</code> / <code>collect</code>
+    li <code>flat_map</code> / <code>collect_concat</code>
+    li <code>select</code> / <code>find_all</code>
+    li <code>reject</code>
+    li <code>grep</code>
+    li <code>zip</code>
+    li <code>take</code>
+    li <code>take_while</code>
+    li <code>drop</code>
+    li <code>drop_while</code>
+
+  p Методи, които "материализират" lazy колекцията:
+  ul
+    li <code>to_a</code> / <code>force</code>
+    li <code>each</code>
+    li <code>next</code>
+
+= slide 'Кога ни е полезно?', 'Първите 10 четни числа на Фибоначи' do
+  example:
+    # Решение 1
+    Fib.lazy.select(&:even?).take(10).to_a
+
+    # Решение 2
+    a = []
+    Fib.each do |x|
+      next if x.odd?
+      a << x
+      break if a.size == 10
+    end
+
+= slide 'Класови методи' do
+  list:
+    Условието на трета задача изисква създаването на класови метод
+    Миналия път ви показахме един от начините да дефинирате такъв
+    Този начин не е единствен и не е "каноничният"
+    Без да навлизаме в детайли, днес ще ви покажа двата други начина
+
+= slide 'Класови методи', 'преговор' do
+  p Неканоничният и праволинеен начин за дефиниране на класов метод:
+
+  example:
+    module RBFS
+      class File
+        def File.parse(string_data)
+          # Solution lost.
+        end
+      end
+    end
+
+= slide 'Класови методи', 'втори начин' do
+  p Този начин е еквивалентен на предишния слайд:
+
+  example:
+    module RBFS
+      class File
+        def self.parse(string_data)
+          # Solution lost.
+        end
+      end
+    end
+
+  p.action Това работи, понеже:
+  list:
+    Тялото на класа е изпълним код
+    Както във всеки друг контекст в Ruby, и там имаме `self`
+    `self` и `RBFS::File` в тялото на класа реферират към един и същ обект
+
+= slide 'Класови методи', 'трети начин' do
+  p Използва се при нужда да се дефинират няколко класови метода:
+
+  example:
+    module RBFS
+      class File
+        class << self
+          def parse(string_data)
+            # Solution lost.
+          end
+        end
+      end
+    end
+
+  list:
+    Какъв е този синтаксис и защо работи, ще си говорим по-нататък
+
+= slide 'Класови методи', 'конвенции' do
+  list:
+    Първият начин не се ползва (`def ClassName.method_name() end`)
+    При дефиниране на един, максимум два класови метода, ползваме втория начин
+    При дефиниране на повече от един класов метод, обикновено ползваме третия начин
+    За справка – [ръководството по стил](https://github.com/fmi/ruby-style-guide#classes)
+
+= slide 'Въпроси дотук?' do
+  p Преди да продължим със следващата тема.
+
+= slide 'Замразяване на обекти в Ruby' do
+  list:
+    Реално превръща mutable-обекти в immutable
+    Замразяването става с `Object#freeze` (Мутира обекта!)
+    Можете да проверите дали обект е замразен с `Object#frozen?`
+    Веднъж замразен, даден обект не може да бъде размразен
+    Не можете да променяте вече замразени обекти (Workaround е да направите `dup`.)
+    Често се ползва, когато присвоявате mutable-типове на константи
+
+= slide 'Замразяване на обекти' do
+  example:
+    module Entities
+      ENTITIES = {
+        '&' => '&amp;',
+        '"' => '&quot;',
+        '<' => '&lt;',
+        '>' => '&gt;',
+      }.freeze
+
+      ENTITY_PATTERN = /#{ENTITIES.keys.join('|')}/.freeze
+
+      def escape(text)
+        text.gsub ENTITY_PATTERN, ENTITIES
+      end
+    end
+
+= slide 'Замразяване на низове' do
+  p Тъй като низовете в Ruby са mutable, всяко срещане на низ = нов обект:
+
+  annotate:
+    ''.object_id                 # =>
+    ''.object_id                 # =>
+    ''.object_id == ''.object_id # =>
+
+  list:
+    Това е performance проблем
+    Символите го решават, но те не са заместител на низове
+
+= slide 'Замразяване на низове', 'пример' do
+  example:
+    class HTTP
+      attr_reader :method
+
+      def post?
+        method == 'POST' # New string object on each call
+      end
+    end
+
+= slide 'Замразяване на низове', 'пример за workaround' do
+  example:
+    class HTTP
+      attr_reader :method
+      METHOD_POST = 'POST'
+
+      def post?
+        method == METHOD_POST
+      end
+    end
+
+  p.action Това е досадно. Затова в Ruby 2.1 има и по-добро решение.
+
+= slide 'String#freeze' do
+  annotate:
+    ''.freeze.object_id                        # =>
+    ''.freeze.object_id                        # =>
+    ''.freeze.object_id == ''.freeze.object_id # =>
+
+  list:
+    Границата между `freeze`-нати низове и символи се размива в последните версии на Ruby
+
+= slide 'Синтаксис за замразяване на низове' do
+  list:
+    `"Chunky bacon".freeze` се оптимизира от Ruby и връща един и същи обект
+    Ако вече има такъв обект, с такова съдържание, той ще бъде преизползван
+    Важи само при първо дефиниране на низ с литерален синтаксис
+
+= slide 'Оптимизация при замразяване', 'работи само с литералния синтаксис' do
+  annotate:
+    'text'.freeze.object_id                         # =>
+    foo = 'text'
+    foo.freeze.object_id                            # =>
+    foo.freeze.object_id == 'text'.freeze.object_id # =>
+
+= slide 'Замразяване на обекти' do
+  list:
+    Полезно и интересно е да знаете за оптимизацията
+    Не замразявайте низове под път и над път заради това
+    Това е [микро-оптимизация](/lectures/04-methods-blocks-lambdas#16)
+    Замразявайте неща, ако ви е страх от промени :)
+
+= slide 'Въпрос 5' do
+  p Каква е разликата между <code>require './foo'</code> и <code>require_relative 'foo'</code>?
+
+  .action.answer
+    example:
+      require './foo'        # Релативно спрямо Dir.pwd
+      require_relative 'foo' # Релативно спрямо __FILE__
+
+    p "Текущата директория" на процеса може да се променя както при стартиране, така и по време на изпълнение на програмата (с <code>Dir.chdir</code>) и е различна от директорията, в която се намира Ruby файла, изпълняващ require метода:
+
+    example:
+      cd /home
+      ruby /foo/bar/baz.rb # Dir.pwd ще е: /home
+
+= slide 'require и $LOAD_PATH', 'преговор' do
+  list:
+    `require 'foo'` търси файл `foo.rb` в `$LOAD_PATH`
+    Може да реферира и директно към файлове ако пътят започва с `.`, `~` или `/`
+    Зарежда файла, като го изпълнява (само веднъж)
+    Всичко от файла е достъпно, с изключение на локалните променливи (отделен binding)
+
+= slide 'Библиотеките в Ruby', 'преговор' do
+  list:
+    Наричат се gem-ове
+    Де-факто стандартна репозитория за библиотеки е [RubyGems](http://rubygems.org/)
+    Един gem е просто архивирана папка с файлове
+    Инсталация на gem представлява сваляне на този архив и разархивирането му някъде
+    Това "някъде" е папка на вашия компютър, поддиректория на мястото, където сте инсталирали Ruby
+
+= slide 'Типичната структура на един gem', 'skeptic опростен' do
+  pre
+    ' .
+      ├── README.rdoc
+      ├── Rakefile
+      ├── bin
+      │   └── skeptic
+      ├── features
+      ├── lib
+      │   ├── skeptic
+      │   │   ├── rules.rb
+      │   │   └── scope.rb
+      │   └── skeptic.rb
+      ├── skeptic.gemspec
+      └── spec
+
+= slide 'Особеностите' do
+  list:
+    `lib/` обикновено съдържа `foo.rb` и `lib/foo/`
+    `foo.rb` обикновено е единственото нещо в `lib/`
+    Всичко останало е в `lib/foo`
+    `lib/` се добавя в load path
+    Така вече може да правите `require 'foo'` или `require 'foo/something'`
+    По този начин не замърсявате `require` областта
+    RubyGems прави това "автомагично"
+
+= slide 'Останалите неща' do
+  list:
+    Разгледайте [github.com/skanev/skeptic](skanev/skeptic) за повече подробности
+    После разгледайте някой друг gem
+    После си поиграйте малко с `require` и `$LOAD_PATH` и вижте какво се случва
+    Вижте [ръководствата в RubyGems](http://guides.rubygems.org/)
+
+= slide 'Kernel#load' do
+  list:
+    `load` е много сходен с `require`, но има няколко разлики
+    Иска разширение на файл - `load 'foo.rb'`
+    Повторни `load`-ове изпълняват файла
+    `load` не може да зарежда `.so`/`.dll` библиотеки
+    `load` има опционален параметър, с който може да обвие файла в анонимен модул
+    Последното дава известна изолация
+
+= slide 'Въпроси по require' do
+  p Имате ли въпроси по <code>require</code>, <code>load</code>, gem-ове в Ruby?
+
+= slide 'Code Spelunking', 'из skeptic' do
+  p Демонстрация с цел да усвоим основни пещернячески умения.
