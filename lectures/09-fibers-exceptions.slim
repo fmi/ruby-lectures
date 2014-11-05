@@ -1,0 +1,471 @@
+= slide 'Днес' do
+  list:
+    Fibers
+    Изключения
+    Колко неочаквано.
+
+= slide 'План за 15-16 ноември' do
+  p Ето за какво да се приготвите по-следващия уикенд.
+
+= slide '' do
+  .action
+    img src="09/k2.jpg"
+
+= slide 'K2', 'ще ходим на планина' do
+  list:
+    В Каракорум, на границата между Китай и Пакистан
+    Втори по височина на Земята – 8616 м.
+    Базова цена – поне 30 хил. лв.
+    Отделно - екипировка, застраховки, билети и други
+
+= slide 'K2', 'предизвикателството' do
+  list:
+    "Планина на планините"
+    "K2 should not be your first 8000er. In order to have a fair chance of success and survival, you need prior practice. For K2, a great experience is gained at Everest (...)"
+    "One in every four people who have attempted the summit have died trying."
+
+= slide 'План за 15-16 ноември', 'традиционната планина' do
+  list:
+    Планираме я за един от двата дни в уикенда 15-16 ноември
+    Кой от двата зависи от прогнозата на времето
+    Ще знаем със сигурност другата седмица
+    Ще пуснем новина и тема във форума с още детайли като му дойде времето
+
+= slide 'Малка сбирка след лекцията днес' do
+  list:
+    Ще идем в Торонто, да хапнем/пийнем, неангажиращо
+    Който желае, да заповяда, ще се радвам да си поговорим
+
+= slide 'Текущи срокове' do
+  list:
+    [Четвърто предизвикателство](/challenges/4), до утре на обяд
+    [Трета задача](/tasks/3) е със срок до идния понеделник, 17:00
+    Идва HackFMI, направете си сметките
+
+= slide 'Скорост на напредване' do
+  list:
+    Нормално е материалът се движи по-напред от вашето разбиране
+    Ако имате нужда от време, за да осмислите дадена концепция, това е окей
+    Не си мислете, че сте "назад" спрямо колегите си, или спрямо "материала"
+    Ако имате проблеми с отдавна минали задачи, питайте - това е напълно окей
+
+= slide 'Въпрос 1' do
+  p Какъв ще бъде резултатът от изпълнението на следния код:
+
+  example:
+    class Sequence
+      def generate
+        yield
+        yield 'hello'
+        yield [1, 2]
+      end
+    end
+
+    Sequence.new.to_enum.count # => ?
+
+  .action.answer
+    p Грешка – недефиниран метод <code>each</code>. <code>Object#to_enum</code> е еквивалентно на <code>Object#enum_for(:each)</code>. Правилният код тук би бил <code>Sequence.new.enum_for(:generate).count</code>. Щеше да върне <code>3</code>.
+
+= slide 'Въпрос 2' do
+  p Какъв ще бъде резултатът от изпълнението на следния код:
+
+  example:
+    numbers = {one: 'eins', two: 'zwei'}
+    numbers.each.with_index.to_a.flatten.size # => ?
+
+  .action.answer
+    p <code>6</code>. След <code>to_a</code> ще имаме списък с два елемента: <code>[[[:one, "eins"], 0], [[:two, "zwei"], 1]]</code>.
+
+= slide 'Въпрос 3' do
+  p Какъв ще бъде резултатът от изпълнението на следния код:
+
+  example:
+    numbers = {one: 'eins', two: 'zwei'}.freeze
+    numbers[:one].upcase!
+
+  .action.answer
+    p Няма да има грешка. Хешът <code>numbers</code> реално не се променя. Мутира се само обектът, към който сочи ключа <code>:one</code>. За да се предпазим от това, би могло да напишем <code>numbers.each { |_, number| number.freeze }</code>.
+
+= slide 'Въпрос 4' do
+  p Какъв ще бъде резултатът от изпълнението на следния код:
+
+  example:
+    x = 0
+    0.upto(100).lazy.map { x += 1 }.map { x += 1 }.take(2)
+
+    x # => ?
+
+  .action.answer
+    p <code>0</code>. Причината е, че lazy последователността все още не е оценена.
+
+  .action.answer
+    p Може да я оценим с <code>to_a</code> след <code>take()</code>. Тогава <code>x</code> щеше да е 4.
+
+= slide 'Генератор на Fibonacci' do
+  p Кодът по-долу няма да приключи никога:
+
+  example:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new.each { |number| puts number }
+
+= slide 'Генератор на Fibonacci с енумератори' do
+  p Кодът по-долу ще работи:
+
+  annotate:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new.to_enum.take(5) # =>
+
+= slide 'Fibers' do
+  list:
+    Нещо любопитно, появило се от Ruby 1.9 нататък
+    [Fibers](http://www.ruby-doc.org/core-2.1.0/Fiber.html) в Ruby позволяват нелинейно изпълнение на кода
+    Имат доста семпъл интерфейс – няколко клас-метода и няколко инстанционни такива
+    Най-важни методи: `Fiber.new`, `Fiber.yield`, `Fiber#resume`
+    Методи, налични след `require 'fiber'`: `Fiber.current`, `#alive?` и `#transfer`
+    Вървят със собствен стек и позволяват паузиране на дълбоко вложен код
+
+= slide 'Fibers' do
+  p Най-простият възможен пример:
+
+  annotate:
+    fiber = Fiber.new { :larodi }
+
+    fiber.resume # =>
+    fiber.resume #!
+
+= slide 'Fibonacci с fibers' do
+  p Ако заменим <code>yield</code> с <code>Fiber.yield</code>, можем да направим нещо като безкраен поток от числа на Фибоначи:
+
+  annotate:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          Fiber.yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    fibonacci_stream = Fiber.new { FibonacciNumbers.new.each }
+
+    fibonacci_stream.resume # =>
+    fibonacci_stream.resume # =>
+    fibonacci_stream.resume # =>
+    fibonacci_stream.resume # =>
+
+= slide 'Приложение на fibers' do
+  list:
+    Fiber-ите са сравнително low-level примитив за control flow
+    Вероятно не бихте ги ползвали директно в application код
+    По-вероятно е да ги използвате, за да напишете някаква библиотека
+
+= slide 'Enumerator-и и fibers' do
+  p <code>Enumerator</code> класът в Ruby се възползва от <code>Fiber</code>.
+
+  p Това се случва, когато направите <code>(1..100_000).each</code>.
+
+= slide 'Изключения' do
+  list:
+    Всички знаем какво са изключения.
+    Нали?
+    Метод за обработка на грешки.
+    Позволява разделяне на обработката от останалия код.
+    Все хубави неща.
+
+= slide 'Изключенията в Ruby' do
+  list:
+    Накратко, двойка клас и низ.
+    Съответно, тип на изключението и съобщение за грешка.
+    Класовете за изключения са в йерархия.
+    Два важни типа `Exception` и `StandardError`.
+    `StandardError < Exception`.
+
+= slide 'Непълна йерархия' do
+  pre
+    ' Object
+      +-- Exception
+         +-- NoMemoryError
+         +-- ScriptError
+         |   +-- SyntaxError
+         |   +-- LoadError
+         +-- SecurityError
+         +-- StandardError
+             +-- ArgumentError
+             +-- IndexError
+             |   +-- KeyError
+             |   +-- StopIteration
+             +-- NameError
+             |   +-- NoMethodError
+             +-- RuntimeError
+             +-- TypeError
+
+  p После ще видим пълната.
+
+= slide 'Предизвикване на изключения' do
+  annotate:
+    # Предизвиква RuntimeError
+    raise "'Prophet!' said I, 'Thing of evil!" #!
+
+    # Като горното, но с различен текст
+    raise RuntimeError, 'prophet still, if bird or devil!' #!
+
+    # Друг начин да предизвикаме RuntimeError
+    raise RuntimeError.new('Whether tempter sent, or whether...') #!
+
+= slide 'Хващане на изключения' do
+  annotate:
+    begin
+      puts '...tempest tossed thee here ashore'
+      raise NameError, 'Desolate yet all undaunted'
+    rescue => ex
+      ex.message   #=>
+      ex.class     #=>
+    end
+
+= slide 'Хващане на изключения', 'хващане на конкретен тип' do
+  annotate:
+    begin
+      raise KeyError, 'on this desert land enchanted'
+    rescue ArgumentError => ex
+      puts 'on this home by horror haunted'
+    rescue KeyError, TypeError => ex
+      ex.message  # =>
+      ex.class    # =>
+    end
+
+= slide 'Какво хваща rescue?' do
+  p <code>rescue</code> хваща "само" наследници на <code>StandardError</code>, ако не сме указали друго:
+  pre
+    ' Object
+      +-- Exception
+         +-- NoMemoryError
+         +-- ScriptError<strong>
+         +-- StandardError
+             +-- ArgumentError
+             +-- NameError
+             |   +-- NoMethodError
+             +-- RuntimeError</strong>
+
+= slide 'Въпрос към вас', 'Какво ще се случи тук?' do
+  example:
+    begin
+      raise KeyError, 'tell me truly, I implore'
+    rescue IndexError => ex
+      puts 'IndexError'
+    rescue KeyError => ex
+      puts 'KeyError'
+    end
+
+= slide 'Хващане на изключения', 'приоритет на rescue клаузите' do
+  p Припомняне <code>KeyError &lt; IndexError</code>
+
+  annotate:
+    $eh = 'foo'
+
+    begin
+      raise KeyError, 'Is there - is there balm in Gilead?'
+    rescue IndexError => ex
+      $eh = 'index'
+    rescue KeyError => ex
+      $eh = 'key'
+    end
+
+    $eh    # =>
+
+  p.action Изпълнява се първия <code>rescue</code>, за който изключението е <code>kind_of?</code> типа.
+
+= slide 'Запомнете' do
+  p Динамичните езици обикновено ползват прости правила
+
+  list:
+    "Първото отговарящо" е по-просто от "по-подходящото".
+    Или от "всички отговарящи".
+    Аналогичен случай с модулите.
+    Два дизайн принципа: KISS и PLOA.
+    Keep it simple, stupid!
+    Principle of least astonishment.
+    Важат с пълна сила за кода, който пишете.
+
+= slide 'Хващане на изключения', 'ensure клауза' do
+  p Кодът в <code>ensure</code> клаузата се изпълнява винаги.
+
+  example:
+    begin
+      raise 'tell me - tell me, I implore!' if rand(2).zero?
+    ensure
+      puts '????? ??? ?????, "?????????"'
+    end
+
+  ul
+    li <code>rand(2).zero?</code> връща <code>true</code> или <code>false</code>, 50 на 50.
+    li Подходяща е за затваряне на ресурс, като отворен файл.
+    li Някой сеща ли се какво има на мястото на въпросителните?
+
+= slide 'Хващане на изключения', 'else клауза' do
+  p <code>else</code> клаузата се изпълнява когато няма възникнало изключение.
+
+  example:
+    begin
+      launch_nukes
+    rescue
+      puts 'Uh-oh! Something went wrong :('
+    else
+      puts 'War... War never changes'
+    end
+
+  list:
+    Обърнете внимание, че `launch_nukes` няма удивителна.
+    Дори да е опасен, няма &quot;по-безопасна&quot; версия.
+    Не заслужава допълнителна пунктуация.
+
+= slide 'begin/end in all its glory!' do
+  example:
+    begin
+      get_a_life
+    rescue NoFriendsError => ex
+      puts 'Goodbye cruel world'
+    rescue InsufficientVespeneGasError, NotEnoughMineralsError => ex
+      puts 'I think I play too much StarCraft'
+    rescue
+      puts ';('
+    else
+      puts 'Woohoo!'
+    ensure
+      puts 'rm -rf ~/.history'
+    end
+
+= slide 'rescue в метод' do
+  p В случай, че ползвате <code>rescue</code> в метод така:
+
+  example:
+    def execute
+      begin
+        potentially_dangerous
+      rescue SomeException => e
+        # Handle the error
+      ensure
+        # Ensure something always happens
+      end
+    end
+
+= slide 'rescue в метод', 'Предпочитания вариант' do
+  p По-добре е да го запишете без <code>begin</code>/<code>end</code>, което е еквивалентно на предното:
+
+  example:
+    def execute
+      potentially_dangerous
+    rescue SomeException => e
+      # Handle the error
+    ensure
+      # Ensure something always happens
+    end
+
+= slide 'Предизвикване на изключение', 'по време на обработка на друго' do
+  p Ако възникне изключение при обработка друго, старото се игнорира и се "вдига" новото.
+
+  example:
+    begin
+      raise KeyError
+    rescue
+      raise TypeError
+      puts "I'm a line of code, that's never executed ;("
+    end
+
+= slide 'raise в rescue' do
+  p
+    ' <code>raise</code> в <code>rescue</code> клауза "вдига" същото
+      изключение, което се обработва.
+
+  example:
+    begin
+      raise KeyError, 'But high she shoots through air and light'
+    rescue
+      puts 'Whoops'
+      raise
+    end
+
+= slide 'begin/end', '...е израз, като всичко друго в ruby' do
+  annotate:
+    result = begin
+      raise KeyError if rand(3).zero?
+      raise NameError if rand(3).zero?
+    rescue KeyError
+      'nyckel'
+    rescue NameError
+      'namn'
+    else
+      'ingenting'
+    end
+
+    result    # =>
+
+= slide 'rescue като модификатор' do
+  ul
+    li <code>rescue</code> може да се ползва като модификатор.
+    li Ако възникне изключение, rescue връща стойността отдясно.
+    li Внимавайте. Така може да хващате само <code>StandardError</code>.
+
+  annotate:
+    [].fetch(1) rescue 'baba' # =>
+
+= slide 'Exception#exception' do
+  p
+    ' <code>raise type, message</code> всъщност извиква <code>type.exception(message)</code>
+      за да конструира изключение.
+
+  annotate:
+    class Thing
+      def exception(message)
+        NameError.new(message)
+      end
+    end
+
+    thing = Thing.new
+    raise thing, 'whoops' #!
+
+= slide 'Как да ползваме изключения' do
+  p Може да разделим изключенията на два вида.
+
+  ul
+    li Такива, които обикновено ще хващаме с <code>rescue</code>.
+    li Такива, които няма да хващаме.
+
+  p За първите обикновено създаваме клас. За вторите обикновено ползваме <code>raise</code>.
+
+= slide 'Кога ползваме изключения' do
+  list:
+    Някой ще хваща ли това изключение въобще?
+    Ако не, не правете нов клас.
+    Клиентът може ли да предвиди дали ще възникне изключение?
+    Ако да, не го принуждавайте да го ползва.
+    Не принуждавайте клиента да знае за изключенията ви, освен когато нямате избор.
+    Например писане по мрежата - няма как да знаете предварително.
+
+= slide 'Разсъждения' do
+  list:
+    Много рядко някой иска да хване `KeyError` или `IndexError`. Защо?
+    Ако пишете библиотека, помислете за базов клас на нейните изключения.
+    Look Before You Leap и Better Ask Forgiveness Than Permission.
+    Не ползвайте изключенията за control flow. В Ruby има друга конструкция.
