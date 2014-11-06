@@ -452,6 +452,15 @@
       end
     end
 
+= slide 'case', 'when с няколко стойности' do
+  p Ruby позволява да обедините проверката за няколко възможни стойности в един <code>when</code>, дори да не са от един и същи тип.
+
+  example:
+    case number
+      when (42+0i)  then 'This is too complex for me!'
+      when 42, 42.0 then 'This is more like it!'
+    end
+
 = slide 'case', 'с обикновени условия' do
   list:
     Можете да слагате и цели изрази в `when`
