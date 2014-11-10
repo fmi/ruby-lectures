@@ -38,3 +38,7 @@
   title: 09. Fibers. Изключения
   slug: 09-fibers-exceptions
   date: 2014-11-05
+10:
+  title: 10. Call stack. Изключения, част 2. Структура на skeptic
+  slug: 10-call-stack-exceptions-throw-catch-solutions-review-skeptic-structure
+  date: 2014-11-10
