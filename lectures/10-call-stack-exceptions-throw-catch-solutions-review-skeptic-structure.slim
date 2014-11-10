@@ -63,7 +63,7 @@
   p От какъв тип са изключенията, хвърлени така: <code>raise 'foo'</code>?
 
   .action.answer
-    p <code>StandardError</code>.
+    p <code>RuntimeError</code>.
 
 = slide 'Въпрос 4' do
   p Как ще се оцени следният израз?
@@ -73,7 +73,7 @@
       raise 'oh noes!'
     rescue Exception
       'A general exception has occurred.'
-    rescue StandardError
+    rescue RuntimeError
       'A standard error has occurred.'
     end
 
