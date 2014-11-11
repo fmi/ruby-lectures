@@ -220,11 +220,11 @@
     Възможно по-малко, от конкретен тип
     Точно поради горепосочените причини, е много вредно да хващате `Exception` или да обгръщате огромни части от програмата си с `begin ... rescue Exception`
 
-= slide 'Изключения в блиблиотеки' do
+= slide 'Изключения в библиотеки' do
   blockquote
     ' It is recommended that a library should have one subclass of StandardError or RuntimeError and have specific exception types inherit from it. This allows the user to rescue a generic exception type to catch all exceptions the library may raise even if future versions of the library add new exception subclasses.
 
-= slide 'Изключения в блиблиотеки (2)' do
+= slide 'Изключения в библиотеки (2)' do
   list:
     Правите си клас, наследяващ от, да кажем, `RuntimeError`
     `class Skeptic::Error < RuntimeError; end`
@@ -291,7 +291,7 @@
     Може да ползвате скоби за "деструктивно" присвояване (разпадане на списък)
     Такъв метод е очевидно лоша идея
     Едно от правилата на [Sandi Metz](http://www.sandimetz.com/) е "не повече от 4 аргумента на метод"
-    В горното се броят и keyowrd аргументи, както и ключовете в аргументи тип `options = {}`
+    В горното се броят и keyword аргументи, както и ключовете в аргументи тип `options = {}`
 
 = slide 'Sandi Metz' do
   p Като споменахме Санди...
