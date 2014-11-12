@@ -1,0 +1,736 @@
+= slide 'Днес' do
+  list:
+    `Module#extend`
+    Интроспекция в Ruby - прелюдия към метапрограмирането
+    Наченки на метапрограмиране
+    Класът `Method`
+    Записки по трета задача
+
+= slide 'Ориентировъчен план за следващите лекции' do
+  list:
+    17 ноември – Интроспекция и метапрограмиране, част 2
+    19 ноември – Интроспекция и метапрограмиране, част 3
+    24 ноември – Регулярни изрази
+    26 ноември – Git
+    3 декември – първи тест
+    Web с Ruby, Sinatra, Ruby core & stdlib, конкурентност
+    GUI, UI, Gosu, Shoes и каквото друго ви е интересно
+
+= slide 'Преди това', 'новините' do
+  list:
+    Ново, [пето предизвикателство днес](/challenges/5)
+    След лекцията отиваме в Торонто
+    [Новинарски бюлетин за предложения за работа с Ruby →](http://eepurl.com/KRzt5)
+    Помощник-инструктори за седмични учебни групи, случващи се в [init Lab](https://initlab.org)
+
+= slide 'План за неделя, 16 ноември', 'традиционната планина' do
+  list:
+    Ще бъде тази неделя, 16 ноември
+    Срещата ни е на последната спирка на трамвай №5 в Княжево, 10:00 сутринта
+    Има новина, тема във форума с още детайли и [събитие във Facebook](https://www.facebook.com/events/653949578054910/)
+    Трябва да знаем кой ще идва, [отбележете се във Facebook](https://www.facebook.com/events/653949578054910/) или форума, когато разберете
+    Отбележете се само на <strong>едно място</strong>
+
+= slide 'RubyMonk', 'отклонение' do
+  list:
+    [RubyMonk](http://rubymonk.com/) е колекция от интерактивни уроци за Ruby
+    Минете поне [първия урок](http://rubymonk.com/learning/books/1-ruby-primer)
+    Ще ви е полезно за затвърждаване на знанията
+
+= slide 'Въпрос 1' do
+  p Какво прави <code>caller</code>?
+
+  .action.answer
+    p Връща списък с низове, всеки ред от който представлява елемент от текущия (в мястото на извикването на <code>caller</code>) call stack. Нещо такова:
+
+    example:
+      .../irb/ruby-lex.rb:232:in `catch'
+      .../irb/ruby-lex.rb:232:in `each_top_level_statement'
+      .../irb.rb:488:in `eval_input'
+      .../irb.rb:397:in `block in start'
+      .../irb.rb:396:in `catch'
+      .../irb.rb:396:in `start'
+      .../bin/irb:11:in `<main>'
+
+= slide 'Въпрос 2' do
+  p Кои изключения обикновено е добра идея да хващаме и кои не?
+
+  .action.answer
+    ol
+      li Обикновено хващаме непредвидими грешки, причинени от "околната среда" (най-често IO-грешки).
+      li Програмистки грешки, причинени от неправилна употреба на парче код, обикновено избягваме да хващаме.
+
+= slide 'Въпрос 3' do
+  p За какво служат <code>throw</code> и <code>catch</code> в Ruby?
+
+  .action.answer
+    list:
+      `catch` и `throw` се ползват за control flow; не служат за обработка на грешки
+      Единственото общо между тях и изключенията е, че и те bubble up-ват нагоре по call стека
+      Ползват се рядко
+
+= slide 'Въпрос 4' do
+  p Какво правеше клас-макрото <code>include</code>?
+
+  example:
+    module Bar
+      def public_method() end
+      private
+      def private_method() end
+    end
+
+    class Foo
+      include Bar
+    end
+
+  .action.answer
+    p "Копира" методите, дефинирани в модула, със съответната им видимост (<code>public</code>, <code>private</code>, ...) като инстанционни методи в класа-получател.
+
+= slide 'include и extend' do
+  p Помните <code>Module#include</code>, нали?
+
+  annotate:
+    module Introductions
+      def ahoy() "Ahoy my mate, I'm #{name}!" end
+      def hi()   "Hey there, I'm #{name}!" end
+    end
+
+    class Person
+      include Introductions
+      attr_accessor :name
+
+      def initialize(name) @name = name end
+    end
+
+    Person.new('Silver').ahoy # =>
+    Person.new('Silver').hi   # =>
+
+= slide 'include и extend (2)' do
+  p <code>Module#extend</code> добавя методите на дадения модул като класови методи:
+
+  annotate:
+    module Introductions
+      def ahoy() "Ahoy my mate, I'm #{name}!" end
+      def hi()   "Hey there, I'm #{name}!" end
+    end
+
+    class Person
+      extend Introductions
+    end
+
+    Person.ahoy # =>
+    Person.hi   # =>
+
+= slide 'extend с модули' do
+  p Аналогично на <code>include</code>, може да ползвате <code>extend</code> и в модули:
+
+  example:
+    module Person
+      extend Creation
+      extend Traversing
+      extend Reflection
+    end
+
+= slide 'extend с модули' do
+  p Може дори да <code>include</code>-нете и да <code>extend</code>-нете с един и същи модул:
+
+  example:
+    class Person
+      include Introductions
+      extend Introductions
+    end
+
+    Person.new('Why').hi # "Hey there, I'm Why!"
+    Person.hi            # "Hey there, I'm Person!"
+
+= slide 'extend self' do
+  p Долното работи и се ползва понякога:
+
+  example:
+    module UrlHelpers
+      extend self
+
+      def encode(url)
+      end
+
+      def decode(url)
+      end
+    end
+
+    UrlHelpers.encode('foo bar')
+    UrlHelpers.decode('foo%20bar')
+
+= slide 'Въпроси по extend?' do
+  p Преди да продължим с интроспекция.
+
+= slide 'Интроспекция' do
+  list:
+    Начин програмно да инспектирате свойства на код
+    Още: рефлекция (reflection)
+    Необходимост, за да може да се метапрограмира на даден език
+
+= slide 'Интроспекция', 'Code smell' do
+  list:
+    Внимание: употребяват се много внимателно и предимно в специфични случаи
+    Ако мислите, че имате нужда да ползвате нещо от това, коeто ще ви покажем, помислете пак
+    Възможно е да има друг, много по-чист и елегантен начин да решите поставения проблем
+    Третирайте тези неща като code smell и прибягвайте до тях само в краен случай
+
+= slide 'Интроспекция на ОО йерархията' do
+  list:
+    Най-простата форма на интроспекция
+    Много от тези методи вече сте виждали в действие, или поне сте чували за тях:
+    `class` ви дава класа на даден обект; всеки обект има клас, дори класовете
+    `superclass` - родителският клас
+    `kind_of?` (със синоним `is_a?`)
+    `instance_of?`
+    `ancestors` - списъкът от класове и модули, в който се търси метод при извикване на такъв
+
+= slide 'Разглеждане на обекти', 'методите им' do
+  list:
+    `methods` - списък с методите, на които отговаря дадена инстанция
+    Забележете, че `foo.methods != foo.class.methods`
+    Горното е следствие на факта, че и класовете са инстанции и си имат собствени методи
+    Например:
+
+  .action
+    annotate:
+      'foo'.methods.size  # =>
+      String.methods.size # =>
+
+= slide 'Разглеждане на обекти', 'Методите им' do
+  list:
+    Може да видите какви методи дефинира даден клас за своите инстанции
+    Следните имена са очевидни:
+    `private_instance_methods`
+    `protected_instance_methods`
+    `public_instance_methods`
+    `singleton_methods` ви връща класовите методи
+
+= slide 'Методи на обекти', 'Пример' do
+  annotate:
+    class Ruby
+      def self.author() 'Matz' end
+
+      def version() '2.1.0' end
+      def repository() 'Git' end
+      def implementation() 'MRI C' end
+
+      protected :repository
+      private :implementation
+    end
+
+    Ruby.public_instance_methods     # =>
+    Ruby.protected_instance_methods  # =>
+    Ruby.private_instance_methods    # =>
+    Ruby.singleton_methods           # =>
+
+= slide 'Методи на обекти' do
+  list:
+    Културната проверка дали даден обект има определен метод:
+    `object.respond_to?(:method_name)`
+    Ще върне `true`, ако можете безопасно да изпълните `object.method_name`
+    Тук е подходящо да подадете символ като `:method_name`
+    Връща `false` за `private` и `protected` методи
+    Ако му подадете `true` като втори аргумент, ще игнорира видимостта на метода
+
+= slide 'Инстанционни променливи' do
+  list:
+    Можете да инспектирате и манипулирате инстанционни променливи на обекти с тези методи:
+    `instance_variable_get`
+    `instance_variable_set`
+    `instance_variable_defined?`
+    `remove_instance_variable` - този метод е `private`
+    Забележете, че трябва да включите и `@` в името на променливата
+
+= slide 'Инстанционни променливи', 'Пример' do
+  annotate:
+    class Foo
+      def initialize
+        @baba = 42
+      end
+
+      def touch
+        @touched = true
+      end
+    end
+
+    foo = Foo.new
+
+    foo.instance_variables # =>
+    foo.touch
+    foo.instance_variables # =>
+
+= slide 'Инстанционни променливи', 'Пример' do
+  annotate:
+    class Foo
+      def initialize
+        @baba = 42
+      end
+    end
+
+    foo = Foo.new
+
+    foo.instance_variable_defined? :@baba # =>
+
+    foo.send(:remove_instance_variable, :@baba)
+    foo.instance_variable_defined? :@baba # =>
+
+= slide 'Константи' do
+  list:
+    Имената на класове и модули са константи
+    Константи могат да бъдат дефинирани в класове и модули
+    Top-level константите отиват в `Object`
+    Съществуват методи за интроспекция и манипулирание на константи
+
+= slide 'Константи' do
+  list:
+    Методите за интроспекция на константи идват от `Module` (`Class < Module`)
+    `constants` връща списък с константите, дефинирани в дадения клас/модул
+    `const_get` ви връща стойността на дадена константа от име, подадено като низ или символ
+    `Object.const_get('String').new` е интересен начин да запишете `''`
+    `const_set` ви дава възможност да създадете (или промените) константа в класа/модула
+    `const_defined?` - проверка дали дадена константа съществува в класа/модула
+    `remove_const` - премахва константа от клас/модул
+
+= slide 'Константи' do
+  annotate:
+    Regexp.constants          # =>
+    Object.constants.take(5)  # =>
+    Object.constants.size     # =>
+
+  list:
+    `Object.constants` е списък на всички top-level константи, дефинирани към момента
+
+= slide 'Константи', 'не правете така' do
+  example:
+    String # String
+    Object.const_set(:String, Fixnum)
+    String # Fixnum
+
+= slide 'Глобални променливи' do
+  p
+    |
+      <code>Kernel#global_variables</code> ще ви върне списък с всички глобални променливи,<br />
+      дефинирани към момента. Например:
+
+  example:
+    puts global_variables.map { |var| var.to_s.ljust(16) }
+                         .each_slice(4)
+                         .map { |vars_per_line| vars_per_line.join(' ') }
+                         .join("\n")
+
+= slide 'Глобални променливи' do
+  pre
+    |
+      $;               $-F              $@               $!
+      $SAFE            $~               $&               $`
+      $'               $+               $=               $KCODE
+      $-K              $,               $/               $-0
+      $\               $_               $stdin           $stdout
+      $stderr          $>               $<               $.
+      $FILENAME        $-i              $*               $?
+      $$               $:               $-I              $LOAD_PATH
+      $"               $LOADED_FEATURES $VERBOSE         $-v
+      $-w              $-W              $DEBUG           $-d
+      $0               $PROGRAM_NAME    $-p              $-l
+      $-a              $binding         $1               $2
+      $3               $4               $5               $6
+      $7               $8               $9
+
+= slide 'Локални променливи' do
+  list:
+    Подобно на `Kernel#global_variables`, има метод `Kernel#local_variables`
+    Връща списък с локалните променливи, регистрирани към момента в текущия scope
+
+  .action
+    annotate:
+      foo          = :bar
+      die_antwoord = 42
+
+      local_variables # =>
+
+= slide 'defined?' do
+  list:
+    Ключова дума, за разлика от всички методи, показани до момента
+    "Аргументът", който приема, е произволен Ruby израз
+    Работи на ниво parser (синтаксис)
+    Връща ви низ, описващ типа на израза, който сте подали на `defined?`
+    Ако подадете несъществуващо име (напр. недефинирана локална променлива), ще получите `nil`
+    Така може да проверите дали дадена локална променлива съществува
+
+= slide 'defined?' do
+  list:
+    Примерна употреба - задаване на стойност по подразбиране на локална променлива
+    Идиоматично е следното: `foo ||= default_value`
+    Ще работи дори `foo` да не е била дефинирана към момента. Проблемът с този код?
+    Ако `foo` е имала стойност `false` и това е валидно за вашия случай, ще я презапишете
+    Ако попаднете в тази рядка ситуация, може да направите следното:
+
+  .action
+    example:
+      unless defined? cache
+        cache = true
+      end
+
+= slide 'defined?', 'gotcha' do
+  annotate:
+    x = 42 unless defined? x
+    x # =>
+
+  list:
+    Защо?
+    Постфиксната форма на условието води до дефиниране на всички имена, срещани на реда
+    Т.е. преди още `defined?` да се изпълни, `x` ще се дефинира и ще има стойност `nil`
+
+= slide 'defined?' do
+  annotate:
+    defined? 1             # =>
+    defined? foo           # =>
+    defined? puts          # =>
+    defined? String        # =>
+    defined? $&            # =>
+    defined? $_            # =>
+    defined? Math::PI      # =>
+    defined? answer = 42   # =>
+    defined? 42.abs        # =>
+
+= slide 'block_given?' do
+  p
+    |
+      Можете да ползвате <code>Kernel#block_given?</code>, за да проверите дали<br />
+      някой ви е подал блок, например:
+
+  annotate:
+    def block_or_no_block
+      if block_given?
+        'We got a block, go this way...'
+      else
+        'No block man, go that way...'
+      end
+    end
+
+    block_or_no_block     # =>
+    block_or_no_block {}  # =>
+
+= slide 'Proc.new и yield' do
+  list:
+    Блокът не е обект, а синтактична конструкция
+    `Proc.new` ще върне блока, асоцииран с обкръжаващия го метод, като обект
+    Ако извикаме `Proc.new` извън контекста на метод, без блок, ще се продуцира грешка
+    Когато `yield`-ваме даден блок, той не се обръща в обект
+
+= slide 'Proc.new' do
+  p Пример с Proc.new:
+
+  annotate:
+    def foo
+      Proc.new if block_given?
+    end
+
+    foo         # =>
+    foo {}      # =>
+
+    proc = foo { "hello" }
+    proc.call   # =>
+
+= slide 'ObjectSpace' do
+  list:
+    Класът `ObjectSpace` ви дава прост интерфейс за манипулация на обектите в паметта
+    `ObjectSpace.each_object` ще `yield`-ва на подадения му блок всеки такъв обект
+    Приема опционален аргумент - от какъв клас да бъде дадения обект
+    `ObjectSpace.each_object(String)` ще обходи всички низове, заредени в паметта в момента
+    `ObjectSpace.each_object(Class)` - всички класове
+    Обхожда всичко без `Fixnum`, `Symbol`, `true`, `false` и `nil`, тъй като те се интернират
+    Ако не му подадете блок, ще ви върне `Enumerator`
+
+= slide 'ObjectSpace.each_object' do
+  annotate:
+    ObjectSpace.each_object.count          # =>
+    ObjectSpace.each_object(String).count  # =>
+    ObjectSpace.each_object(Float).to_a    # =>
+    ObjectSpace.each_object(Class).count   # =>
+
+    ObjectSpace.each_object(Class) do |klass|
+      # Do something with klass
+    end
+
+= slide 'ObjectSpace.count_objects' do
+  p Дава проста статистика на бройките обекти в паметта по типове. Връща хеш. Например:
+
+  example:
+    puts ObjectSpace.count_objects
+          .map { |type, count| "#{type}:".ljust(10) + count.to_s.rjust(7) }
+          .each_slice(3)
+          .map { |counts_per_row| counts_per_row.join('    ') }
+          .join("\n")
+
+= slide 'ObjectSpace.count_objects', 'Резултати' do
+  pre
+    |
+      TOTAL:     419019    FREE:      289687    T_OBJECT:   12958
+      T_CLASS:      880    T_MODULE:      34    T_FLOAT:        8
+      T_STRING:   85708    T_REGEXP:     175    T_ARRAY:    21544
+      T_HASH:       707    T_STRUCT:       1    T_BIGNUM:       6
+      T_FILE:         7    T_DATA:      2188    T_MATCH:      643
+      T_COMPLEX:      1    T_NODE:      4436    T_ICLASS:      36
+
+= slide 'ObjectSpace._id2ref' do
+  list:
+    Помните ли `Object#object_id`?
+    `ObjectSpace._id2ref` е обратният му метод
+    Пример:
+
+  .action
+    annotate:
+      id = 'larodi'.object_id   # =>
+      ObjectSpace._id2ref(id)   # =>
+
+= slide 'Деструктори в Ruby?' do
+  list:
+    Невъзможно и ненужно
+    Или?
+    `ObjectSpace.define_finalizer(object, proc)`
+    Вика `proc` когато `object` бъде garbage collect-нат
+    Много подобно на деструктор...
+
+= slide 'ObjectSpace.define_finalizer' do
+  example:
+    foo = 'Memory is plentiful!'
+    ObjectSpace.define_finalizer foo, proc { puts 'foo is gone' }
+    ObjectSpace.garbage_collect
+
+    foo = nil
+    ObjectSpace.garbage_collect
+
+    # Тук proc-ът от по-горе бива извикан
+    # и на STDOUT се извежда "foo is gone"
+
+= slide 'Object#method(method_name)' do
+  list:
+    Позволява ви да вземете референция към метод на даден обект
+    Връща обект от тип `Method`
+    Ако такъв метод няма, хвърля изключение (`NameError`)
+    Инстанциите на `Method` се държат като closure
+
+  .action
+    annotate:
+      class Person
+        def name
+          'Matz'
+        end
+      end
+
+      Person.new.method(:name) # =>
+
+= slide 'Класът Method', 'Или какво може да правите с обектите му' do
+  list:
+    Интерфейсът му донякъде наподобява анонимни функции и proc-ове, с малко екстри
+    `call` ще извика въпросния метод
+    `name` ще ви даде името на метода
+    `owner` - класът или модулът, откъдето е дошъл този метод
+    `receiver` - обектът получател на този метод (инстанцията, обвързана с метода)
+    `arity` връща колко аргумента приема метода (с врътки за променлив брой аргументи)
+    `parameters` - детайлна информация за приеманите аргументи - имена, дали са задължителни и т.н.
+    `source_location` - в кой файл и на кой ред е дефиниран този метод; много полезно
+    `unbind` - "разкача" този метод от получателя му; връща ви инстанция на `UnboundMethod` (пример след няколко слайда)
+
+= slide 'Method#call' do
+  annotate:
+    class Person
+      attr_accessor :name
+    end
+
+    someone = Person.new
+    someone.name = 'Murakami Haruki'
+
+    name_method = someone.method(:name)
+    name_method.call  # =>
+
+= slide 'Method#arity и #parameters' do
+  annotate:
+    def foo(x, y, z); end
+
+    method(:foo).arity      # =>
+    method(:foo).parameters # =>
+
+    def bar(x, y, z = 1); end
+
+    method(:bar).arity      # =>
+    method(:bar).parameters # =>
+
+= slide 'Proc#arity' do
+  list:
+    Подобно на `call`, и `Proc`-обектите имат метод `arity` със същото действие
+    Това важи за анонимни функции, блокове и всякакви инстанции на `Proc`
+    Например:
+
+  .action
+    annotate:
+      Proc.new { |x| }.arity      # =>
+      lambda { |x, y| }.arity     # =>
+
+= slide 'Method#source_location' do
+  list:
+    Работи само за методи, дефинирани на Ruby
+    Полезно при дебъг на непознат код (вкл. и такъв, идващ от gem-ове)
+    Връща списък с два елемента - път до Ruby файл и ред в този файл
+
+  .action
+    annotate:
+      require 'set'
+      Set.new.method(:to_a).source_location # ["/Users/.../ruby-1.9.3/lib/ruby/1.9.1/set.rb", 144]
+
+      class Set; def to_a; super; end; end
+      Set.new.method(:to_a).source_location # =>
+
+= slide 'Необвързани методи' do
+  list:
+    Инстанции на `UnboundMethod`
+    Имат почти същите методи като oбвързаните (т.е. инстанциите на `Method`)
+    Не могат да бъдат извиквани
+    Mогат да бъдат обвързани впоследствие към други инстанции
+
+= slide 'Необвързани методи' do
+  annotate:
+    class Person
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
+
+    stefan = Person.new 'Stefan'
+    mitio  = Person.new 'Mitio'
+
+    stefan.name                           # =>
+
+    stefans_name = stefan.method(:name)
+    stefans_name.call                     # =>
+    stefans_name.unbind.bind(mitio).call  # =>
+
+= slide 'Интроспекция' do
+  p Следва продължение...
+
+= slide 'Трета задача', 'Цели' do
+  list:
+    Нещо малко по-нестандартно
+    Да изпробваме ООП уменията ви
+    Да ви накараме да мислите под ограничения
+    Да потренирате рекурсия
+
+= slide 'Трета задача', 'skeptic' do
+  list:
+    Не позволиха парсването да се напише само в един метод
+    Това е добре - накара ви да помислите как да разделите логиката
+    Не е достатъчно просто да заобиколим ограничението - то е там с конкретна цел
+
+= slide 'Трета задача', 'Въпроси' do
+  list:
+    Получихме сравнително малко въпроси
+    Има хора, които не са написали `parse`
+    Означава ли, че сте имали проблем, но не сте попитали?
+
+= slide 'Трета задача', 'File#serialize' do
+  example:
+    def serialize
+      "#{data_type}:#{@data}"
+    end
+
+= slide 'Трета задача', 'File.parse' do
+  example:
+    def self.parse(string)
+      File.new parse_data_with_type(*string.split(':', 2))
+    end
+
+    private
+
+    def self.parse_data_with_type(type, data)
+      case type
+        when 'nil'    then nil
+        when 'string' then data
+        when 'symbol' then data.to_sym
+        when 'number' then data.to_f
+        else               data == 'true'
+      end
+    end
+
+= slide 'Трета задача', 'Directory#serialize' do
+  example:
+    def serialize
+      files       = "#{@files.size}:#{serialize_entities(@files)}"
+      directories = "#{@directories.size}:#{serialize_entities(@directories)}"
+
+      "#{files}#{directories}"
+    end
+
+= slide 'Трета задача', 'Directory#serialize_entities' do
+  example:
+    def serialize_entities(entities)
+      entities.map do |name, entity|
+        serialized_entity = entity.serialize
+
+        "#{name}:#{serialized_entity.size}:#{serialized_entity}"
+      end.join('')
+    end
+
+= slide 'Трета задача', 'Directory.parse' do
+  p Да си дефинираме нов клас <code>Parser</code> със следния публичен интерфейс:
+
+  list:
+    `initialize(serialized_string)`
+    `each` - `yield`-ва последователност от файлове или директории
+    `Parser#each` ще ползва и следните два `private` метода:
+    `read_next_record` - чете от низа до първото срещане на `:` и го връща
+    `read_next_entity` - чете един елемент от формата `<size>:<string>`
+
+= slide 'Трета задача', 'Parser#read_next_record' do
+  example:
+    def read_next_record
+      record, @data = @data.split(':', 2)
+      record
+    end
+
+= slide 'Трета задача', 'Parser#read_next_entity' do
+  example:
+    def read_next_entity
+      size   = read_next_record.to_i
+      entity = @data[0...size]
+
+      @data = @data[size...@data.size]
+
+      entity
+    end
+
+= slide 'Трета задача', 'Parser#each' do
+  example:
+    def each
+      array_size = read_next_record.to_i
+
+      array_size.times do
+        entity_name   = read_next_record
+        entity_string = read_next_entity
+
+        yield entity_name, entity_string
+      end
+    end
+
+= slide 'Трета задача', 'Directory.parse' do
+  example:
+    def self.parse(string_data)
+      parser = Parser.new(string_data)
+
+      files       = {}
+      directories = {}
+
+      parser.each { |name, entity| files[name]       = File.parse(entity)      }
+      parser.each { |name, entity| directories[name] = Directory.parse(entity) }
+
+      Directory.new(files, directories)
+    end
+
+= slide 'Трета задача', 'Изводи' do
+  list:
+    Разделяйте си кода на възможно най-малки смислови части
+    Задавайте (си) въпроси
