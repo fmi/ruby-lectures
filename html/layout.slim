@@ -27,6 +27,9 @@ body
         h1 = title
         h2 = date
 
+      - if image
+        img.intro src="#{image}"
+
     = slides_html
 
     section

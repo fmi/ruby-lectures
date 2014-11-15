@@ -1,5 +1,5 @@
 class Builder
-  attr_accessor :title, :date, :slug
+  attr_accessor :title, :date, :slug, :image
 
   def initialize(attributes)
     attributes.each do |key, value|
@@ -9,7 +9,7 @@ class Builder
 
   def html
     input   = File.read source_file
-    lecture = Lecture.new input, title, date
+    lecture = Lecture.new input, title, date, image
 
     lecture.render
   end
