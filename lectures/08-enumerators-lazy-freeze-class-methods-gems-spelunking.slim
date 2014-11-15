@@ -204,7 +204,7 @@
 
     words # =>
 
-= slide 'Каква е разликата?', 'Брой на думите в изречение' do
+= slide 'Каква е разликата?', 'Брой на думите във всеки ред от даден низ' do
   annotate:
     data = "Some really long\ntext with new lines."
 
@@ -212,7 +212,7 @@
     data.lines.map(&:split).map(&:size) #=>
 
     # Решение 2
-    data.lines.map { |l| l.split.size } #=>
+    data.lines.map { |line| line.split.size } #=>
 
   br
   h2.action Решение 1 създава междинен масив с всички елементи
