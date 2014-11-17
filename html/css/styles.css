@@ -83,5 +83,5 @@ body { background: #f5f6f6; height: 100%; }
 #deck .answer { color: #6a6; font-style: italic; }
 #deck blockquote { font-style: italic; }
 
-::-moz-selection { background: #350e0e; color: #fff; /* Gecko Browsers */ }
-::selection { background: #350e0e; color: #fff; /* WebKit/Blink Browsers */ }
+::-moz-selection { background: #350e0e; color: #fff; text-shadow: none; /* Gecko Browsers */ }
+::selection { background: #350e0e; color: #fff; text-shadow: none; /* WebKit/Blink Browsers */ }
