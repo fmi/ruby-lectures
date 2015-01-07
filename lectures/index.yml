@@ -83,3 +83,7 @@
   title: 20. Ruby библиотеки и външни зависимости
   slug: 20-gems-third-party-software
   date: 2015-01-05
+21:
+  title: 21. Конкурентност
+  slug: 21-concurrency
+  date: 2015-01-07
