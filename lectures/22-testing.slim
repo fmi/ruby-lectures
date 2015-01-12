@@ -185,7 +185,7 @@
     Ако private методите ви се струват сложни и че е нужно тестване, значи е нужно да ги изведете в отделен клас
     Избягвате random данни в тестовете - необходимо ви е предвидимо поведение; ако веднъж стане failure, трябва да може да го пресъздадете
     Тествате в изолация и предвидимо обкръжение - правите setup
-    Горното включва дори time traveling в някои ситуации (gem: timecop) - немалко хора са имали failing test заради DST промяна, или сменена часова зона
+    Горното включва дори time traveling в някои ситуации (gem: [timecop](https://github.com/travisjeffery/timecop)) - немалко хора са имали failing test заради DST промяна, или сменена часова зона
 
 = slide 'Скорост' do
   list:
@@ -348,6 +348,7 @@
 = slide 'SimpleCov' do
   list:
     [https://github.com/colszowka/simplecov](https://github.com/colszowka/simplecov)
+    Изчислява процента на code coverage, които тестовете ви имат
 
 = slide 'Тестване на GUI' do
   list:
@@ -361,9 +362,12 @@
     Обикновено освен отделянето на бизнес кода, и самият bin файл е капсулиран в отделен клас - option handling-а и прочее - и може да се unit-тества
     Интеграционният тест може и да вика изпълнимия файл, макар че това ще е по-бавно
 
-= slide 'Тестване на API' do
+= slide 'Тестване на API-клиенти' do
   list:
-    Моквате.
+    Моквате API-то - правите му симулация и тествате спрямо нея
+    Избягвате тестове спрямо live API-то - непредвидими и бавни (networking)
+    Полезен gem за целта - [vcr](https://github.com/vcr/vcr)
+    "Record your test suite's HTTP interactions and replay them during future test runs for fast, deterministic, accurate tests."
 
 = slide 'Тестване на уеб' do
   list:
@@ -445,7 +449,7 @@
     Много широка гама от възможни употреби
     Най-простата - да направите screenshot на страница и да го запазите в PNG
 
-= slide 'PhantomJS - пример' do
+= slide 'PhantomJS - пример', 'просто нещо готино' do
   example:
     console.log('Loading a web page');
     var page = require('webpage').create();
