@@ -1,0 +1,403 @@
+= slide 'Какво предстои', 'днес и в следващите няколко лекции' do
+  list:
+    Масиви (списъци)
+    Хешове
+    Методи, анонимни функции и блокове
+    Обекти и класове
+
+= slide 'С-бира-не', 'сряда' do
+  list:
+    Вместо лекция, следващата сряда (21-ти) няма да сме във ФМИ, а на "по бира"
+    Ще има събитие във Facebook
+    Ако ще идвате, моля известете ни по някакъв начин максимално рано (във Facebook или на имейла ни)
+    Мястото предстои да бъде уточнено
+
+= slide 'Инсталиране на Ruby', 'последен срок за промоцията' do
+  list:
+    На 14-ти изтича срокът да си качите Ruby и да ви дадем точка за това
+    Пуснете скрийншот в съответната тема във форумите, за да claim-нете точката
+
+= slide 'Първа задача' do
+  list:
+    Проверена е, може да си [видите резултатите](/tasks/1/solutions)
+    Всички предали имат коментари на решенията
+    Общо 80 решения - малко е!
+    Много хора предадоха в последния момент
+    Публикували сме [нашето решение и пълния тест](https://github.com/fmi/ruby-homework/tree/master/tasks/01)
+    Разгледайте решенията на ваши колеги (ще дадем бонус точки на добрите решения)
+    Основен проблем - конвенции и стил; четете [ръководството за стил](https://github.com/fmi/ruby-style-guide#readme)
+
+= slide 'Втора задача' do
+  list:
+    Ще ви я дадем днес по-късно вечерта
+    Ще имате време до следващия понеделник следобед
+    Ще включва материал, който ще предадем и сряда
+
+= slide 'Правила на Кент Бек за прост и ясен дизайн' do
+  blockquote
+    p My guiding light is Kent Beck's rules of Simple Design (<a href="http://ghendry.net/refactor.html">източник</a>):
+    ol
+      li.action The code must first be correct (as defined by tests);
+      li.action then it should be a clear statement of the design (what J.B.Rainsberger calls "no bad names");
+      li.action then it should contain no duplication (of text, of ideas, or of responsibility);
+      li.action and finally it must be the smallest code that meets all of the above.
+    p.action It's time to stop refactoring when the code makes a reasonable stab at meeting those goals, and when any further changes would add no further benefit.
+
+= slide 'Условия', 'кратък преговор' do
+  example:
+    if not foo
+      bar
+    elsif baz
+      qux
+    else
+      norf
+    end
+
+    bar if not foo
+    bar unless foo
+
+= slide 'Методи', 'още преговор' do
+  annotate:
+    def max(a, b)
+      a > b ? a : b
+    end
+
+    max(1, 5) #=>
+
+= slide 'Изрази' do
+  p В Ruby всичко може да се разглежда като израз, който си има оценка (стойност).
+
+  annotate:
+    42            # =>
+    x = 'files'   # =>
+    def foo() end # =>
+
+= slide 'Равенство' do
+  p В Ruby има четири оператора за равенство
+
+  example:
+    one == two      # сравнява по стойност
+    one === two     # специален оператор, който се използва в case
+    one.eql? two    # сравнява по стойност и тип
+    one.equal? two  # връща true, само ако one и two са един и същ обект
+
+= slide 'Типове данни' do
+  p Досега говорихме за:
+
+  list:
+    Низове (`String`)
+    Числа – цели (`Fixnum`) и с плаваща запетая (`Float`)
+    Булеви стойности (истина и лъжа) – `TrueClass`, `FalseClass`
+    Нищото – `NilClass`
+
+= slide 'Числа' do
+  list:
+    Има още видове числа
+    Много големи цели числа – `Bignum` (core)
+    Числа с голяма точност – `BigDecimal` (stdlib)
+    Рационални числа – `Rational`
+    Комплексни числа – `Complex`
+
+= slide 'Числова йерархия' do
+  img src="02/numeric-hierarchy.svg"
+
+= slide 'Рационални числа' do
+  list:
+    Има такъв вграден тип в Ruby, класът им е `Rational`
+    Просто двойка цели числа - числител и знаменател (> 0)
+    Поддържат стандартните аритметични операции
+    Единственият точен вариант за делене
+    Създават се с `Rational(a, b)` или с литерален синтаксис (само в 2.1+): `0.1r`
+    Има и други начини, вижте [документацията на Rational](http://ruby-doc.org/core-2.2.3/Rational.html)
+
+= slide 'Комплексни числа' do
+  p И такъв вграден тип има, <code>Complex</code> (<a href="http://ruby-doc.org/core-2.2.3/Complex.html">документация</a>):
+
+  annotate:
+    Complex(1)           # =>
+    Complex(2, 3)        # =>
+    Complex('0.3-0.5i')  # =>
+    Complex('2/3+3/4i')  # =>
+
+    3.to_c               # =>
+    0.3.to_c             # =>
+    '0.3-0.5i'.to_c      # =>
+    '2/3+3/4i'.to_c      # =>
+    '1@2'.to_c           # =>
+
+= slide 'Кратко проучване' do
+  p Колко от вас са запознати със следните неща:
+
+  list:
+    Свързани списъци
+    Масиви с променлива дължина
+    Хеш таблици
+    Анонимни функции
+    `map` и `filter`
+
+  p.action Минимално необходимо знание за всеки програмист. Поставете си го за цел.
+
+= slide 'Отклониение', '#to_s и #inspect' do
+  p
+    | Един обект се обръща до низ с <code>#to_s</code>. Има и друг вариант, <code>#inspect</code>,
+      който го обръща до текстов низ, изглеждащ като ruby код. Целта е инспектиране.
+
+  ul.action
+    li <code>puts(something)</code> извежда <code>something.to_s</code>
+    li <code>p(something)</code> извежда <code>something.inspect</code>
+
+= slide 'Преди това', 'хилядите значения на диез' do
+  list:
+    В рамките на един ред, всичко след `#` е коментар
+    В контекст на документация, означава инстанционен метод — `#puts`, `Array#inject`
+    В низ с двойни кавички, предшества интерполация – `"The answer: #{40 + 2}"`
+    Нота, обозначена с диез, се свири полутон по-високо — `C#`
+
+= slide 'Масиви' do
+  list:
+    Класът се казва `Array`. Разбира се, има литерален синтаксис
+    Дефинират се така: `[1, 2, 3, 4]`
+    Хетерогенни: `[18, :female, 'Burgas']`
+    Напълно mutable
+    Могат да се влагат, както всички колекции
+    Неограничен, нестатичен размер
+    Пазят референции, а не копия към елементите си
+    Имплементирани са като C масив
+
+= slide 'Масиви', 'индексиране' do
+  annotate:
+    numbers = [:zero, :one, :two]
+    numbers[1]   # =>
+    numbers[10]  # =>
+    numbers[-1]  # =>
+
+    numbers[5] = :five
+    numbers[5]   # =>
+    numbers      # =>
+
+= slide 'Масиви', 'fetch' do
+  p <code>Array#fetch</code> хвърля грешка или връща друга стойност, при индексиране извън обема на масива:
+
+  annotate:
+    numbers = [:zero, :one, :two]
+
+    numbers.fetch(1)            # =>
+
+    numbers.fetch(10)           #!
+    numbers.fetch(10) { |n| puts "#{n} isn't in array" } # вместо IndexError, се изпълнява кодът между { }
+
+    numbers.fetch(10, :dunno)   # =>
+    numbers[10] or :dunno       # като предното, ама не точно
+  p Ползва се по-рядко, отколкото си мислите.
+
+= slide 'Масиви', 'типичните методи' do
+  annotate:
+    numbers = [3, 1, 2, 4]
+    numbers.length  # =>
+    numbers.size    # =>
+    numbers.sort    # =>
+    numbers.reverse # =>
+    numbers[1..2]   # =>
+
+  p <code>sort</code> и <code>reverse</code> връщат нов масив, без да променят <code>numbers</code>.
+
+= slide 'Масиви', '#include?' do
+  p <code>#include?</code> ви казва дали масив съдържа даден елемент.
+
+  annotate:
+    prime_digits = [2, 3, 5, 7]
+
+    prime_digits.include? 2    # =>
+    prime_digits.include? 4    # =>
+
+  p Внимание: линейно търсене. Подходящо за малки списъци.
+
+= slide 'Масиви', 'забавни оператори' do
+  annotate:
+    [:a, :b, :c] + [:d, :e]             # =>
+    [:a, :b, :c, :b, :a] - [:b, :c, :d] # =>
+    [:a, :b, :c] & [:b, :c, :d]         # =>
+    [:a, :b, :c] | [:b, :c, :d]         # =>
+
+  p <code>&</code> и <code>|</code> конкатенират списъците и премахват повторенията.
+  p В Ruby има множества, които са по-удачни в повечето случаи.
+
+= slide 'Масиви', 'мутиране' do
+  annotate:
+    numbers = [1, 2, 3]
+
+    numbers << 4
+    p numbers   # =>
+
+    numbers.insert 0, :zero
+    p numbers   # =>
+
+    result = numbers.delete_at(0)
+    p result    # =>
+    p numbers   # =>
+
+= slide 'Масиви', 'push и pop' do
+  annotate:
+    stack = [1, 2, 3]
+
+    stack.push 4
+    p stack         # =>
+
+    top = stack.pop
+    p stack         # =>
+    p top           # =>
+
+  p <code>#shift</code> и <code>#unshift</code> са аналогични, но работят с началото на масива.
+
+= slide 'Масиви', 'разни други методи' do
+  annotate:
+    [1, 2, 3].join("-")        # =>
+    [1, 2, 3].permutation      # сещате се какво връща
+    [1, 2].product([3, 4])     # =>
+    [[1, 2], [3, 4]].transpose # =>
+    [1, 2, 3, 4].shuffle       # разбърква масива произволно
+
+  p
+    ' Има редица такива методи, които може да намерите в
+    a href="http://ruby-doc.org/core-2.2.3/Array.html" Ruby Doc
+    ' .
+
+= slide 'Документация', 'свиквайте с нея отсега' do
+  ul
+    li <a href="http://www.ruby-doc.org/">Ruby Doc (core и std-lib)</a>
+    li <a href="http://apidock.com/">APIDock</a> (към момента е стара, само до Ruby 1.9.3)
+
+= slide 'Масиви', 'последната запетая' do
+  p
+    ' Може да оставите запетая след последния елемент на масива. Така редовете
+      се разместват по-лесно. Важи и за хешове.
+
+  example:
+    songs = [
+      'My Favorite Things',
+      'Alabama',
+      'A Love Supreme',
+    ]
+
+= slide 'Масиви', 'пърладжийски истории' do
+  p Има специален синтаксис за масив от думи.
+
+  example:
+    %w(chunky bacon)     == ['chunky', 'bacon']
+    %w[a b c]            == ['a', 'b', 'c']
+    %w{cool stuff}       == ['cool', 'stuff']
+    %w<coffee tea water> == ['coffee', 'tea', 'water']
+    %w|foo bar|          == ['foo', 'bar']
+
+  p Може да използвате различни видове символи, които да ограждат думите от масива:
+  pre
+    | ! @ # $ * - _
+  p Този списък от символи е непълен.
+
+= slide 'Масиви', 'Array#slice voodoo' do
+  list:
+    Всички списъци имат метод `slice` ([документация](http://www.ruby-doc.org/core-2.2.3/Array.html#method-i-slice))
+    "Операторът" за индексиране `[]` е всъщност метод на `Array`, който е синоним на `slice`
+    Може да приема индекс, област (range), както и индекс плюс брой елементи
+    Следователно може да връща един елемент или цял подмасив
+    Методът-setter `[]=` от своя страна позволява и да променяте въпросните отрязъци от масива
+
+= slide 'Масиви', 'Array#slice' do
+  annotate:
+    numbers = [1, 2, 3, 4, 5, 6]
+
+    numbers[0..2]   # =>
+    numbers[-3..-1] # =>
+    numbers[1, 1]   # =>
+
+    numbers[0..2] = [:wat]
+
+    numbers         # =>
+
+= slide 'Масиви', 'итерация' do
+  p Итерира се с <code>#each</code>, както всичко останало в Ruby:
+  example:
+    primes = [2, 3, 5, 7, 11]
+
+    primes.each { |n| puts n }
+
+    primes.each do |n|
+      puts n
+    end
+
+= slide 'Sidenote: for', '...или как да губим точки' do
+  list:
+    В Ruby има оператор `for`
+    Вътрешно вика `#each`
+    Намираме го за ужасно лош стил
+    По-голяма част от community-то също
+    Курсът е под наслов: "всеки for - пирон в ковчега на добрата оценка"
+
+= slide '"Къдрави скоби" и do/end' do
+  ul
+    li.action По конвенция, фигурни скоби се ползват, когато целият блок е на един ред
+    li.action <code>do</code>/<code>end</code> се ползва, когато блокът е няколко реда
+    li.action Това е конвенцията, която ще спазваме ние
+
+= slide 'Хешове' do
+  list:
+    Важна част в програмирането на Ruby
+    Майсторското овладяване е задължително!
+    Още: хеш таблици, асоциативен списък, речник, map
+
+= slide 'Хешове', 'общи факти' do
+  list:
+    Класът е `Hash`, но има и литерален синтаксис – `{}`
+    Дефинират се така: `{1 => :one, 2 => :two}`
+    Ключовете трябва да могат да се хешират: числа, низове, символи, списъци
+    По възможност, ключовете трябва да са immutable
+    От Ruby 1.9 насам редът на ключовете се запазва
+
+= slide 'Хешове', 'индексиране' do
+  annotate:
+    numbers = {:one => :eins, :two => :zwei}
+
+    numbers[:one]     # =>
+    numbers[:three]   # =>
+
+    numbers[:three] = :drei
+
+    numbers[:three]                     # =>
+    numbers.fetch(:four, :keine_ahnung) # =>
+    numbers.fetch(:four)                #!
+
+= slide 'Хешове', 'итерация' do
+  annotate:
+    numbers = {:one => :eins, :two => :zwei}
+    numbers.keys    # =>
+    numbers.values  # =>
+
+    numbers.each { |pair| puts pair }
+    numbers.each { |key, value| puts key, value }
+
+= slide 'Хешове', 'разни методи' do
+  annotate:
+    numbers = {1 => 2, 3 => 4}
+
+    numbers.key?(:three) # =>
+    numbers.size             # =>
+    numbers.invert           # =>
+    numbers.merge({5 => 6})  # =>
+    numbers.to_a             # =>
+    Hash[1, 2, 3, 4]         # =>
+
+= slide 'Хешове', 'алтернативен синтаксис' do
+  p Долните два реда произвеждат еднакви хешове. Второто е 1.9+ синтаксис и ще предпочитаме него по конвенция (когато може):
+
+  example:
+    {:one => 1, :two => 2}
+    {one: 1, two: 2}
+
+  p Има интересна врътка при извикването на методи, за която ще споменем малко по-натам.
+
+= slide 'Списъци и хешове', 'накратко' do
+  list:
+    И като цяло всичко, що може да се обхожда (т.е. е [`Enumerable`](http://ruby-doc.org/core-2.2.3/Enumerable.html))
+    Ползват се <strong>постоянно</strong>
+    Трябва да ги владеете много добре
+    Това е едва върхът на айсберга
