@@ -19,7 +19,13 @@ class Annotate < Slim::Filter
     Rcodetools::XMPFilter
     Encoding.default_external = 'UTF-8'
 
-    output = Rcodetools::XMPFilter.new(warnings: false, width: 0).annotate(input).join('')
+    output = Rcodetools::XMPFilter.new(
+      warnings: false,
+      # For multiline results, max line width to allow before word wrapping
+      # will occur. Results are treated as multiline if the annotation marker
+      # appears on a newline by itself (optionally preceeded by whitespace).
+      width: 80
+    ).annotate(input).join('')
 
     output = output.gsub /^\((.*)\) rescue \$!\.class (\s*) # =>\s*(.*)$/u, "\\1\n\\2# => error: \\3"
     output = output.gsub /^\((.*)\) rescue \$!\.class # =>\s*(.*)$/u, '\1 # => error: \2'
