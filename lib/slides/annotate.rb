@@ -18,7 +18,7 @@ class Annotate < Slim::Filter
     Rcodetools::XMPFilter
     Encoding.default_external = 'UTF-8'
 
-    output = Rcodetools::XMPFilter.new(warnings: false).annotate(input).join('')
+    output = Rcodetools::XMPFilter.new(warnings: false, width: 0).annotate(input).join('')
 
     output = output.gsub /^\((.*)\) rescue \$!\.class # =>\s*(.*)$/u, '\1 # => error: \2'
     output
