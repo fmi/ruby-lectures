@@ -20,8 +20,8 @@ class Annotate < Slim::Filter
 
     output = Rcodetools::XMPFilter.new(warnings: false).annotate(input).join('')
 
-    output = output.gsub /^\((.*)\) rescue \$!\.class # =>\s*(.*)$/u, '\1 # error: \2'
-    output = output.gsub /# +=> (.*)/u, '# \1'
+    output = output.gsub /^\((.*)\) rescue \$!\.class # =>\s*(.*)$/u, '\1 # => error: \2'
+    output = output.gsub /# +=> (.*)/u, '# => \1'
     output
   end
 end
