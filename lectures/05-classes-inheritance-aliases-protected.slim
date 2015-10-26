@@ -1,0 +1,619 @@
+= slide 'Днес' do
+  list:
+    Enumerable (преговор)
+    Наследяване
+    Ancestor chain
+    Синоними на методи
+    Класови методи
+
+= slide 'Въпрос 1' do
+  p Кой (и как) може да вика <code>private</code> методи?
+
+  example:
+    class Something
+      private
+
+      def foo
+      end
+    end
+
+  .answer
+    list:
+      Могат да се викат от други методи на обекта
+      Могат да се викат от методи в наследници
+      Не могат да се викат с явен target (`self.foo`)
+
+= slide 'Въпрос 2' do
+  p Какви са конвенциите за имена на методи, променливи, константи и имена на класове?
+
+  .answer
+    list:
+      `UpperCamelCase` - константи (включва имена на класове)
+      `normal_snake_case` - променливи, методи
+      `SCREAMING_SNAKE_CASE` - константи, които не са имена на класове или модули
+
+= slide 'Въпрос 3' do
+  p На какво могат да завършват методите в Ruby?
+
+  .answer
+    list:
+      На `?`, ако са предикати
+      На `!`, ако имат две версии
+      На `=`, ако са setter-и
+      Технически погледнато, и на някои "оператори", напр. `%`
+
+= slide 'Въпрос 4' do
+  p Как можем да направим наш клас-колекция, която да има всички методи на <code>Enumerable</code>?
+
+  .action.answer
+    p В класа трябва:
+    ul
+      li Да имаме <code>include Enumerable</code>.
+      li Да дефинираме метод <code>each</code>.
+
+= slide 'Въпрос 5' do
+  p Избройте поне две разлики в поведението на <code>lambda</code> и <code>Proc.new</code>.
+
+  .answer
+    list:
+      Ламбдите са стриктни по отношение на броя подадени аргументи, `Proc.new` обектите не са
+      `return` в тяло на `lambda` прекратява работата на `lambda`-та, а в `Proc.new` – на обгръщащата функция
+      Проковете правят автоматично разпадане на аргументи, подадени като списък, подобно на блокове, ламбдите – не
+
+= slide 'Enumerable (преговор)' do
+  list:
+    Много, много основен модул в Ruby
+    `Array`, `Hash`, `Range`, `Set` и други са все `Enumerable`
+    В комбинация с блокове се получава много приятен код
+    Ще припомним някои полезни и често използвани методи
+
+= slide '#all? и #any?' do
+  p
+    ' <code>#all?</code>/<code>#any?</code> връщат истина, ако всички/един елемент(и) от
+      колекцията отговарят на някакво условие.
+
+  annotate:
+    [1, 2, 3, 4].all? { |x| x.even? } # =>
+    [1, 2, 3, 4].any? { |x| x.even? } # =>
+
+    [2, 4, 6, 8].all? { |x| x.even? } # =>
+    [2, 4, 6, 8].any? { |x| x.odd? }  # =>
+
+    # И разбира се:
+    [1, 2, 3, 4].any?(&:even?)        # =>
+
+= slide '#all? и #any? без блок' do
+  p
+    ' <code>#all?</code> и <code>#any?</code> могат да работят и без блок:
+
+  annotate:
+    [1, 2, 3, nil].all?     # =>
+    [1, 2, 3, :nil].all?    # =>
+    [1, 2, 3, false].any?   # =>
+
+= slide '#one? и #none?' do
+  p Аналогични на <code>#all?</code> и <code>#any?</code>. Също могат да работят без блок.
+
+  annotate:
+    %w(foo bar larodi).one? { |word| word.length == 6 }  # =>
+    %w(foo bar larodi).one? { |word| word.length == 3 }  # =>
+
+    [1, 5, 3].none? { |number| number.even? }   # =>
+    [1, 2, 3].none? { |number| number.even? }   # =>
+
+    [1, 2, 3].one?     # =>
+    [1, nil, nil].one? # =>
+
+= slide '#none? в действие' do
+  annotate:
+    class Integer
+      def prime?
+        return false if self == 1
+        2.upto(self ** 0.5).none? { |n| self % n == 0 }
+      end
+    end
+
+    7.prime? # =>
+    8.prime? # =>
+
+= slide '#each_with_index' do
+  p <code>#each_with_index</code> yield-ва всеки елемент с индекса му в масива:
+
+  example:
+    %w[foo bar baz].each_with_index do |word, index|
+      puts "#{index}. #{word}"
+    end
+
+  p Горното извежда:
+
+  pre
+    ' 0. foo
+      1. bar
+      2. baz
+
+= slide '#map with index?' do
+  p Няма <code>#map_with_index</code>.
+
+  p Затова пък има нещо по-общо:
+
+  example:
+    %w[foo bar baz].map.with_index do |word, index|
+      [index, word]
+    end
+
+    # => [[0, "foo"], [1, "bar"], [2, "baz"]]
+
+= slide '#group_by' do
+  p Името казва всичко, което ви е нужно да знаете.
+
+  annotate:
+    words  = %w(foo bar plugh larodi)
+    groups = words.group_by { |word| word.length }
+
+    groups # =>
+
+= slide '#each_slice' do
+  p <code>#each_slice(n)</code> <code>yield</code>-ва елементите на части по <code>n</code>:
+
+  example:
+    %w(a b c d e f g h).each_slice(3) do |slice|
+      p slice
+    end
+
+  p Извежда
+  pre
+    ' ["a", "b", "c"]
+      ["d", "e", "f"]
+      ["g", "h"]
+
+= slide '#each_cons' do
+  p <code>#each_cons(n)</code> <code>yield</code> "подмасиви" с <code>n</code> елемента:
+
+  example:
+    [1, 2, 3, 4, 5].each_cons(3) do |cons|
+      p cons
+    end
+
+  p Извежда
+  pre
+    ' [1, 2, 3]
+      [2, 3, 4]
+      [3, 4, 5]
+
+= slide '#include? и #member?' do
+  p Вече знаете какво прави:
+
+  annotate:
+    [1, 2, 3, 4].include? 3   # =>
+    [1, 2, 3, 4].member? 5    # =>
+
+  p Двете са синоними.
+
+= slide 'To infinity and beyond!', 'лирическо отклонение' do
+  annotate:
+    (0...1.0 / 0.0).include? -1 # =>
+
+  .action
+    annotate:
+      1 / 0     #!
+      1.0 / 0.0 # =>
+
+= slide '#zip' do
+  annotate:
+    [1, 2, 3].zip([4, 5, 6])    # =>
+    [1, 2].zip([3, 4], [5, 6])  # =>
+
+= slide '#take, #drop, #take_while и #drop_while' do
+  annotate:
+    [1, 2, 3, 4, 5].take(2)  # =>
+    [1, 2, 3, 4, 5].drop(2)  # =>
+
+    [1, 3, 5, 6, 7, 9].take_while(&:odd?)  # =>
+    [1, 3, 5, 6, 7, 9].drop_while(&:odd?) # =>
+
+= slide 'Как генерирахме таблицата с методите?' do
+  pre
+    ' all?        any?          chunk       collect          collect_concat
+      count       cycle         detect      drop             drop_while
+      each_cons   each_entry    each_slice  each_with_index  each_with_object
+      entries     find          find_all    find_index       first
+      flat_map    grep          group_by    include?         inject
+      lazy        map           max         max_by           member?
+      min         min_by        minmax      minmax_by        none?
+      one?        partition     reduce      reject           reverse_each
+      select      slice_before  sort        sort_by          take
+      take_while  to_a          zip
+
+= slide 'Как генерирахме таблицата с методите?', 'кодът' do
+  example:
+    Enumerable.instance_methods.
+      sort.
+      map { |name| name.to_s.ljust(16) }.
+      each_slice(5) { |row| puts row.join '' }
+
+  p.action
+    em Disclaimer: Леко е редактиран whitespace-а, за да се събере в слайд.
+
+= slide 'Въпроси по Enumerable?' do
+  p След това ще продължим с наследяване.
+
+= slide 'Наследяване' do
+  p Наследяването в Ruby става така:
+
+  annotate:
+    class Person
+      def name() 'The Doctor' end
+    end
+
+    class PolitePerson < Person
+      def introduction
+        "Hi, I am #{name}"
+      end
+    end
+
+    PolitePerson.new.introduction # =>
+
+= slide 'Наследяване', 'ограничения' do
+  list:
+    Може да наследите най-много от един родител
+    В наследника имате достъп до всички методи
+    В наследника имате достъп до всички полета
+    Ако не определите родител, класът наследява от `Object`
+    Всеки клас в Ruby наследява от `Object` (с изключение на родителя на `Object`...)
+
+= slide 'private методи' do
+  p Имате достъп до <code>private</code> методите:
+
+  annotate:
+    class Person
+      private
+      def name() 'The Doctor' end
+    end
+
+    class PolitePerson < Person
+      def introduction() "Hi, I am #{name}" end
+    end
+
+    PolitePerson.new.introduction # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of?' do
+  annotate:
+    class Base; end
+    class SpaceStation < Base; end
+
+    base    = Base.new
+    station = SpaceStation.new
+
+    base.is_a? Base            # =>
+    station.is_a? SpaceStation # =>
+    station.is_a? Base         # =>
+
+    base.instance_of? Base            # =>
+    station.instance_of? SpaceStation # =>
+    station.instance_of? Base         # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of? (2)' do
+  p <code>#is_a?</code> има синоним <code>#kind_of?</code>
+  annotate:
+    class Base; end
+    class SpaceStation < Base; end
+
+    base    = Base.new
+    station = SpaceStation.new
+
+    base.kind_of? Base            # =>
+    station.kind_of? SpaceStation # =>
+    station.kind_of? Base         # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of? (3)' do
+  list:
+    Ползвайте `#is_a?` по принцип.
+    Ползвайте `#instance_of?` само когато искате да не бъде наследник.
+    Гледайте да не ги ползвате въобще &mdash; duck typing
+
+= slide 'super' do
+  p Може да предефинирате метод и да извикате версията на родителя със <code>super</code>.
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super("Mr. #{other}") + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') # =>
+
+= slide 'super (2)' do
+  p Ако извикате <code>super</code> без скоби родителският метод получава същите аргументи.
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') # =>
+
+= slide 'super (3)' do
+  p <code>super</code> и <code>super()</code> са различни:
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super() + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') #!
+
+= slide 'Ancestor chain' do
+  list:
+    Методи могат да се дефинират само в класове и модули
+    Всеки клас има родител и миксирани модули
+    Ако един метод не се намери в класа, той се търси в миксираните модули
+    Модулите се претърсват обратно на реда, в който са `include`-нати
+    Ако не се намери в тях, се търси в родителя
+    Ако го няма там, се търси в неговите модули и после в неговия родител
+    Рекурсия, брат
+    Този списък от модули и класове, в които се търси, се нарича `ancestor chain`
+
+= slide 'Ancestor chain (2)' do
+  annotate:
+    module Foo; end
+    module Bar; end
+    module Qux; end
+
+    class Base
+      include Foo
+    end
+
+    class Derived < Base
+      include Bar
+      include Qux
+    end
+
+    Derived.ancestors # =>
+
+= slide 'Ancestor chain (3)', 'модули, миксирани в други модули' do
+  annotate:
+    module Foo; end
+    module Bar; end
+
+    module Qux
+      include Foo
+      include Bar
+    end
+
+    class Thing
+      include Qux
+    end
+
+    Thing.ancestors # =>
+
+= slide 'Ancestor chain (4)' do
+  p Има само една версия на метода:
+
+  annotate:
+    module Talking
+      def greeting() "Hello, #{name}" end
+    end
+
+    class Base
+      include Talking
+      def name()        'Base'   end
+      def say_hi_base() greeting end
+    end
+
+    class Derived < Base
+      include Talking
+      def name()           'Derived' end
+      def say_hi_derived() greeting  end
+    end
+
+    derived = Derived.new
+    derived.say_hi_base    # =>
+    derived.say_hi_derived # =>
+    derived.ancestors      # =>
+
+= slide 'Синоними на методи в Ruby', 'като говорим за код в тялото на методи...' do
+  list:
+    Можете да дефинирате синоними на методи в Ruby, посредством:
+    Ключовата дума `alias`
+    Метода `Module#alias_method` (клас макро)
+    И двете правят достъпно копие на тялото на даден метод под друго име
+    Използват се много във вградените в Ruby-методи, например `String#size` и `String#length`
+
+= slide 'Синтаксис за синоними на методи' do
+  list:
+    С ключовата дума `alias`: `alias :new_method :old_method`
+    Или: `alias new_method old_method` (забележете, че това не са символи или низове, a идентификатори)
+    С метода от стандартната библиотека `Module#alias_method`:
+    `alias_method :new_method, :old_method`
+    Или: `alias_method 'new_method', 'old_method'`
+
+= slide 'Семантика на синоними на методи' do
+  list:
+    Alias-ите не са обикновени синоними, symlink-ове, указатели и прочее
+    Това, което се случва при "alias"-ване на методи, е приблизително еквивалентно на копиране на тялото на оригиналния метод
+    Ако модифицирате тялото на оригиналния метод след като сте го "alias"-нали, alias-ът ще запази старото тяло
+
+= slide 'Пример с alias' do
+  p Въпреки името си, <code>alias</code> прави копие на метод.
+
+  annotate:
+    class Array
+      alias old_inject inject
+
+      def inject(*args, &block)
+        puts "I see you are using #inject. Let me help!"
+        old_inject(*args, &block) * 0.01
+      end
+    end
+
+    [1, 2, 3, 4, 5, 6].inject { |a, b| a + b } # =>
+
+= slide 'Синоними на методи' do
+  p Пример за реална употреба:
+  .action
+    example:
+      def to_s
+        to_html
+      end
+  .action
+    p По-добре да се запише така:
+    example:
+      alias_method :to_s, :to_html
+  .action
+    p Или така:
+    .action
+      example:
+        alias to_s to_html
+
+= slide 'Разлики между alias и alias_method' do
+  list:
+    На първо място, `alias` е ключова дума, докато `alias_method` е обикновен метод от `Module` (клас макро)
+    От горното следват и повечето разлики между двете:
+    При `alias` може да подавате като аргументи направо идентификатори на методи, например:
+    `alias original_to_s to_s` ще направи нов синоним на `to_s` под името `original_to_s`
+    `alias_method original_to_s, to_s` ще интерпретира `original_to_s` и `to_s` като имена на променливи
+    Зад тези имена трябва да стои низ или символ, указващ име на метод
+    По този начин може да правите синоними на методи динамично, докато с `alias` това не става
+
+= slide 'Разлики между alias и alias_method', 'създаване на синоними по време на изпълнение' do
+  annotate:
+    class Array
+      [:size, :count, :length].each do |method_name|
+        alias_method "old_#{method_name}", :size
+      end
+
+      def size
+        0
+      end
+    end
+
+    [1, 2, 3].size     # =>
+    [1, 2, 3].old_size # =>
+
+= slide 'Забележки относно синоними на методи' do
+  list:
+    Някои инструменти, които генерират документация от вашия код, имат проблеми с тази техника
+    Тъй като `alias` е ключова дума и подлежи на статичен синтактичен анализ, такива инструменти разпознават тези синоними
+    За разлика от това, `Module#alias_method` обикновено не се разпознава в тези случаи, понеже не може да ползвате статичен синтактичен анализ за целта
+
+= slide 'methodfinder', '$ gem install methodfinder' do
+  p Интересен gem:
+
+  list:
+    Помага ви да търсите методи
+    `MethodFinder.find('abc', 'ABC')`
+    `%w[a b c].find_method { |a| a.unknown(1) ; a == %w[a c] }`
+    Внимавайте, вика всички методи
+    [github.com/citizen428/methodfinder](http://github.com/citizen428/methodfinder)
+
+= slide 'Основните класове в Ruby' do
+  p
+    em "Всичко наследява от <code>Object</code>"
+
+  list:
+    Очевидно, не е съвсем така – `Object` не наследява от `Object`
+    Родителят му е `BasicObject`
+    Родителят на `BasicObject` е `nil`
+    `BasicObject` е минималистичен клас, подходящ за проксита
+
+= slide 'Основните класове в Ruby' do
+  list:
+    `Kernel` е миксиран в `Object`
+    "Глобалните методи" са дефинирани в `Kernel` (`#puts`, `#eval` и т.н.)
+    Общите методи за всички инстанции са в `Object` (`#inspect`, `#tap`, `#methods` и т.н.)
+    Ако дефинирате методи извън модул или клас, той отива като private метод на `Object`
+    Всеки път като правите това, котенце някъде умира
+
+= slide 'protected' do
+  p Само обекти от същия клас могат да викат protected методи
+
+  annotate:
+    class Vector
+      def initialize(x, y) @x, @y = x, y          end
+      def inspect()        "Vector.new(#@x, #@y)" end
+
+      def +(other)
+        Vector.new(*coords.zip(other.coords).map { |a, b| a + b })
+      end
+
+      protected
+      def coords() [@x, @y] end
+    end
+
+    vector = Vector.new(1, 2) + Vector.new(3, 4)
+    vector        # =>
+    vector.coords #!
+
+= slide 'private и protected', 'още известни като Private, Public и General Specific' do
+  list:
+    `private` се ползва постоянно
+    `protected` почти никога
+    Има school of thought, който предпочита `protected`, защото могат да се викат със `self.` отпред
+    Ние не сме от тази клика
+    Има и `public`. Не го ползваме, а просто слагаме публичните методи отгоре
+    Впрочем, не са ключови думи, а методи на `Module` и `Class`
+
+= slide 'Клас-макросите private и protected' do
+  p Понеже <code>private</code> и <code>protected</code> са методи:
+
+  example:
+    class Person
+      def name() end
+      def age()  end
+
+      private :name, :age
+    end
+
+  p Или дори:
+
+  annotate:
+    class String
+      private :upcase!, :downcase!
+    end
+
+    "Foo".upcase! #!
+
+= slide 'Клас-макросите private и protected (2)' do
+  p Помните ли, че дефиницията на метод връща името на метод като символ?
+
+  example:
+    def foo() end # :foo
+
+  p Значи може да направите така:
+
+  example:
+    class Person
+      private def name
+        "My name is a secret."
+      end
+
+      private def age
+        "I'm feeling feminine, so my age is a secret, too."
+      end
+    end
