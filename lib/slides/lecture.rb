@@ -1,6 +1,5 @@
 # encoding: utf-8
 class Lecture
-  LAYOUT_FILE = 'html/layout.slim'
   MONTHS = %w(януари февруари март април май юни юли август септември октомври ноември декември)
 
   attr_reader :title, :date, :slug, :image, :slides_html
@@ -12,8 +11,8 @@ class Lecture
     @slides_html = generate_html input
   end
 
-  def render
-    Slim::Template.new(LAYOUT_FILE).render(self)
+  def render(layout_file: nil)
+    Slim::Template.new(layout_file).render(self)
   end
 
   def date
