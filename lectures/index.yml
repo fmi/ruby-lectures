@@ -26,3 +26,7 @@
   title: 06. Именовани пространства. Класови методи. Паралелно присвояване. Класове и константи
   date: 2015-10-28
   slug: 06-namespaces-class-methods-assignment-symbol-to-proc
+7:
+  title: 07. case, Enumerator, lazy, замразяване на обекти, require
+  date: 2015-11-02
+  slug: 07-case-enumerator-lazy-freeze-require
