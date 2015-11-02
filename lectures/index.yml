@@ -27,6 +27,6 @@
   date: 2015-10-28
   slug: 06-namespaces-class-methods-assignment-symbol-to-proc
 7:
-  title: 07. case, Enumerator, lazy, замразяване на обекти, require
+  title: 07. case, Enumerator, Class methods, Object#freeze
   date: 2015-11-02
-  slug: 07-case-enumerator-lazy-freeze-require
+  slug: 07-case-enumerator-class-methods-freeze
