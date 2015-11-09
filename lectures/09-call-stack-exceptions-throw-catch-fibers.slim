@@ -1,0 +1,481 @@
+= slide 'Днес' do
+  list:
+    Call stack
+    Общ преглед на изключения
+    `catch` и `throw`
+    Fibers
+
+= slide 'План за следващите лекции' do
+  list:
+    11 ноември – Интроспекция и метапрограмиране, част 1
+    16 ноември – Интроспекция и метапрограмиране, част 2
+    18 ноември – Интроспекция и метапрограмиране, част 3
+    23 ноември – Регулярни изрази
+    30 ноември – Git
+    2 декември – първи тест
+
+= slide 'Планина' do
+  list:
+    По стара традиция правим разходка в планината
+    За момента се целим в тази неделя - 15 ноември
+    Ако прогнозата за времето не е съгласна - 22 ноември
+    Повече информация и конкретна дата - тази сряда
+    Ще пуснем новина, тема във форума и ще пишем във Facebook – трябва ни точна бройка
+
+= slide 'Новини за работни позиции с Ruby' do
+  list:
+    Често получавам(е) запитвания за хора с познания по Ruby (и Rails)
+    Възможност да следите такива предложения
+    Отделен информационен канал за целта (пощенски списък)
+    [Новинарски бюлетин за предложения за работа с Ruby →](http://eepurl.com/KRzt5)
+    Ниско ниво на активност
+
+= slide 'Въпрос 1' do
+  p Каква е разликата между <code>require './foo'</code> и <code>require_relative 'foo'</code>?
+
+  .action.answer
+    example:
+      require './foo'        # Релативно спрямо Dir.pwd
+      require_relative 'foo' # Релативно спрямо __FILE__
+
+    p "Текущата директория" на процеса може да се променя както при стартиране, така и по време на изпълнение на програмата (с <code>Dir.chdir</code>) и е различна от директорията, в която се намира Ruby файла, изпълняващ require метода:
+
+    example:
+      cd /home
+      ruby /foo/bar/baz.rb # Dir.pwd ще е: /home
+
+= slide 'Въпрос 2' do
+  p Каква е разликата между <code>require</code> и <code>load</code>?
+
+  .action.answer
+    p <code>require</code> изпълнява зареждания файл само веднъж, без значение колко пъти сме извикали <code>require</code>, докато <code>load</code> го изпълнява при всяко изикване на <code>load</code>.
+
+= slide 'Въпрос 3' do
+  p Кой е родителският клас на класа <code>StandardError</code>?
+
+  .action.answer
+    p <code>Exception</code>.
+
+= slide 'Въпрос 4' do
+  p Кой клас стои най-горе в йерархията на всички изключения (като не броим <code>Object</code>)?
+
+  .action.answer
+    p <code>Exception</code>.
+
+= slide 'Въпрос 5' do
+  p От какъв тип са изключенията, хвърлени така: <code>raise 'foo'</code>?
+
+  .action.answer
+    p <code>RuntimeError</code>.
+
+= slide 'Въпрос 6' do
+  p Как ще се оцени следният израз?
+
+  example:
+    begin
+      raise 'oh noes!'
+    rescue Exception
+      'A general exception has occurred.'
+    rescue RuntimeError
+      'A standard error has occurred.'
+    end
+
+  .action.answer
+    p На низа <code>"A general exception has occurred."</code>. Изключението се хваща от първия <code>rescue</code>, който споменава клас <code>exception_class</code>, за който е вярно, че <code>exception.is_a?(exception_class)</code>.
+
+= slide 'puts с много аргументи', 'лирическо отклонение' do
+  list:
+    Може да извикате `puts` с нула или повече аргумента
+    Извикване с нула аргумента ще изведе на екрана нов ред
+    Извикване с три аргумента ще изведе трите неща на отделен ред
+    Ако някой от аргументите е списък, елементите на списъка ще бъдат изведени на отделни редове
+    `puts :foo, [:bar, :baz]` ще изведе `foo`, `bar` и `baz` на три отделни реда
+
+= slide 'Call stack' do
+  list:
+    Нещо, което практически всеки език за програмиране осигурява и всяка програма използва
+    Пази реда на извикване на определени вложени методи и "указател" към техните аргументи и локални променливи
+    Бездънната рекурсия – извикване на нови и нови методи, без старите извиквания да са приключили – го препълва
+    Има място за N на брой вложени извиквания (например, 65к)
+    Всеки ред код в Ruby се намира някъде в този стек
+
+= slide 'Достъп до call стека' do
+  list:
+    Методът `caller` връща списък с низове, които показват къде сме в текущия call стек
+    Показват имената на методите, които са извиквани, в обратен на извикването ред
+    В кой файл е станало извикването
+    На кой ред във файла
+
+= slide 'Пример за call stack' do
+  example:
+    # inception.rb:
+    def roll_the_ball()         go_deep               end
+    def go_deep()               we_need_to_go_deeper  end
+    def we_need_to_go_deeper()  even_deeper_than_that end
+    def even_deeper_than_that() puts(caller)          end
+
+    roll_the_ball
+
+  p Изпълняваме го с <code>ruby inception.rb</code>.
+
+= slide 'Пример за call stack - резултат' do
+  p Примерът от предния слайд ще продуцира:
+
+  pre
+    ' inception.rb:3:in `we_need_to_go_deeper'
+      inception.rb:2:in `go_deep'
+      inception.rb:1:in `roll_the_ball'
+      inception.rb:6:in `&lt;main&gt;'
+
+= slide 'Call стекът обикновено е по-дълбок', '(съкратен) пример от irb' do
+  pre
+    ' > puts caller
+      .../irb/workspace.rb:86:in `eval'
+      .../irb/workspace.rb:86:in `evaluate'
+      .../irb/context.rb:380:in `evaluate'
+      .../irb.rb:492:in `block (2 levels) in eval_input'
+      .../irb.rb:624:in `signal_status'
+      .../irb.rb:489:in `block in eval_input'
+      .../irb/ruby-lex.rb:247:in `block (2 levels) in each_top_level_statement'
+      .../irb/ruby-lex.rb:233:in `loop'
+      .../irb/ruby-lex.rb:233:in `block in each_top_level_statement'
+      .../irb/ruby-lex.rb:232:in `catch'
+      .../irb/ruby-lex.rb:232:in `each_top_level_statement'
+      .../irb.rb:488:in `eval_input'
+      .../irb.rb:397:in `block in start'
+      .../irb.rb:396:in `catch'
+      .../irb.rb:396:in `start'
+      .../bin/irb:11:in `<main>'
+      => nil
+
+= slide 'Call stacks и backtraces' do
+  list:
+    Когато възникне изключение, виждате backtrace
+    backtrace-ът е просто снимка на call стека в момента на изключението
+    Свикнете да се ориентирате в backtraces - файл, номер на ред, метод...
+
+= slide 'Изключения като цяло' do
+  list:
+    Изключенията са механизъм за обработка на грешки
+    Придвижвате се нагоре (bubble-up-ват) по call стека от мястото на възникване, докато бъдат хванати или стекът свърши
+    Затова позволяват разделяне обработката на грешктите от мястото, където са възникнали
+    Ако никой не ги хване нейде по стека, програмата ви умира
+
+= slide 'Основни атрибути' do
+  p Изключенията в Ruby са обекти като всичко останало – инстанции на клас <code>Exception</code> или негов наследник.
+  p Имат три основни атрибута:
+
+  list:
+    Tип (клас) – `KeyError`, `RuntimeError`, `NoFriendsException` – за автоматична обработка
+    Tекстово съобщение – "undefined local variable or method `foo' for main:Object" – за хора
+    Backtrace (call stack trace) – отпечатване на мястото в call стека, където се е случила грешката – отново за хора
+
+= slide 'Основни атрибути (2)' do
+  p Нека имаме инстанция на изключение в променлива <code>error</code>. Тогава:
+
+  list:
+    Tипът (класът) достъпваме с `error.class` (както и всеки друг Ruby обект)
+    Съобщението с `error.message`
+    Backtrace (call stack trace) – `error.backtrace`
+    Има и още няколко метода, вижте [документацията на `Exception`](http://ruby-doc.org/core-2.1.4/Exception.html)
+    Ако си направите собствен клас с този интерфейс, може да имате и други атрибути
+
+= slide 'Някои вградени изключения' do
+  example:
+    foo               # NameError: undefined local variable or method `foo' for main:Object
+    1 / 0             # ZeroDivisionError: divided by 1
+    File.open         # ArgumentError: wrong number of arguments (0 for 1..3)
+    File.open('/Ah?') # Errno::ENOENT: No such file or directory @ rb_sysopen - /Ah?
+
+  .action
+    p Между другото, <code>Errno::ENOENT</code> си е нормално изключение:
+
+    example:
+      Errno::ENOENT.ancestors.take_while { |kind| kind != Object }
+      # => [Errno::ENOENT, SystemCallError, StandardError, Exception]
+
+= slide 'Наши собствени изключения' do
+  p За да си направим клас-изключение, обикновено наследяваме от <code>RuntimeError</code> или <code>StandardError</code>:
+
+  example:
+    class NoFriendsError < StandardError
+    end
+
+  list:
+    Обикновено тези класове са празни
+    Нужната функционалност я получаваме наготово от `Exception`
+    Съществуват само за разграничение по тип
+
+= slide 'Как да ползваме изключения' do
+  p Може да разделим изключенията на два основни вида.
+
+  ol
+    li Непредвидими грешки, причинени от "околната среда".
+    li Програмистки грешки, причинени от неправилна употреба на парче код.
+
+= slide 'Непредвидими грешки' do
+  list:
+    Изчерпано дисково пространство, мрежови грешки, неправилни входни данни от потребител и прочее
+    Обикновено се прихващат с <code>rescue</code> от нас или от ползвателите на нашия код
+    Програмата реагира по някакъв начин – информира потребителя, пише в лог файл, прави повторни опити след време...
+
+= slide 'Програмистки грешки' do
+  list:
+    Не трябва да се хващат – трябва програмата да гръмне
+    Неправилна употреба на даден код – грешни/липсващи аргументи и прочее
+    Спазва се принципът "fail early"
+
+= slide 'Какво да хващаме?' do
+  list:
+    Възможно по-малко, от конкретен тип
+    Точно поради горепосочените причини, е много вредно да хващате `Exception` или да обгръщате огромни части от програмата си с `begin ... rescue Exception`
+
+= slide 'Изключения в библиотеки' do
+  blockquote
+    ' It is recommended that a library should have one subclass of StandardError or RuntimeError and have specific exception types inherit from it. This allows the user to rescue a generic exception type to catch all exceptions the library may raise even if future versions of the library add new exception subclasses.
+
+= slide 'Изключения в библиотеки (2)' do
+  list:
+    Правите си клас, наследяващ от, да кажем, `RuntimeError`
+    `class Skeptic::Error < RuntimeError; end`
+    Всички останали изключения във вашата библиотека наследяват от този клас
+    За "програмистки" грешки е окей да ползвате вградените класове (`ArgumentError`, `NotImplementedError` и прочее)
+    Възникването на такива грешки е знак за грешна употреба на вашия код и е важно да се видят рано (по време на разработка и тестване, а не в production)
+
+= slide 'Въпроси?' do
+  p Въпроси дотук?
+
+= slide 'catch и throw' do
+  list:
+    Сходни на `raise` и `rescue`
+    Не ползват изключения вътрешно
+    Служат за предаване на информация по стека (control flow)
+
+= slide 'catch и throw - общ вид' do
+  annotate:
+    def go_deep
+      go_deeper
+    end
+
+    def go_deeper
+      throw :some_label, 'the value'
+      raise 'This line WILL NOT execute.'
+    end
+
+    return_value = catch :some_label do
+      go_deep
+    end
+
+    return_value == 'the value' # =>
+
+= slide 'catch и throw', 'накратко' do
+  list:
+    `catch` приема символ и блок.
+    Нещо в блока може да извика `throw` със същия символ.
+    Когато това стане, Ruby започва да търси обратно по стека до съответния `catch`.
+    Когато бъде намерен, изпълнението продължава след `catch`-а.
+    `throw` взема допълнителен аргумент, който е върнатата стойност на `catch`.
+    Ако няма `throw`, стойността на `catch` е последния оценен израз.
+
+= slide 'catch и throw', 'edge cases' do
+  example:
+    catch(:baba) do
+      throw :baba, 'Penka'
+      'Ginka'
+    end                       # => "Penka"
+
+    catch(:baba) { 'Ginka' }  # => "Ginka"
+
+    throw :baba, 'Penka'      # error: UncaughtThrowError
+
+= slide 'catch и throw', 'реален пример' do
+  p Взет от <a href="https://github.com/mitchellh/vagrant/blob/b721eb62cfbfa93895d0d4cf019436ab6b1df05d/plugins/synced_folders/rsync/command/rsync_auto.rb#L160-L170">Vagrant</a>:
+
+  example:
+    found = catch(:done) do
+      [modified, added, removed].each do |changed|
+        changed.each do |listenpath|
+          throw :done, true if listenpath.start_with?(hostpath)
+        end
+      end
+
+      # Make sure to return false if all else fails so that we
+      # don't sync to this machine.
+      false
+    end
+
+= slide 'catch и throw', 'реален пример - дали?' do
+  p Предния пример аз бих го направил така:
+
+  example:
+    found =
+      [modified, added, removed].any? do |changed_paths|
+        changed_paths.any? { |path| path.start_with? host_path }
+      end
+
+  .action
+    p Или дори така:
+
+    example:
+      changed_paths = [modified, added, removed].flatten
+
+      found = changed_paths.any? { |path| path.start_with? host_path }
+
+= slide 'catch и throw', '(по-)реален пример' do
+  p Взет от <a href="https://github.com/discourse/discourse/blob/0f7aaf5ab19f593416a0012f223e2f91e6cb0329/lib/excerpt_parser.rb#L25-L27">Discourse</a> (и леко модифициран):
+
+  example:
+    def get_excerpt(html)
+      parser = Nokogiri::HTML::SAX::Parser.new(self)
+
+      catch(:found_excerpt) do
+        parser.parse(html)
+      end
+    end
+
+    def some_parser_hooks
+      # Make checks and gather info...
+      # Found our thing!
+      excerpt = 'something'
+      throw :found_excerpt, excerpt
+    end
+
+= slide 'Въпроси по catch и throw?' do
+  p Следва кратка вметка за методи и след това Fibers.
+
+= slide 'Всички възможни аргументи на метод', 'лирическо отклонение с елементи на преговор' do
+  example:
+    def an_example_of_great_method_design(
+      a,
+      _,
+      _,
+      b,
+      c = :something,
+      *splat,
+      d,
+      (e, f),
+      keyword:,
+      with_default: 'value',
+      **other_keyword_args,
+      &some_block
+    )
+    end
+
+= slide 'Всички възможни аргументи на метод (2)' do
+  list:
+    Не може да имате аргумент със стойност по подразбиране след splat
+    Може да ползвате скоби за "деструктивно" присвояване (разпадане на списък)
+    Такъв метод е очевидно лоша идея
+    Едно от правилата на [Sandi Metz](http://www.sandimetz.com/) е "не повече от 4 аргумента на метод"
+    В горното се броят и keyword аргументи, както и ключовете в аргументи тип `options = {}`
+
+= slide 'Sandi Metz' do
+  p Като споменахме Санди...
+
+  blockquote.action
+    ' I'm the author of Practical Object-Oriented Design in Ruby (POODR). I believe in simple code and straightforward explanations. I want to help you transform your code and make the pain go away.
+
+  list:
+    Тя е едно от най-известните имена в Ruby community-то
+    Погледнете [сайта ѝ](http://www.sandimetz.com/)
+    Следвайте я
+
+= slide 'Генератор на Fibonacci' do
+  p Кодът по-долу няма да приключи никога:
+
+  example:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new.each { |number| puts number }
+
+= slide 'Генератор на Fibonacci с енумератори' do
+  p Кодът по-долу ще работи:
+
+  annotate:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new.to_enum.take(5) # =>
+
+= slide 'Fibers' do
+  list:
+    Нещо любопитно, появило се от Ruby 1.9 нататък
+    [Fibers](http://www.ruby-doc.org/core-2.2.3/Fiber.html) в Ruby позволяват нелинейно изпълнение на кода
+    Имат доста семпъл интерфейс – няколко клас-метода и няколко инстанционни такива
+    Най-важни методи: `Fiber.new`, `Fiber.yield`, `Fiber#resume`
+    Методи, налични след `require 'fiber'`: `Fiber.current`, `#alive?` и `#transfer`
+    Вървят със собствен стек и позволяват паузиране на дълбоко вложен код
+
+= slide 'Fibers' do
+  p Най-простият възможен пример:
+
+  annotate:
+    fiber = Fiber.new { :larodi }
+
+    fiber.resume # =>
+    fiber.resume #!
+
+= slide 'Генератор на Fibonacci с Fiber' do
+  p Обратно на нашия пример от преди малко:
+
+  annotate:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+= slide 'Fibonacci с fibers' do
+  p Заменяйки <code>yield</code> с <code>Fiber.yield</code>, правим безкраен поток:
+
+  annotate:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          Fiber.yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    fibonacci_stream = Fiber.new { FibonacciNumbers.new.each }
+
+    fibonacci_stream.resume # =>
+    fibonacci_stream.resume # =>
+    fibonacci_stream.resume # =>
+    fibonacci_stream.resume # =>
+
+= slide 'Приложение на fibers' do
+  list:
+    Fiber-ите са сравнително low-level примитив за control flow
+    Вероятно не бихте ги ползвали директно в application код
+    По-вероятно е да ги използвате, за да напишете някаква библиотека
+
+= slide 'Enumerator-и и fibers' do
+  p <code>Enumerator</code> класът в Ruby се възползва от <code>Fiber</code>.
+
+  p Това се случва, когато направите <code>(1..100_000).each</code>.

@@ -34,3 +34,7 @@
   title: 08. Изключения. require. gems.
   date: 2015-11-04
   slug: 08-exceptions-require-gems
+9:
+  title: 09. Call stack. Изключения, част 2. throw и catch. Fibers
+  date: 2015-11-09
+  slug: 09-call-stack-exceptions-throw-catch-fibers
