@@ -28,7 +28,7 @@ class Annotate < Slim::Filter
     ).annotate(input).join('')
 
     output = output.gsub /^\((.*)\) rescue \$!\.class (\s*) # =>\s*(.*)$/u, "\\1\n\\2# => error: \\3"
-    output = output.gsub /^\((.*)\) rescue \$!\.class # =>\s*(.*)$/u, '\1 # => error: \2'
+    output = output.gsub /^\((.*)\) rescue \$!\.class # =>\s*(.*)$/u, '\1# => error: \2'
     output
   end
 end
