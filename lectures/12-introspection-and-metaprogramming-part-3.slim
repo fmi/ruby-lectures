@@ -1,0 +1,477 @@
+= slide 'Днес' do
+  list:
+    Метапрограмиране
+    Още метапрограмиране
+    Още за обектния модел на Ruby
+    Споменахме ли метапрограмиране?
+
+= slide 'Първи тест' do
+  list:
+    На 2 декември, вместо лекция; ще бъдете разделени на две групи
+    30 затворени въпроса, 45 минути; верен отговор = 1 т.; грешен = 0 т.
+    Ще включва материал, предаден до 1 декември, включително
+    Има два теста, носят по максимум 30 точки всеки
+    Вторият тест ще е в края на семестъра и/или по време на сесията
+
+= slide 'Идната седмица...' do
+  list:
+    В понеделник ще говорим или за Git, или за тестване
+    В сряда, 25 ноември, няма да имаме лекция – официален неучебен ден е
+    Други промени в програмата към момента няма
+
+= slide 'Въпрос 1' do
+  p Кажете ми всичко, което знаете за instance променливите.
+
+  .answer.action
+    ul
+      li Пазят се в обект
+      li Достъпни са в наследници
+      li Не са директно достъпни извън обекта
+      li Трябва да се ползват методи за достъп (напр. <code>attr_accessor</code>)
+      li Могат да се достъпят "заобиколно" с <code>instance_variable_get</code> и компания
+
+= slide 'Въпрос 2' do
+  p Кой е класът на <code>{}</code>? На <code>Integer</code>? На <code>Class</code>?
+
+  p Кой е родителят на <code>String</code>? На <code>Object</code>? На <code>Class</code>?
+
+  .answer.action
+    annotate:
+      {}.class == Hash       # =>
+      Integer.class == Class # =>
+      Class.class == Class   # =>
+
+      String < Object        # =>
+      Object < BasicObject   # =>
+      Class < Module         # =>
+
+= slide 'Въпрос 3' do
+  p Какво прави <code>instance_eval</code>? Ами <code>instance_exec</code>?
+
+  p.answer.action Изпълнява блока с променен <code>self</code>. <code>instance_exec</code> е същото, но може да подава аргументи на блока си.
+
+= slide 'Въпрос 4' do
+  p Как Ruby знае къде да постави метод, дефиниран с <code>def</code>?
+
+  p.answer.action
+    ' Винаги има текущ клас, в който този метод отива. Той може да се промени
+      с <code>module</code>, <code>class</code> и <code>class_eval</code>. Всъщност,
+      дори с <code>instance_eval</code>, но за това — по-късно.
+
+= slide 'Въпрос 5' do
+  p Можем ли да направим така, че вместо изключения, несъществуващи локални променливи или методи да резултират в <code>nil</code>? Как?
+
+  example:
+    foo          # => nil
+    foo.bar.baz  # => nil
+
+  .answer.action
+    p Можем, като предефинираме метода <code>method_missing</code> в <code>BasicObject</code>.
+
+    example:
+      class BasicObject
+        def method_missing(*) end
+      end
+
+= slide 'define_method', 'припомняне' do
+  p Ако имаме името на метод в променлива, например <code>method_name = 'first_name'</code>, бихме могли да ползваме <code>define_method</code>, за да създадем динамично метод:
+
+  example:
+    class MyObject
+      method_name    = 'first_name'
+      implementation = -> { @data_store['first_name'] }
+
+      define_method(method_name, &implementation)
+    end
+
+= slide 'define_method', 'някои алтернативи' do
+  example:
+    method_name    = 'first_name'
+    implementation = -> { @data_store['first_name'] }
+
+    MyObject.send :define_method, method_name, &implementation
+
+  .action
+    p Или:
+
+    example:
+      some_class     = MyObject
+      method_name    = 'first_name'
+      implementation = -> { @data_store['first_name'] }
+
+      some_class.class_eval do
+        define_method(method_name, &implementation)
+      end
+
+= slide 'Най-важните неща от миналата лекция' do
+  list:
+    `method_missing`
+    `instance_eval`/`class_eval`
+    `define_method`
+    Схемата на OO модела в Ruby
+
+= slide 'instance_eval' do
+  annotate:
+    some_list = []
+
+    some_list.instance_eval do
+      push 5
+      push 'foo'
+      push :bar
+      push [:another, :list]
+
+      size # =>
+    end
+
+    some_list # =>
+
+= slide 'def object.method' do
+  p Може да (пре)дефинирате метод в конкретен обект.
+
+  annotate:
+    things = [22, :f, 'Sofia']
+
+    def things.size
+      -5
+    end
+
+    def things.asl
+      "#{self[0]}/#{self[1]}/#{self[2]}"
+    end
+
+    things        # =>
+    things.size   # =>
+    things.length # =>
+    things.asl    # =>
+
+    [].asl        #!
+    [].size       # =>
+
+= slide 'Singleton класове', 'обяснението на предишния слайд' do
+  list:
+    Само модули могат да съдържат методи
+    Когато дефинирате метод на конкретен обект, Ruby го добавя в специален клас за този обект
+    Всеки обект има специален клас, наречен singleton class, който съдържа уникалните за него методи
+    Горното е полу-истина. Такъв клас се създава само ако има нужда
+    Известен е още като metaclass, eigenclass и "собствен клас"
+
+= slide 'Singleton класове', 'визуализация' do
+  img src="12/singleton.svg" style="width: 80%"
+
+= slide 'Object#singleton_class' do
+  p Собственият клас е достъпен чрез <code>#singleton_class</code>
+
+  annotate:
+    things = []
+
+    def things.answer
+      42
+    end
+
+    things.singleton_class
+    # =>
+    things.singleton_class.instance_methods(false)
+    # =>
+    [].singleton_class.instance_methods(false)
+    # =>
+
+= slide 'Symbol и Integer', '...и техните singleton класове' do
+  p
+    ' Целите числа и символите нямат собствени класове. Това е заради специалното
+      им вътрешно представяне в Ruby.
+
+  annotate:
+    1_000.singleton_class #!
+    :blah.singleton_class #!
+
+= slide 'class << thing', 'алтернативен синтаксис' do
+  p Можете да отворите собствения клас на обект с <code>class &lt;&lt;</code>
+
+  annotate:
+    things = [22, :f, 'Sofia']
+
+    class << things
+      def size
+        -5
+      end
+
+      def asl
+        "#{self[0]}/#{self[1]}/#{self[2]}"
+      end
+    end
+
+    things.asl  # =>
+    things.size # =>
+
+= slide 'super и singleton класове' do
+  p Оригиналният метод е достъпен чрез <code>super</code>.
+
+= slide 'super и singleton класове (2)' do
+  annotate:
+    things = [22, :f, 'Sofia']
+
+    class << things
+      def each
+        super
+        yield :P
+      end
+    end
+
+    aggregated = []
+    things.each do |thing|
+      aggregated << thing
+    end
+
+    aggregated # =>
+
+= slide 'super и singleton класове', 'OMG момент' do
+  p Някой има ли идея защо <code>super</code> работи?
+
+  .action
+    annotate:
+      things = []
+
+      def things.answer
+        42
+      end
+
+      things.singleton_class # =>
+      things.singleton_class.superclass # =>
+
+    p Да, singleton класът е наследник на класа на обекта.
+
+= slide 'superclass и singleton класове', 'визуализация' do
+  img src="12/singleton-superclass.svg" style="width: 80%"
+
+= slide 'Въпроси дотук?' do
+  p Ще продължим с преглед отвътре на "класовите" методи.
+
+= slide 'Класови методи' do
+  p Вероятно помните, че класови методи могат да се дефинират така:
+
+  annotate:
+    class Something
+      def Something.foo() 42 end
+      def self.bar() 42 end
+
+      class << self
+        def qux() 42 end
+      end
+    end
+
+= slide 'Класови методи', '...всъщност' do
+  p Класовите методи се пазят в собствения клас на класа
+
+  annotate:
+    class Something
+      def self.answer() 42 end
+    end
+
+    Something.singleton_class # =>
+    Something.singleton_class.instance_methods(false) # =>
+
+= slide 'Класови методи', 'визуализация' do
+  img src="12/class-singleton.svg" style="width: 80%"
+
+= slide 'Класови методи', 'instance_eval върху класове' do
+  annotate:
+    class Something; end
+
+    Something.instance_eval do
+      def say_something() 'something' end
+    end
+
+    Something.say_something # =>
+    Something.new.say_something #!
+
+  list:
+    Горното е същото като `def Something.say_something() 'something' end`
+    `self == Something`
+    Текущият клас е singleton класът на `Something`
+    Дефинициите в `instance_eval` дефинират методи върху singleton класа
+
+= slide 'Класови методи', 'class_eval' do
+  annotate:
+    class Something; end
+
+    Something.class_eval do
+      def say_something() 'something' end
+    end
+
+    Something.say_something #!
+    Something.new.say_something # =>
+
+  list:
+    Горното е същото като `class Something; def say_something() 'something' end end`
+    `self == Something`
+    Текущият клас е `Something`
+    Дефинициите в `class_eval` дефинират методи върху самия клас
+
+= slide 'extend', '...върху клас' do
+  p Помните ли <code>extend</code>?
+
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something
+      extend Knowledge
+    end
+
+    Something.answer # =>
+
+= slide 'extend', '...върху не-клас' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    text = "fourty-two"
+    text.extend Knowledge
+
+    text.answer # =>
+
+  p.action Сещате ли се как може да се имплементира?
+
+= slide 'extend', '...с class <<' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something; end
+
+    class << Something
+      include Knowledge
+    end
+
+    Something.answer # =>
+
+= slide 'extend', '...чрез instance_eval и singleton клас' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something; end
+
+    Something.singleton_class.instance_eval { include Knowledge }
+
+    Something.answer # =>
+
+= slide 'extend', '...чрез include' do
+  annotate:
+    module Knowledge
+      def answer() 42 end
+    end
+
+    class Something; end
+
+    Something.singleton_class.include Knowledge
+
+    Something.answer # =>
+
+  p Изводи:
+  list:
+    - `include` и `extend` са просто методи, викащи се на определени обекти
+    - `obj.extend(foo)` ≃ `obj.singleton_class.include(foo)`
+
+= slide 'Въпроси дотук?' do
+  p Ще продължим да дълбаем в класовите методи при наследяване.
+
+= slide 'Класови методи и наследяване' do
+  p Класовите методи на родителя са достъпни в класовите методи на наследника:
+
+  annotate:
+    class Something
+      def self.answer() 42 end
+    end
+
+    class Other < Something
+      def self.better_answer() answer * 2 end
+    end
+
+    Other.better_answer # =>
+
+= slide 'Класови методи и наследяване', 'друг OMG момент' do
+  p Собственият клас на наследника наследява собствения клас на родителя:
+
+  annotate:
+    class Something; end
+    class Other < Something; end
+
+    Something.singleton_class        # =>
+    Other.singleton_class.superclass # =>
+
+    Something.singleton_class == Other.singleton_class.superclass # =>
+
+= slide 'Класови методи и наследяване', 'визуализация' do
+  img src="12/class-singleton-superclass.svg" style="width: 80%"
+
+= slide 'Класови методи и наследяване', 'takeaway' do
+  blockquote
+    ' Singleton класът на суперкласа е суперкласът на singleton класа.
+
+= slide 'Класови методи и наследяване' do
+  list:
+    Това продължава още едно ниво нагоре – до `BasicObject` и неговия singleton клас
+    Singleton класът на `BasicObject` наследява от `Class`
+    Тук "цикълът" се затваря и нещата започват да изглеждат както при singleton класове на обикновени обекти
+    Обърнете внимание на разликата в родителя на singleton класа при обикновени обекти и при обекти тип "клас"
+    При класове (които също са обекти), йерархията е по-различна
+
+= slide 'Класови методи и наследяване', 'ancestors' do
+  annotate:
+    class Foo
+    end
+
+    Foo.singleton_class.ancestors
+    # =>
+
+= slide 'Ancestor chains' do
+  list:
+    Викайки метод на <em>произволен</em> обект `object`, Ruby го търси в `object.singleton_class.ancestors`
+    Тоест, за всеки инстанционен метод, в това число и "класовите", се гледа ancestor chain-а на singleton класа на обекта
+    А класовите методи са просто инстанционни методи и инстанцията е обектът от тип "клас"
+    Толкова просто е
+
+= slide 'Няколко примера за ancestor chains' do
+  p Относно търсенето на (инстанционни) методи на обектите от тип <code>String</code>:
+
+  example:
+    ''.singleton_class.ancestors
+    # => [#<Class:#<String:0x007f8788e51bd8>>,
+    #     String, Comparable, Object, Kernel, BasicObject]
+
+    ''.class.ancestors
+    # => [String, Comparable, Object, Kernel, BasicObject]
+
+    String.ancestors
+    # => [String, Comparable, Object, Kernel, BasicObject]
+
+= slide 'Ancestor chains', 'за "класови" методи' do
+  p По отношение на "класовите" методи, викани върхy <code>String</code>:
+
+  example:
+    String.singleton_class.ancestors
+    # => [#<Class:String>, #<Class:Object>, #<Class:BasicObject>,
+    #     Class, Module, Object, Kernel, BasicObject]
+
+    String.class.ancestors
+    # => [Class, Module, Object, Kernel, BasicObject]
+
+    Class.ancestors
+    # => [Class, Module, Object, Kernel, BasicObject]
+
+= slide 'Grand Unified Theory' do
+  ol
+    li.action Има само един вид обекти - били те обикновени или модули
+    li.action Има само един вид модули - били те обикновени или клас
+    li.action Има само един вид методи - живеят в модули, които често са класове
+    li.action Всеки обект има "реален клас" - бил той обикновен клас или собствен клас
+    li.action Всеки клас има точно един суперклас - с изключение на <code>BasicObject</code>
+    li.action Суперкласът на singleton класа на обект е класът на обекта. Суперкласът на singleton класа на клас е singleton класът на родителя на класа.
+    li.action При извикване на метод, Ruby взема "реалния клас" и търси в неговия ancestor chain
+
+  p.action &#8718;
