@@ -1,0 +1,396 @@
+= slide 'Днес' do
+  list:
+    Информация за проектите, каква тема да изберете и как да я опишете
+    Клас-променливи
+    `Object#eql?`, `$!` и `$@`, `next`, `break`, `redo`, `retry`
+    `dup`, `clone`, `initialize_copy`
+    Писане на документация с RDoc
+
+= slide 'Проекти' do
+  list:
+    Крайният срок да си изберете тема и <strong>да ви я одобрим</strong>, е <strong>24.12.2015</strong> г., 23:59:59
+    Важно е да прекарате време с Ruby и екосистемата около него и да напишете нещо по-голямо
+    Имаме [ръководство за проектите](https://github.com/fmi/ruby-course-guides/blob/master/course_projects.md#readme), което ще допълваме
+    Най-важното нещо за проектите - ще ви трябва време и трябва да започнете работа по тях възможно най-рано
+
+= slide 'Какво очакваме да ни изпратите?', 'или, как да напишете спецификация' do
+  list:
+    Пак - темата е почти без значение
+    Имаме нужда да придобием представа единствено дали проектът ви ще е достатъчно (и не прекалено) голям и сложен
+    Ако не получите никакъв отговор от нас в рамките на 4-5 дни, пишете ни пак или пробвайте друг комуникационен канал
+
+= slide 'Лоши примери (1)' do
+  list:
+    "Идеята ми за проект е система за управление на магазин"
+    Какви технологии?
+    Уеб, command-line, GUI?
+    Бази данни ще има ли?
+    Какви интерфейси?
+    Роли? Автентикация, авторизация?
+    Груби спецификации за това какви данни ще се пазят и какви операции ще могат да се извършват?
+
+= slide 'Лоши примери (2)' do
+  list:
+    "Избрах си тема за проект - играта Battleships"
+    Двама играча ще се редуват на един компютър, или ще се играе срещу компютъра?
+    Ще се играе ли по мрежа, или само локално, на една машина?
+    Кои ще са двата интерфейса? Command-line? Gosu? Друго?
+    Горното е твърде просто - има нужда от "усложнения"; например - save/restore на текущата игра
+
+= slide 'Лоши примери' do
+  list:
+    Представете си, че клиент дойде при вас и ви каже само това едно изречение и след това попита "Колко ще струва?"
+    Не е нужно да сте безкрайно подробни, но се постарайте да засегнете темите и технологиите, които ще използвате
+    Важно е да се получи ориентир за сложността и да се съгласим за базова функционалност-минимум
+
+= slide '(Не)подходящи теми', 'или, къде Ruby е силен и къде - не' do
+  list:
+    Ruby е general-purpose език, но не е удачно решение за някои проблеми, като:
+    Тежки, алгоритмични и изчислителни проблеми, които са CPU-bound, изискват CPU-паралелизация и/или garbage collection-ът ще им пречи
+    Десктоп приложения с бутончета, менюта и прочее
+    Тежки и големи игри
+    Мобилни приложения (но пък има RubyMotion)
+    Embedded системи (но за това пък има [mruby](http://mruby.org))
+    Приложения, чиято основна работа е да имплементират дадено API - окей е за Ruby, но е неподходящо като тема
+
+= slide '(Не)подходящи теми', 'изключения' do
+  list:
+    Ако не сте студент във ФМИ, или оценката и точките не ви интересуват, може да пробвате и Rails
+    На защитата ще ви дадем обратна връзка за това
+    Може да пишете и десктоп приложения, като ползвате Shoes (новата версия) или Tkinter (Tk) - не е особено практично, но е окей за курсов проект
+    В случая на десктоп приложение, ще искаме да имате и някакъв алтернативен интерфейс към функционалността (например, command-line)
+    По-прости, 2D-игри, с помощта на [Gosu](http://www.libgosu.org/) - пак искаме втори интерфейс (например, command-line)
+
+= slide 'Поне два интерфейса' do
+  list:
+    Това е едно от изискванията ни към повечето теми
+    Целта е да усетите нуждата от разделение между интерфейс и логика
+    Описано е в ръководството за проектите
+
+= slide 'Въпроси?' do
+  p Ще продължим с още малко слайдове за Git.
+
+= slide 'Седма задача' do
+  list:
+    Подготвяме я
+    Ако стане готова, ще я пуснем още днес, със срок до идния понеделник
+    Следете сайта за новини за това (ще пишем и във Facebook)
+
+= slide 'Машината на времето' do
+  example:
+    git revert <commit>
+  list:
+    Премахва промените, направени от `commit`
+    Всъщност създава нов commit, който прави същото като `commit`, но наобратно
+    Разбирайте, където има `+` в diff-a, става на `-` и обратно
+    Ако все пак решите, че искате тези промени, можете да revert-нете revert commit-a
+  img.action src='16/yo-dawg.png'
+
+= slide 'Машината на времето' do
+  example:
+    git reflog
+  list:
+    Показва ви последните операции, които сте правили, заедно с ID-та на разни обекти
+    Можете да намерите ID-тата на изгубени commit-и и да ги възстановите
+    Понякога се чисти
+
+= slide 'Игнориране на файлове', '.gitignore' do
+  list:
+    Често има файлове, които не искаме git да следи
+    Например компилирани двоични файлове, временни файлове, конфигурационен файл с API ключове и т.н.
+    Всеки ред в `.gitignore` е шаблон за файлове/директории, които трябва да бъдат игнорирани
+    Това означава, че няма да се виждат в `git status`
+
+= slide 'Игнориране на файлове', 'Формат на .gitignore' do
+  pre
+    '
+      /bar            # Файла/директорията bin в главната директория на проекта
+      bin             # Всички файлове и директории с име bin
+      bin/            # Всички директории с име bin
+      compiled/*.html # Всички файлове с разширение html в директория compiled
+      lib/**/*.txt    # Всички текстови файлове в lib или нейна поддиректория
+      *.exe           # Всички изпълними файлове за Windows
+
+= slide 'git rebase', 'Най-мощният инструмент за пренаписване на историята' do
+  example:
+    git checkout killer-feature
+    git rebase master
+    git rebase -i
+    git rebase -i master
+    git rebase -i HEAD~4
+    git pull --rebase
+  list:
+    Пресъздава промените от текущия branch, все едно са направени върху сегашното състояние на `master`
+    С -i ви позволява да си премахнете, промените или слеете (squash-нете) commit-и от историята
+    Трябва да направите `git push --force`, ако вече сте push-нали branch-a, който променяте
+    Отново - избягвайте да го правите, ако промените вече са публикувани
+
+= slide 'git rebase' do
+  img src="16/git-rebase.png" width="90%"
+
+= slide 'git blame', '"Кой написа това?"' do
+  example:
+    git blame lectures/index.yml
+
+= slide 'Акценти' do
+  list:
+    `git add`, `git commit`
+    `git push`, `git pull`
+    `git checkout`
+    `git merge`, `git rebase -i`
+    `git reflog`
+
+= slide 'Защо git по този начин?' do
+  list:
+    Елегантно решение на сложен проблем
+    Научавайки как работи на по-ниско ниво, ще ви помогне да се ориентирате
+    Конзолният интерфейс е сложен, но ще разбирате какво става "под капака"
+
+= slide 'Изводи' do
+  list:
+    Няма да минете без него...
+    ...затова започвайте да го използвате...
+    ...с терминала - научават се много неща.
+    Може да ви се струва труден - не е
+
+  p.action Искайте помощ:
+  list:
+    `git help <command>`
+    `git <command> --help`
+    `man git`
+    `man git-<command>`
+
+= slide 'Графичен интерфейс', 'GitX' do
+  img src="16/gitx-screenshot.jpg"
+
+= slide 'Графичен интерфейс', 'TortoiseGit' do
+  img src="16/tortoisegit.gif"
+
+= slide 'Графичен интерфейс', 'GitHub' do
+  img src="16/github-gui.png"
+
+= slide 'Графичен интерфейс', 'SourceTree' do
+  img src="16/sourcetree.png"
+
+= slide 'Материали' do
+  p
+  list:
+    Добър туториал за начинаещи с терминалния интерфейс - [Try git](http://try.github.io/levels/1/challenges/1)
+    Безплатна книга с много подробни обяснения - [Pro Git](http://git-scm.com/book)
+    Инструкции за създаване на pull request в GitHub - [Guide](https://github.com/fmi/ruby-course-guides/blob/master/pull_requests.md)
+    Интерактивна визуализация на команди - [Explain Git](https://github.com/onlywei/explain-git-with-d3) (забележка: някои неща не са 1:1 с реален Git)
+
+= slide 'Въпроси дотук?' do
+  p
+
+= slide 'The Ten Commandments of Egoless Programming' do
+  ul
+    li Стари, но добри
+    li Заслужават си и са добър начин за начало на новата година
+    li Може да ги видите в <a href="http://www.codinghorror.com/blog/2006/05/the-ten-commandments-of-egoless-programming.html">оригиналния контекст тук</a>
+
+= slide 'The Ten Commandments of Egoless Programming', 'извадка' do
+  ul
+    li Understand and accept that you will make mistakes.
+    li You are not your code.
+    li Critique code instead of people – be kind to the coder, not to the code.
+    li No matter how much "karate" you know, someone else will always know more.
+    li Treat people who know less than you with respect, deference, and patience.
+    li The only constant in the world is change.
+    li The only true authority stems from knowledge, not from position.
+    li Fight for what you believe, but gracefully accept defeat.
+
+= slide 'Object#eql?' do
+  ul
+    li <code>#eql?</code> прави сравнение без type coercion.
+    li Не забравайте, че се ползва и за хешове.
+
+  annotate:
+    1 == 1.0     # =>
+    1.eql?(1.0)  # =>
+
+= slide '$! и $@' do
+  ul
+    li Глобални променливи
+    li <code>$!</code> е последното "възбудено" изключение
+    li <code>$@</code> е stacktrace-а на последното изключение
+
+= slide 'Class#new и Object#initialize' do
+  p Всъщност, <code>#initialize</code> е просто instance метод.
+
+  p <code>Class#new</code> е имплементиран горе-долу така:
+
+  example:
+    class Class
+      def new
+        object = self.allocate
+        object.send :initialize
+        object
+      end
+    end
+
+= slide 'Object#dup, Object#clone, #initialize_copy' do
+  list:
+    `#dup` и `#clone` правят копие на обект
+    Копието е "shallow" копие, т.е. ако има instance променливи, те сочат на същото място
+    След като се направи, се вика `#initialize_copy`
+    Разликата между двете: `#clone` копира singleton методи и freeze-ва обекта, ако е замразен
+
+= slide 'retry в ensure' do
+  p <code>retry</code> изпълнява <code>begin</code> блока отначало.
+
+  example:
+    retries_left = 3
+
+    begin
+      connect_to_facebook
+    rescue ConnectionError
+      retries_left -= 1
+      retry if retries_left > 0
+    end
+
+= slide 'next, break, redo, retry' do
+  list:
+    `retry` може да се ползва в `rescue`/`ensure` клауза в метод
+    `redo` – просто рестартира блока
+    `next` – прекратява работата на блока
+    `break` – прекратява работата на метода, извикващ блока
+    `next`, `redo` и `break` могат да се използват само в блокове
+
+= slide 'next, break, redo, retry' do
+  p <code>next</code> прекратява работата на блока:
+
+  example:
+    def bar
+      p "bar started"
+      p yield
+      p yield
+      p "bar finished"
+    end
+
+    bar do
+      p "block started"
+      next "Return value"
+      p "block finished"
+    end
+
+  p Резултатът ще е:
+
+  example:
+    "bar started"
+    "block started"
+    "Return value"
+    "block started"
+    "Return value"
+    "bar finished"
+    => "bar finished"
+
+= slide 'next, break, redo, retry' do
+  p <code>break</code> прекратява работата на блока и на метода, който го извиква:
+
+  example:
+    def bar
+      p "bar started"
+      p yield
+      p yield
+      p "bar finished"
+    end
+
+    bar do
+      p "block started"
+      break "Return value"
+      p "block finished"
+    end
+
+  p Резултатът ще е:
+
+  example:
+    "bar started"
+    "block started"
+    => "Return value"
+
+= slide 'Въпроси дотук?' do
+  p Следват няколко думи за клас променливи.
+
+= slide 'Клас променливи' do
+  annotate:
+    class Person
+      @@count = 0
+
+      def initialize
+        @@count += 1
+      end
+
+      def self.how_many
+        @@count
+      end
+    end
+
+    Person.new
+    Person.new
+    Person.how_many # =>
+
+= slide 'Клас променливи', 'семантиката' do
+  list:
+    Очевидно започват с `@@`
+    Търсят се в обхващащата константа
+    Ако я няма там, се търсят в родителя ѝ
+    Съответно, достъпни са в инстанция и в клас
+    Ако не са дефинирани, получавате `NameError` (направете разлика с инстанционните променливи)
+    Работят объркващо, така че по-добре ги избягвайте
+    Ако все пак ги ползвате, правете го когато нямате наследяване
+
+= slide 'Клас променливи' do
+  annotate:
+    class B
+      @@foo = 1
+      def self.foo() @@foo end
+      def self.hmm() @@bar end
+    end
+
+    class D < B
+      @@bar = 2
+      def self.bar() @@bar end
+      def self.change() @@foo = 3; @@bar = 4; end
+    end
+
+    [B.foo, D.foo, D.bar] # =>
+    B.hmm                 #!
+    D.change
+    [B.foo, D.foo, D.bar] # =>
+    B.hmm                 #!
+    D.hmm                 #!
+
+= slide 'Документация в Ruby' do
+  list:
+    Пишете ли документация? Как? Къде?
+    Както повечето други езици и платформи, и в Ruby има инструменти за автоматично генериране на документация
+    RDoc — Ruby documentation
+    Seattle.rb проект; дефакто стандарт
+    YARD — инструмент, разширяващ RDoc-стандарта
+
+= slide 'RDoc' do
+  img src="16/rdoc-default.png"
+
+= slide 'YARD' do
+  img src="16/rdoc-yard.png"
+
+= slide 'Други - Rails API документацията' do
+  img src="16/rdoc-rails.png"
+
+= slide 'Други - API Dock' do
+  img src="16/rdoc-apidock.png"
+
+= slide 'RDoc' do
+  list:
+    Анализира статично вашата файлова структура, класове, модули, методи
+    Извлича коментарите над методи, класове и прочее и ги обработва
+    Дори да нямате коментари, пак ще генерира смислена и донякъде полезна документация
+    Във въпросните коментари може да използвате специален синтаксис
+
+= slide 'Подробно относно RDoc' do
+  list:
+    Официална документация относно позволения маркъп (малко трудна за откриване):
+    [http://docs.seattlerb.org/rdoc/RDoc/Markup.html](http://docs.seattlerb.org/rdoc/RDoc/Markup.html)
+    Обща документация на RDoc:
+    [http://docs.seattlerb.org/rdoc/index.html](http://docs.seattlerb.org/rdoc/index.html)
