@@ -1,5 +1,5 @@
 class Code
-  def self.highlight(code)
-    Pygments.highlight(code, lexer: :ruby)
+  def self.highlight(code, lexer: :ruby)
+    Pygments.highlight(code, lexer: lexer)
   end
 end
