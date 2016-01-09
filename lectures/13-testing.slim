@@ -545,16 +545,17 @@
 
 = slide 'Stub-ване' do
   example:
-    let(:user) { User.new('Georgi', :admin)      }
+    class Game
+      def popular?() likes >= 100 end
+    end
+
     let(:game) { Game.new('The Witcher 3', :rpg) }
 
-    describe '#like' do
-      it 'increases the game likes rather than setting them to 1' do
-        allow(game).to receive(:likes).and_return(5)
+    describe '#popular?' do
+      it 'returns true if the game is liked by at least 100 users' do
+        allow(game).to receive(:likes).and_return(123)
 
-        user.like(game)
-
-        expect(game.likes).to eq 6
+        expect(game.popular?).to be true
       end
     end
 
@@ -565,6 +566,14 @@
         # [CLASSIFIED]
 
         "Nukes sent at #{city}"
+      end
+    end
+
+    class User
+      def launch_nukes(silo)
+        raise "No permissions" unless rank == :superadmin
+
+        silo.launch_nukes_at '[CLASSIFIED]'
       end
     end
 
