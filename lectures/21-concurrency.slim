@@ -1,0 +1,602 @@
+= slide 'Днес' do
+  list:
+    Процеси
+    Нишки
+    Queue, SizedQueue, producer-consumer шаблон
+    Размисли на тема конкурентност
+
+= slide 'Изпитни дати и втори тест' do
+  p Обявили сме <a href="/announcements/23">датите за изпит</a>:
+
+  ul
+    li Неделя, 31 януари, от 10 ч., зала 101 – втори тест и след това първа възможност за защита на проект
+    li Събота, 13 февруари, от 10 ч., зала 404 – втора и последна дата за защита на проект
+
+= slide 'Девета и десета задачи?' do
+  list:
+    Традиционната ретроспективна задача, разделена на две части
+    [Първа част](/tasks/9) и [втора част](/tasks/10)
+    Ще имате малко повече от две седмици да ги направите
+    Прочетете условието, по-особено е от задачите до момента
+
+= slide 'Disclaimer' do
+  p Няма да говорим за паралелни алгоритми и други подобни неща
+  p Ще говорим за конкурентност на по-практическо ниво
+
+= slide 'IO-bound vs. CPU-bound' do
+  list:
+    CPU-bound са програми, които главно зависият от време, прекарано в процесора
+    Примери за такива са видео кодиране, обработка на изображения, звук и прочее
+    IO-bound са програми, които главно зависят от време, прекарано в чакане (мрежа, памет, диск)
+    Например изпращане на имейли, чакане на резултати от база данни, API-та, четене и писане по диска и други
+
+= slide 'Processes vs. Threads (Green & Native)' do
+  list:
+    Три начина за конкурентност
+    Някой може ли да обясни разликите?
+    Процесите са примитив на операционната система, има ги навсякъде
+    Нишките също са примитив на ОС (т. нар. "native threads")
+    "Green threads" е имплементация на нишки, направена в runtime-а на езика – нещо като имитация
+    Днес ще разгледаме паралелизация в Ruby с процеси и нишки
+
+= slide 'Паралелизация на многоядрени процесори' do
+  list:
+    В днешно време разполагаме с многоядрени процесори
+    Ако имаме CPU-bound проблеми, за оптимално натоварване трябва да ползваме всички ядра
+    Операционните системи се оправят добре с това от много време на ниво процеси
+    Съвременните ОС дават същите ползи и на ниво native OS threads
+    За един осемядрен процесор, 8 процеса или един процес с 8 native threads е почти едно и също
+
+= slide 'Нишки' do
+  list:
+    В Ruby, очевидно, има нишки
+    В Ruby 1.8 имплементацията е green threads
+    В Ruby 1.9+ се ползват native threads, с GVL
+    В JRuby се ползват нишките на Java, без GVL
+
+= slide 'GVL/GIL?' do
+  list:
+    GVL е съкращение от Global Virtual-machine Lock
+    Може да се срещне още като GIL (Global Interpreter Lock) за Ruby 1.8.x и по-стари
+    По същество – заключващ механизъм, позволяващ в даден момент от време да работи само една нишка
+    Причината за съществуването му е заради legacy C разширения, които не са thread-safe
+
+= slide 'Импликации от съществуването на GVL' do
+  list:
+    Очевидно нещо неприятно
+    Ruby 1.9 и по-нови използват native OS threads, но GVL ги спира
+    Един Ruby процес с N на брой нишки може да натовари максимум едно процесорно ядро
+    Все пак, има подобрения – освобождаване на GVL при изпълнение на външни IO-операции
+    Например, докато чакате резултата от някоя тежка заявка, Ruby ще изпълнява код от друга нишка
+    Следователно, нишките в MRI дават решение на IO-bound проблеми, но не са подходящи за CPU-bound
+    За CPU-bound проблеми сте принудени да ползвате процеси, или друга Ruby имплементация (например JRuby)
+
+= slide 'Shellout и GVL' do
+  list:
+    "Shellout" - стартиране на външни процеси от Ruby, например със `system`
+    Тъй като това е отделен процес, той може да се възползва от всички налични ресурси на хардуера
+    Частичен workaround за MRI и CPU-bound проблеми - нишки + shellout или просто fork
+
+= slide 'Бъдещето на GVL' do
+  list:
+    GVL вероятно ще изчезне един ден
+    Не всичко е загубено и днес – повечето ни проблеми са IO-bound (особено в едно уеб приложение)
+    Ако имате CPU bound проблеми, спокойно може да използвате multi-process архитектура
+    Вариант е и да минете на алтернативна Ruby имплементация като JRuby или Rubinius
+    Ruby не е най-подходящият инструмент за решаване на CPU-bound проблеми не само заради GVL
+
+= slide '1. Паралелизация с процеси' do
+  p Първият начин за паралелизация и фоново изпълнение на задачи, който ще разгледаме, е базиран на процеси.
+
+= slide 'Процеси в ОС', 'crash-course' do
+  list:
+    Всяка ОС има абстракцията "процес" - файл с изпълним код, който е стартиран и "работи" на някое ядро
+    Ядрото на ОС има т. нар. "scheduler", който арбитрира достъпа на процесите до CPU-то
+    Всеки процес се идентифицира с уникално число - process ID, или PID
+    Всеки процес е стартиран от някой друг процес, с изключение на първия процес (init), който е с PID 1
+    Образува се дървовидна йерархия
+    При приключване на процес, той оставя на ОС своя "резултат" - exit status - число от -127 до 127
+    Exit status = 0 - успешно приключване на процеса; всичко останало - някаква грешка
+
+= slide 'fork' do
+  list:
+    Създава копие на текущия процес
+    Копието продължава работа от момента на fork нататък
+    Има връзка "родител-дете" между двата иначе почти идентични процеса
+    `fork` съществува от зората на операционните системи и е системен примитив
+    Ruby ви дава удобен интерфейс към него
+    Не всички операционни системи имат `fork`
+
+= slide 'fork в Ruby' do
+  example:
+    child_pid = fork
+
+    if child_pid
+      puts 'This is the parent'
+    else
+      puts 'This is the child speaking!'
+    end
+
+    puts 'This is executed in both the parent and the child.'
+
+= slide 'fork (2)' do
+  p Има и друга версия, която се възползва от удобството на блоковете:
+
+  example:
+    fork do
+      puts 'This is the child'
+    end
+
+    puts 'This is the parent'
+
+= slide 'module Process' do
+  p Всъщност, повечето неща са в модул <code>Process</code>:
+
+  example:
+    Process.fork
+    Process.wait
+    Process.waitall
+    Process.waitpid
+
+= slide 'Process.wait' do
+  p
+    ' <code>Process.wait</code> чака някое от децата да приключи и връща pid-а му,
+      а <code>$?</code> съдържа <code>Process::Status</code>.
+
+  annotate:
+    fork { exit 99 } # =>
+    Process.wait     # =>
+    $?.exitstatus    # =>
+
+= slide 'Process.wait2' do
+  p
+    ' <code>Process.wait2</code> е сходно, но връща масив от pid и <code>Process::Status</code>:
+
+  annotate:
+    fork { exit 99 } # =>
+    Process.wait2    # =>
+
+= slide 'Process.waitpid' do
+  p
+    ' <code>Process.waitpid(pid)</code> чака дадено конкретно дете да приключи:
+
+  example:
+    pid = fork do
+      puts "Child: I'm starting..."
+      sleep 1
+      puts "Child: I'm done."
+    end
+
+    puts 'Parent: Child running. Waiting for it to complete.'
+    Process.waitpid(pid)
+    puts 'Parent: Child is done.'
+
+= slide 'Process.waitall' do
+  p
+    ' <code>Process.waitall</code> чака всички деца да приключат
+
+  example:
+    fork { sleep 1; puts '1' }
+    fork { sleep 2; puts '2' }
+
+    puts '0'
+    Process.waitall
+    puts '3'
+
+= slide 'Process.exec' do
+  p
+    ' <code>Process.exec</code> заменя текущия процес с изпълнение на команда:
+
+  example:
+    fork do
+      exec 'date'
+      puts 'Unreachable code'
+    end
+
+= slide 'Process.daemon' do
+  p
+    ' <code>Process.daemon</code> "откача" процеса от терминала и го пуска в background.
+
+  example:
+    fork do
+      Process.daemon
+      loop do
+        system 'echo Spam >> ~/spam'
+        sleep 1
+      end
+    end
+
+= slide 'Process.methods' do
+  list:
+    `Process.pid` връща process id на текущия процес
+    `Process.ppid` връща parent process id
+    `getpgid`, `gid`, `setpgid`, `uid` и т.н.
+    `spawn` е швейцарско ножче за пускане на процеси
+    `fork` не е наличен на всички ОС и за някои цели се препоръчва `spawn`
+
+= slide '2. Паралелизация с нишки' do
+  p Втори начин за паралелизация и фоново изпълнение на задачи е употребата на нишки.
+
+= slide 'Thread.new' do
+  p Създаването на нишка в Ruby е лесно:
+
+  example:
+    thread = Thread.new do
+      puts 'This is run in a separate new thread'
+      sleep 1
+      puts 'The thread is started immediatelly'
+    end
+
+    puts 'This is run in the main thread'
+
+= slide 'Thread#join' do
+  p
+    ' Процесът приключва, когато основната нишка приключи. Ако искате да изчакате
+      някоя от създадените нишки да приключи преди процесът да излезе, ползвайте
+      <code>Thread#join</code>.
+
+  example:
+    thread = Thread.new do
+      puts 'This is run in the thread'
+      sleep 1
+      puts 'The thread is started immediatelly'
+    end
+
+    puts 'This is run in the main thread'
+    thread.join
+
+= slide 'Thread#value' do
+  p
+    ' <code>Thread#value</code> блокира основната нишка, докато поднишката не приключи и върне последния
+      оценен израз
+
+  annotate:
+    thread = Thread.new do
+      2 + 2
+    end
+
+    # Can be called multiple times, will block only on the first call.
+    thread.value # =>
+    thread.value # =>
+
+= slide 'Изключения' do
+  p
+    ' Ако една нишка предизвика изключение, то няма да убие интерпретатора. Вместо това,
+      ще се появи в нишката, извикваща <code>#value</code> или <code>#join</code>.
+
+  annotate:
+    thread = Thread.new do
+      raise 'Oh noes!'
+    end
+
+    thread.join #!
+
+= slide 'Изключения (2)' do
+  p Можете да промените последното с <code>Thread.abort_on_exception</code>.
+
+  example:
+    Thread.abort_on_exception = true
+
+= slide 'Thread.methods' do
+  list:
+    `Thread.main` връща основната нишка
+    `Thread.current` връща текущата нишка
+    `Thread.list` връща всички нишки
+
+= slide 'Thread#priority' do
+  ul
+    li Всяка нишка има приоритет.
+    li
+      ' Той може да се достъпи и промени с <code>Thread#priority</code> и
+        <code>Thread#priority=</code>
+    li Една нишка с по-нисък приоритет ще се пуска по-рядко от нишка с по-висок такъв
+    li Това е само "подсказка" за thread scheduler-а и може да бъде игнорирано на някои платформи
+
+= slide 'Променливи (1)' do
+  p Променливи, дефинирани в блока на нишката, са (очевидно) локални за нея:
+
+  annotate:
+    thread = Thread.new { something = 1 }
+    thread.join
+
+    something #!
+
+= slide 'Променливи (2)' do
+  p Блокът на нишката вижда променливите отвън:
+
+  annotate:
+    answer = 1
+    thread = Thread.new { answer = 2 }
+
+    thread.join
+    answer # =>
+
+= slide 'Променливи (3)' do
+  p Можете да подавате стойности на нишката през <code>Thread.new</code>
+
+  annotate:
+    n = 10
+    thread = Thread.new(n) do |number|
+      n      # =>
+      number # =>
+    end
+    n = 20
+
+    thread.join
+
+= slide 'Променливи (4)' do
+  p
+    ' Всяка нишка функционира като хеш от символи. Така може да правите
+      thread-local променливи – нещо като глобални променливи, но в рамките
+      на една (текущата) нишка:
+
+  annotate:
+    Thread.current[:x] = 10
+    thread = Thread.new do
+      Thread.current[:x] # =>
+      Thread.current[:x] = 20
+    end
+    thread.join
+    Thread.current[:x]   # =>
+
+= slide 'Thread-local променливи' do
+  list:
+    Thread-local променливите са thread-safe алтернатива на "глобално" състояние
+    Примерно приложение на thread-local променливи може да видите в [gem-а `i18n`](https://github.com/svenfuchs/i18n/blob/b1200f0289a59ba0368f800473d8ac79f713bc26/lib/i18n.rb#L17-L24)
+    Този gem дава интерфейс за локализация и превод на Ruby приложения
+    Например, текущият език стои в `I18n.locale` и може да се променя с `I18n.locale=(new_locale)`
+    Ако ползвате нещо като клас-променливи за това, ще имате проблеми, ако приложението ви е многонишково (например, уеб приложение, работещо в threaded режим)
+    Затова `I18n.locale` вътрешно ползва `Thread.current`
+
+= slide 'Thread-local променливи (2)' do
+  p Ето примерна имплементация на <code>I18n.locale</code> методите:
+
+  example:
+    class I18n
+      class << self
+        def locale
+          Thread.current[:locale]
+        end
+
+        def locale=(new_locale)
+          Thread.current[:locale] = new_locale
+        end
+      end
+    end
+
+= slide 'Thread-safety' do
+  p Конкурентният достъп до споделени ресурси създава проблеми, когато операциите по промяна на ресурс не са атомарни. Нека разгледаме един пример:
+
+  example:
+    username = 'larodi'
+
+    50.times do
+      Thread.new do
+        unless User.username_taken?(username)
+          User.create username: username
+        end
+      end
+    end
+
+  p.action
+    ' Какво става тук? Няколко нишки могат да изпълнят <code>username_taken?</code>,
+      преди да се е стигнало до създаване на потребител и да решат, че няма пробелм да
+      създадат такъв, понеже потребителското име е свободно и хоп – дублирани данни.
+
+= slide 'Синхронизация на нишки' do
+  list:
+    Синхронизирането на конкурентен достъп до споделен ресурс става с нещо, наречено "критични секции"
+    Основен примитив за това е mutex (съкращение от "mutual exclusion")
+    Не е нещо, специфично за Ruby и се предоставя от операционната система
+
+= slide 'Mutex (1)' do
+  list:
+    Mutex-ите са или "заключени" или "отключени"
+    Два важни метода - `lock` и `unlock`
+    `lock`: Ако mutex-ът е отключен го заключва и продължава нататък
+    `lock`: Ако mutex-ът е заключен, приспива нишката докато се отключи, след това прави горното
+    `unlock`: Отключва mutex-а
+    Имате и методи като `locked?`, `try_lock` и други
+    GVL е по същество един голям mutex
+
+= slide 'Mutex (2)' do
+  p Примерна употреба:
+
+  example:
+    user_creation_mutex = Mutex.new
+
+    username = 'larodi'
+
+    50.times do
+      Thread.new do
+        user_creation_mutex.lock
+        unless User.username_taken?(username)
+          User.create username: username
+        end
+        user_creation_mutex.unlock
+      end
+    end
+
+= slide 'Mutex (3)' do
+  p Има и по-удобна форма, приемаща блок:
+
+  example:
+    user_creation_mutex = Mutex.new
+
+    username = 'larodi'
+
+    50.times do
+      Thread.new do
+        user_creation_mutex.synchronize do
+          unless User.username_taken?(username)
+            User.create username: username
+          end
+        end
+      end
+    end
+
+  p Обърнете внимание, че ако възникне изключение в блока, подаден на <code>synchronize</code>, mutex-ът ще бъде коректно отключен.
+
+= slide 'Писане на thread-safe код' do
+  list:
+    Труден пробелм
+    Избягвайте глобално състояние – глобални променливи, клас-променливи, и прочее
+    Ако не може да минете без "глобално" състояние, може да ползвате thread-local променливи
+    Синхронизирайте достъпа до споделени ресурси, операциите над които не са атомарни
+    Използвайте само thread-safe third-party код (по-трудно, отколкото звучи)
+    Добра практика е винаги да пишете код, който е thread-safe
+
+= slide 'Thread-safe структури от данни' do
+  list:
+    Структурите от данни в MRI не са thread safe
+    Заради GVL, обаче, изглеждат thread-safe ([прочетете повече по темата](http://www.jstorimer.com/pages/ruby-core-classes-arent-thread-safe))
+    Библиотеката [github.com/ruby-concurrency/thread_safe](https://github.com/ruby-concurrency/thread_safe) предоставя thread-safe списъци и хешове
+    Това е една алтернатива на ръчната синхронизация с mutex
+    Може да разгледате кода на библиотеката, ако ви е интересно
+
+= slide 'Producer-consumer' do
+  p Класически <a href="http://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem">"конкуретен" проблем</a>:
+  blockquote
+    ' In computing, the producer–consumer problem (also known as the bounded-buffer problem) is a classic example of a multi-process synchronization problem. The problem describes two processes, the producer and the consumer, who share a common, fixed-size buffer used as a queue. The producer's job is to generate a piece of data, put it into the buffer and start again. At the same time, the consumer is consuming the data (i.e., removing it from the buffer) one piece at a time. The problem is to make sure that the producer won't try to add data into the buffer if it's full and that the consumer won't try to remove data from an empty buffer.
+
+= slide 'Queue' do
+  list:
+    В стандартната библиотека на Ruby има клас `Queue`
+    Особено подходящ за consumer-producer шаблона
+    Неограничен размер
+    Основни методи - `push` и `pop`
+    `pop` ще "блокира" нишката, която го извиква, ако опашката е празна
+    Нишката ще се "отблокира" веднага, щом друга нишка сложи нещо в опашката
+    За да я ползвате, ви трябва `require 'thread'`
+
+= slide 'Queue - пример' do
+  example:
+    require 'thread'
+
+    queue = Queue.new
+
+    producer = Thread.new do
+      loop { queue << 'LOOK I AM PRODUCING STUFF!' }
+    end
+
+    consumer = Thread.new do
+      loop { puts "Consumed #{queue.pop}" }
+    end
+
+= slide 'SizedQueue' do
+  list:
+    Вариация на `Queue`, но с лимит в размера
+    `push` ще блокира, ако опашката е пълна
+
+= slide 'Producer-consumer с три компонента', 'case study над реален пример' do
+  list:
+    Пример за producer-consumer с три, не с два компонента
+    Опростен пример от реален проблем, решен с нишки, `Queue` и `SizedQueue`
+    Цел: Прекодиране на голямо количество видео файлове за минимално време
+    Средство: Паралелно прекодиране от N на брой виртуални машини, стартирани в "облака"
+
+= slide 'Producer-consumer с три компонента - реализация' do
+  p Всяка виртуална машина стартира и прави следното в този ред:
+
+  list:
+    Заявява файл за обработка, което го изважда от списъка на наличните за обработка файлове
+    Целта е само една машина да прекодира даден видеофайл, за да няма дублиране на усилията
+    Заявеният файл се изтегля на стартиралата машина от централно място
+    Веднага след като е изтеглен, започва прекодиране
+    По време на прекодирането, което е CPU-bound, се заявява и изтегля следващ файл, за да е готов за прекодиране
+    Веднага след като файл е готов за прекодиране, се стартира upload на резултата към централно място
+
+= slide 'Producer-consumer с три компонента - особености' do
+  list:
+    Тъй като виртуалните машини се плащат на час, целта е да ги натоварим максимално и да не хабим процесорно време
+    Процесорът не трябва да е idle
+    Един видеофайл се прекодира по-бавно от общото време за изтегляне на оригинала и за качване на готовия файл
+    Затова не трябва да теглим неограничено, за да има файлове за всички машини
+    Но и не трябва да чакаме да свърши прекодирането, преди да започнем да сваляме следващия файл
+    Затова ползваме `SizedQueue` - да ограничим размера на буфера, който изтегляме
+
+= slide 'Producer-consumer с три компонента - пример (1/4)' do
+  example:
+    require 'thread'
+
+    class ConvertCoordinator
+      def initialize
+        @convert_queue = SizedQueue.new(1)
+        @upload_queue  = Queue.new
+        @threads       = []
+      end
+
+      def run
+        start_downloading_files
+        start_converting_downloaded_files
+        start_uploading_converted_files
+
+        # Wait for all threads to finish
+        @threads.each(&:join)
+      end
+    end
+
+    ConvertCoordinator.new.run
+
+= slide 'Producer-consumer с три компонента - пример (2/4)' do
+  example:
+    class ConvertCoordinator
+      def start_downloading_files
+        @threads << Thread.new do
+          loop do
+            # Fetch a file to convert and put it in the convert queue.
+            # This will block if the convert queue is full.
+            @convert_queue << "some data to convert"
+          end
+        end
+      end
+    end
+
+= slide 'Producer-consumer с три компонента - пример (3/4)' do
+  example:
+    class ConvertCoordinator
+      def start_converting_downloaded_files
+        @threads << Thread.new do
+          loop do
+            # Look for files to convert.
+            # This will block if the convert queue is empty.
+            file = @convert_queue.pop
+
+            # Convert the file
+            converted_file = file
+
+            # Put the converted file it in the upload queue.
+            @upload_queue << converted_file
+          end
+        end
+      end
+    end
+
+= slide 'Producer-consumer с три компонента - пример (4/4)' do
+  example:
+    class ConvertCoordinator
+      def start_uploading_converted_files
+        @threads << Thread.new do
+          loop do
+            # Look for converted files, ready to be uploaded.
+            # This will block if the upload queue is empty.
+            converted = @upload_queue.pop
+
+            # Upload the file
+          end
+        end
+      end
+    end
+
+= slide 'Имплементация на Queue' do
+  list:
+    За да имплементирате `Queue` и `SizedQueue` в Ruby, може да използвате примитиви на по-ниско ниво:
+    `Monitor`, `MonitorMixin` и `ConditionVariable`
+    Документацията на тези класове и [статията в Wikipedia за Мonitor](https://en.wikipedia.org/wiki/Monitor_%28synchronization%29) обясняват добре ролята им
+    Има и вграден модул `Mutex_m`, който може да направи даден обект да има методите на `Mutex`
+
+= slide 'Имплементация на Queue - пример' do
+  list:
+    В кода на Rails има реализация на `Queue`, която се използва за "басейн" от връзки към базата данни
+    Имплементацията е интересна и използва `Monitor`, `MonitorMixin` и `ConditionVariable`
+    Можете да [видите кода тук](https://github.com/rails/rails/blob/b83c097a3c6b01870e58c4da01702c2e4996ca0e/activerecord/lib/active_record/connection_adapters/abstract/connection_pool.rb)
