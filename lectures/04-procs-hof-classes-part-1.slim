@@ -1,0 +1,621 @@
+= slide 'Днес' do
+  list:
+    Анонимни функции и блокове (преговор)
+    Proc-обекти
+    Функции от по-висок ред
+    Класове (част 1)
+
+= slide 'Малко въпроси' do
+  p Иванчо има 42 сникърса. Иванчо изяжда 24. Какво има Иванчо сега?
+  img src='04/snickers-bars.jpg' style='margin: 0; width: 300px; height: auto;'
+  p Диабет... Иванчо сега има диабет.
+
+= slide 'Въпрос 1' do
+  p Какво ще бъде изведено след изпълнението на следния код:
+
+  example:
+    def something(a, *b, c)
+      p b
+    end
+
+    something('foo', 'bar', 'baz', 'larodi')
+
+  .answer
+    list:
+      <code>['bar', 'baz']</code>
+
+= slide 'Въпрос 2' do
+  p Какво ще бъде изведено след изпълнението на следния код:
+
+  example:
+    class Hash
+      def string_merge(other_hash, separator = ' ')
+        merge(other_hash) do |_, old_value, new_value|
+          old_value.to_s + separator + new_value.to_s
+        end
+      end
+    end
+
+    answers = {42 => '42'}
+    p answers.string_merge(42 => 'is the meaning of life')
+
+  .answer
+    list:
+      <code>{42 => '42 is the meaning of life'}</code>
+
+= slide 'Въпрос 3' do
+  p Каква е конвенцията за употреба на <code>!</code> в края на името на метод?
+
+  .answer
+    list:
+      Символът `!` се поставя в края на метод, ако съществуват две версии на метода, с еднакво име и с разлика в поведението. Обикновено удивителната получава "по-опасният" метод, каквото и да означава това.
+      Метод с `!` в края <strong>не е</strong> задължително метод, който мутира обект, както и има методи, които мутират обекти, но не са с удивителна в края (например, `Array#pop`).
+
+= slide 'Въпрос 4' do
+  p Как може да разберем дали метод е извикан с блок?
+
+  .answer
+    list:
+      <code>#block_given?</code>
+
+= slide 'Втора задача', 'няколко думи' do
+  list:
+    Срокът изтече
+    Не сме оставяли коментари, освен на ваши въпроси
+    Скоро ще пуснем тестовете и ще си видите точките
+    Разгледайте решенията на колегите си
+    Разгледайте и нашето решение
+
+= slide 'Първо предизвикателство', 'няколко думи' do
+  list:
+    Срокът изтече
+    Успелите получават по една точка
+    Имаше кратко и елегантно решение, за което някои са се досетили
+    Разгледайте решенията на колегите си
+    Разгледайте и нашето решение
+
+= slide 'Трета задача', '...се доизпича' do
+  list:
+    Темата е ООП
+    Очаквайте я в сряда
+    Междувременно - очаквайте второ предизвикателство
+
+= slide 'Преговор' do
+  p Майката на знанието...
+
+= slide 'Анонимни функции' do
+  example:
+    # Синтаксис
+    say_hi = lambda { puts 'Hi there!' }
+    double = lambda { |x| x * 2 }
+    pow = lambda { |a, b| a**b }
+
+    # Симпатичен синтаксис (1.9+)
+    say_hi = -> { puts 'Hi there' }
+    double = ->(x) { x * 2 }
+    pow = ->(a, b) { a**b }
+
+    # Извикване
+    pow.call 2, 3
+    pow[2, 3]
+    pow.(2, 3)
+
+= slide 'Блокове' do
+  annotate:
+    def calculate
+      result = yield(2)
+      "The result for 2 is #{result}"
+    end
+
+    calculate { |x| x**2 } # =>
+
+  list:
+    Всеки метод може да приеме допълнителен аргумент, който е "анонимна функция"
+    Може да го извикате от метода с <code>yield</code>
+    Блокът може да приема аргументи
+    <code>yield</code> се оценява до стойността на блока
+
+= slide 'Блокове', '& при извикване на метод' do
+  p Ако имате ламбда, която искате да подадете като блок, може да ползвате <code>&</code>:
+
+  example:
+    is_odd = lambda { |n| n.odd? }
+
+    filter([1, 2, 3, 4, 5], &is_odd)
+    filter([1, 2, 3, 4, 5]) { |n| n.odd? }
+
+  p Горните са (почти) еквиваленти. Има малка разлика в някои други случаи.
+
+= slide 'Блокове', 'в сигнатурата' do
+  p Ако искате да вземете блока като обект, има начин:
+
+  example:
+    def invoke_with(*args, &block)
+      block.call(*args)
+    end
+
+    invoke_with(1, 2) { |a, b| puts a + b }
+
+= slide 'Блокове', '...и една особеност' do
+  p
+    ' Ако първият аргумент на функция е хеш, трябва да изтървете скобите на хеша,
+      ако изтървете скобите на метода.
+  p Защо ?
+
+  example:
+    # Валиден код
+    order drink: 'latte', size: 'grande'
+    order({drink: 'latte', size: 'grande'})
+
+    # Невалиден код
+    order {drink: 'latte', size: 'grande'}
+
+  .answer
+    list:
+      Във втория случай, Ruby си мисли, че му подавате блок.
+
+= slide 'Keyword arguments (допълнение)' do
+  p Работят и в ламбди, и в блокове
+
+  annotate:
+    ->(foo:, **opts) { [foo, opts] }.call foo: 'bar', larodi: 'baz'
+    # =>
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Proc.new', 'където става странно' do
+  p В Ruby има два вида анонимни функции. Другият е Proc.
+
+  example:
+    double = Proc.new { |x| x * 2 }
+
+    double.call(2)
+    double[2]
+    double.(2)
+
+  p Дотук е същото като при <code>lambda</code>, но има някои разлики при извикване.
+
+= slide 'lambda е специален вид Proc', 'където става по-странно' do
+  p Анонимните функции са обекти тип `Proc`, но с вдигнат специален флаг
+
+  annotate:
+    lambda { |n| n**2 }   # =>
+    Proc.new { |n| n**2 } # =>
+
+= slide 'Разлики между Proc.new и lambda' do
+  table
+    thead
+      tr
+        th
+          code f =
+        th
+          code Proc.new { |x, y| p x, y }
+        th
+          code lambda { |x, y| p x, y }
+    tbody
+      tr
+        td
+          code f.call(1)
+        td 1 nil
+        td ArgumentError
+      tr
+        td
+          code f.call(1, 2)
+        td 1 2
+        td 1 2
+      tr
+        td
+          code f.call(1, 2, 3)
+        td 1 2
+        td ArgumentError
+      tr
+        td
+          code f.call([1, 2])
+        td 1 2
+        td ArgumentError
+      tr
+        td
+          code f.call(*[1, 2])
+        td 1 2
+        td 1 2
+
+  list:
+    `yield` ползва семантиката на `Proc.new`
+    Извикването на метод ползва семантиката на `lambda`
+
+= slide 'Разлики между Proc.new и lambda', 'return' do
+  ul
+    li <code>return</code> в <code>lambda</code> излиза само от тялото на <code>lambda</code>-та
+    li <code>return</code> в <code>Proc</code> излиза от тялото на метода, в който е изпълнен <code>Proc</code>-ът
+
+  annotate:
+    def return_in_lambda
+      -> { return 42 }.call
+      'Hello world'
+    end
+
+    def return_in_proc
+      Proc.new { return 42 }.call
+      'Hello world'
+    end
+
+    return_in_lambda # =>
+    return_in_proc   # =>
+
+= slide 'Блокове, Proc-ове и ламбди', 'обобщение' do
+  list:
+    Ламбдите (`lambda`) и `Proc`-овете са анонимни функции
+    Ламбдите са почти идентични на обикновени методи
+    Ламбдите са обекти от тип `Proc`, с вдигнат специален флаг
+    Блоковете са синтактична конструкция
+    Синтаксисът около блокове включва скобите (`{`/`}`, `do`/`end`) и `yield`
+    Блок може да бъде достъпен като обект (`Proc`) и да се извика като анонимна функция
+    `lambda`/`Proc` може да се ползва като блок
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Map, filter, reduce' do
+  img src='04/map_filter_reduce_tweet.png'
+
+= slide 'Функционални закачки' do
+  p Стандартните функционални неща:
+
+  annotate:
+    numbers = [-9, -4, -1, 0, 1, 4, 9]
+
+    positive = numbers.select { |n| n >= 0 }
+    # =>
+    even = numbers.reject { |n| n.odd? }
+    # =>
+    squares = numbers.map { |n| n**2 }
+    # =>
+    roots = numbers.select { |n| n > 0 }.map { |n| n**0.5 }
+    # =>
+
+= slide 'Функционални закачки', 'синоними' do
+  p
+    ' <code>#select</code> и <code>#map</code> имат синоними
+      <code>#find_all</code> и <code>#collect</code>:
+
+  annotate:
+    numbers = [-9, -4, -1, 0, 1, 4, 9]
+
+    squares = numbers.collect { |n| n**2 }
+    # =>
+    positive = numbers.find_all { |n| n >= 0 }
+    # =>
+
+  p В Ruby подобни синоними се срещат често.
+
+= slide 'Map', 'и Pink Floyd' do
+  img src='04/pink-floyd-map-example.jpg'
+
+= slide '#reduce', 'ако разбирате това, значи сте ОК' do
+  p <code>#reduce</code> свежда списък до единична стойност с някаква операция:
+
+  annotate:
+    numbers = [1, 2, 3, 4, 5]
+
+    numbers.reduce(0) { |a, b| a + b }
+    # =>
+    numbers.reduce(1) { |a, b| a * b }
+    # =>
+
+    numbers.reduce { |a, b| a + b }
+    # =>
+    numbers.reduce { |a, b| "#{a}, #{b}" }
+    # =>
+
+  .action
+    p <code>#reduce</code> и <code>#inject</code> са синоними. Ползвайте първото.
+
+= slide '#reduce', 'примерна имплементация' do
+  example:
+    def reduce(array, initial = nil)
+      remaining = array.dup
+      buffer    = initial || remaining.shift
+
+      until remaining.empty?
+        buffer = yield buffer, remaining.shift
+      end
+
+      buffer
+    end
+
+    reduce([1, 2, 3, 4]) { |a, b| a + b }
+    reduce([1, 2, 3, 4], 0) { |a, b| a + b }
+
+= slide '#reduce', 'още по-примерна имплементация' do
+  p За забавлението.
+
+  example:
+    class Array
+      def reduce(initial = nil)
+        remaining = dup
+        buffer    = initial || remaining.shift
+
+        until remaining.empty?
+          buffer = yield buffer, remaining.shift
+        end
+
+        buffer
+      end
+    end
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Блокове', 'outro' do
+  list:
+    Ползват се изключително често (разбирайте, всичко през ред е блок)
+    Премахват нуждата от много синтаксис
+    Станете майстори на блоковете
+
+= slide 'Ruby и ООП' do
+  list:
+    Всичко е обект
+    Duck typing
+    Няма функции, има само методи
+    Няма множествено наследяване, но има mixin-и
+
+= slide 'Класове', 'прост пример' do
+  p
+    | Дефинират се с <code>class</code>. Методите, дефинирани в тялото на класа,
+      стават методи на инстанциите му. Инстанцират се с <code>ИмеНаКласа.new</code>.
+
+  annotate:
+    class Bacon
+      def chunky?
+        'yes, of course!'
+      end
+    end
+
+    bacon = Bacon.new
+    bacon.chunky?      # =>
+
+= slide 'Класове', 'конструктури' do
+  annotate:
+    class Vector
+      def initialize(x, y)
+        @x = x
+        @y = y
+      end
+    end
+
+  list:
+    `initialize` играе ролята на конструктор в Ruby
+    Може и да не се дефинира
+    Не връща стойност
+
+= slide 'Класове', 'полета' do
+  p Полетата (още: instance variables) имат представка <code>@</code>.
+
+  annotate:
+    class Vector
+      def initialize(x, y)
+        @x = x
+        @y = y
+      end
+
+      def length
+        (@x * @x + @y * @y)**0.5
+      end
+    end
+
+    vector = Vector.new 2.0, 3.0
+    vector.length()     # =>
+    vector.length       # =>
+
+= slide 'Класове', 'полета (2)' do
+  p По подразбиране имат стойност <code>nil</code>.
+
+  example:
+    class Person
+      def soul
+        @nothingness
+      end
+    end
+
+    person = Person.new
+    person.soul # nil
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Класове', 'викане на методи' do
+  p
+    ' В метод може да извикате друг със <code>self.име_на_метод</code>
+      или просто <code>име_на_метод</code>:
+  p Изпускайте <code>self</code>, освен ако наистина не ви се налага
+
+  example:
+    class Person
+      def initialize(name) @name = name                end
+      def say_hi()         puts "My name is #{@name}!" end
+      def sound_smart()    puts "1101000 1101001"      end
+
+      def talk
+        self.say_hi
+        sound_smart
+      end
+    end
+
+    mel = Person.new 'Mel'
+    mel.talk
+
+  p Такова подравняване на методи е гадно, но пък се събира в слайд.
+
+= slide 'Класове', 'self' do
+  p
+    ' В методите на класа, <code>self</code> е референция към обекта,
+      на който е извикан методът. Като <code>this</code> в Java или C++.
+
+  annotate:
+    class Person
+      def me
+        self
+      end
+    end
+
+    person = Person.new
+    person           # =>
+    person.me        # =>
+    person.me.me     # =>
+
+= slide 'Атрибути' do
+  p Полетата не са публично достъпни. Може да ги достигнете само чрез метод.
+
+  annotate:
+    class Person
+      def initialize(age)
+        @age = age
+      end
+
+      def age
+        @age
+      end
+
+      def set_age(age)
+        @age = age
+      end
+    end
+
+    person = Person.new(33)
+    person.age          # =>
+    person.set_age 20
+    person.age          # =>
+
+= slide 'Атрибути', 'setter-и' do
+  p Разбира се, <code>set_age</code> е гадно име на метод. Може и по-добре:
+
+  annotate:
+    class Person
+      def age
+        @age
+      end
+
+      def age=(value)
+        @age = value
+      end
+    end
+
+    person = Person.new
+    person.age = 33  # Същото като person.age=(33)
+
+    person.age       # =>
+
+= slide 'Атрибути', 'attr_accessor' do
+  p Последното е досадно за писане. Затова:
+
+  annotate:
+    class Person
+      attr_accessor :age
+    end
+
+    person = Person.new
+    person.age = 33
+
+    person.age # =>
+
+= slide 'Атрибути', 'какво е `attr_accessor`?' do
+  p
+    ' <code>attr_accessor</code> е метод, който генерира два метода &mdash; <code>#foo</code>
+      и <code>#foo=</code>. Достъпен е в дефинициите на класове. Неформален термин за такива
+      методи е "class macro".
+  p Има ги в изобилие.
+
+= slide 'Атрибути', 'другите макроси' do
+  p Ако ви трябва само getter или setter, може така:
+
+  example:
+    class Person
+      attr_reader :name
+      attr_writer :grade
+      attr_accessor :age, :height
+
+      attr :address # като attr_reader
+    end
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Атрибути', "Meyer's Uniform Access Principle" do
+  p Обърнете внимание, че следните два реда правят едно и също:
+
+  example:
+    person.age()
+    person.age
+
+  p
+    ' Няма разлика между достъпване на атрибут и извикване на метод, който го изчислява. Това се нарича
+      <a href="http://en.wikipedia.org/wiki/Uniform_access_principle">Uniform Access Principle</a>
+      и като цяло е хубаво нещо.
+
+= slide 'Конвенции', 'напомняне' do
+  p В Ruby важат следните конвенции.
+
+  list:
+    Имената на класове (и модули) са всъщност константи
+    Такива константи се изписват с `UpperCamelCase`
+    За обикновени константи (разни стойности) се ползва `SCREAMING_SNAKE_CASE`
+    Методите и променливите се изписват с `plain_snake_case` (в т.ч. и инстанционните променливи)
+
+= slide '"Отваряне" на класове' do
+  p Във всеки момент може да "отворите" клас и да му добавите методи.
+
+  annotate:
+    class Person
+      def name
+        'River'
+      end
+    end
+
+    class Person
+      def say_hi
+        "Hi, I am #{name}."
+      end
+    end
+
+    Person.new.say_hi # =>
+    Person.new.name   # =>
+
+= slide 'Повторно дефиниране на метод' do
+  p Ако дефинирате един метод два пъти, втората дефиниция измества първата.
+
+  example:
+    class Someone
+      def name
+        'Tom Baker'
+      end
+
+      def name
+        'Colin Baker'
+      end
+    end
+
+    Someone.new.name # => 'Colin Baker'
+
+= slide 'Тялото на класа', 'където става странно' do
+  p Тялото на класа е напълно изпълним код:
+
+  annotate:
+    class Something
+      a = 1
+      b = 2
+      a + b #=>
+    end
+
+= slide 'Тялото на класа (2)' do
+  p Понякога дори е полезно:
+
+  annotate:
+    class Object
+      if RUBY_VERSION <= '1.8.6'
+        def tap
+          yield self
+          self
+        end
+      end
+    end
