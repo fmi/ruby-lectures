@@ -1,0 +1,721 @@
+= slide 'Днес' do
+  list:
+    Още за класовете
+    Модули
+    Enumerable
+    Наследяване
+
+= slide 'Въпрос 1' do
+  p Какво ще стане ако достъпим недефинирана инстанционна променлива?
+
+  .answer
+    list:
+      Ще получим nil
+
+= slide 'Въпрос 2' do
+  p Избройте поне две разлики в поведението на <code>lambda</code> и <code>proc</code>.
+
+  .answer
+    list:
+      Ламбдите са стриктни по отношение на броя подадени аргументи, `proc` обектите не са
+      `return` в тяло на `lambda` прекратява работата на `lambda`-та, а в `proc` – на обгръщащата функция
+      Проковете правят автоматично разпадане на аргументи, подадени като списък, подобно на блокове, ламбдите – не
+
+= slide 'Малко преговор' do
+  list:
+    Класове се създават с `class`
+    Можем да дефинираме `initialize` - нещо като конструктор
+    Инстанционните променливи се префиксват с `@` и се достъпват само отвътре
+    Ако искаме да достъпим такава променлива отвън - трябва да го направим чрез метод
+    `#foo`, `#foo=`, `attr_reader :foo`, `attr_writer :foo` и `attr_accessor :foo`
+
+= slide 'Object#methods' do
+  p
+    ' Ако извикате <code>#methods</code> на нещо, ще получите масив от символи
+      с имената на методите му.
+
+  p Помните ли <code>Array#-</code>?
+
+  annotate:
+    class Person
+      def foo() end
+      def bar() end
+    end
+
+    Person.new.methods - Object.new.methods # =>
+
+= slide 'Предефиниране на оператори' do
+  p Много интуитивно.
+
+  annotate:
+    class Vector
+      attr_accessor :x, :y
+
+      def initialize(x, y)
+        @x, @y = x, y
+      end
+
+      def +(other)
+        Vector.new(x + other.x, y + other.y)
+      end
+
+      def inspect
+        "Vector.new(#@x, #@y)"
+      end
+    end
+
+    Vector.new(1, 5) + Vector.new(3, 10) # =>
+
+= slide 'Предефинируеми оператори' do
+  p Ето и всички оператори, които можете да предефинирате:
+
+  list:
+    Аритметични оператори `+ - * / % **`
+    Двоични оператори `^ | &`
+    Оператори за сравнение `<= < > >=`
+    Оператори за равенство и разпознаване по шаблон `<=> == === != =~ !~`
+    И още `[] []= >> <<`, както и унарните `+ -`
+
+= slide 'Забележки относно предефиниране на оператори' do
+  list:
+    Тези оператори не са комутативни!
+    За всяка операция от вида `a + b` всъщност се извиква `a.+(b)` (методът + от класа на `a`)
+    Операторите от вида `+= >>= &&=` не могат да се предефинират, но действат според очакваното.
+    `a += b` е просто синтаксис за `a = a + b`
+    Можете да предефинирате унарните `+ -` съответно чрез методите `+@ -@`
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'private' do
+  annotate:
+    class Person
+      def say_hi
+        "Hello! I am #{name}"
+      end
+
+      private
+
+      def name
+        'the Doctor'
+      end
+    end
+
+    person = Person.new
+    person.say_hi     # =>
+    person.name       #!
+
+= slide 'private (2)' do
+  p
+    ' Ако един метод е <code>private</code>, не може да го викате с явен получател.
+      Дори със <code>self.</code>
+
+  annotate:
+    class Person
+      def say_hi
+        "Hello! I am #{self.name}"
+      end
+
+      private
+
+      def name
+        'the Doctor'
+      end
+    end
+
+    person = Person.new
+    person.say_hi     #!
+
+= slide 'protected' do
+  list:
+    В Ruby има и `protected`
+    Не е точно това, което очаквате
+    Ползва се много рядко
+    Основно ползвате `private`
+    Ще си говорим за `protected` и `private` отново в следващи лекции
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Модули' do
+  p Модулите в Ruby имат няколко предназначения:
+
+  ul
+    li Именовани пространства
+    li Съдържане на "не-instance" методи
+    li Mixins
+
+  p Днес ще разгледаме последното.
+
+= slide 'Модули', 'като колекция от методи' do
+  p Модулите в Ruby просто съдържат методи. Дефинират се подобно на класове:
+
+  example:
+    module UselessStuff
+      def almost_pi
+        3.1415
+      end
+
+      def almost_e
+        2.71
+      end
+    end
+
+= slide 'Модули', 'миксиране' do
+  p
+    ' Модулите могат да се "миксират" с клас. Тогава той получава всички методи
+      на модула като инстанционни методи.
+
+  annotate:
+    module UselessStuff
+      def almost_pi
+        3.1415
+      end
+    end
+
+    class Something
+      include UselessStuff
+    end
+
+    Something.new.almost_pi # =>
+
+= slide 'Модули', 'self' do
+  p
+    ' В метод на модула, <code>self</code> е инстанцията от класа, в който модулът е бил миксиран и на която е извикан даденият метод.
+
+  annotate:
+    module Introducable
+      def introduction
+        "Hello, I am #{name}"
+      end
+    end
+
+    class Person
+      include Introducable
+      def name() 'The Doctor' end
+    end
+
+    doctor = Person.new
+    doctor.introduction # =>
+
+= slide 'Модули', 'приоритет на методите' do
+  p Методите на класа имат приоритет пред методите на модула.
+
+  annotate:
+    module Includeable
+      def name() 'Module' end
+    end
+
+    class Something
+      def name() 'Class' end
+      include Includeable
+    end
+
+    Something.new.name # =>
+
+= slide 'Модули', 'приоритет на методите (2)' do
+  p Ако два модула дефинират един и същи метод, ползва се методът от последно миксирания модул:
+
+  annotate:
+    module Chunky
+      def name() 'chunky' end
+    end
+
+    module Bacon
+      def name() 'bacon' end
+    end
+
+    class Something
+      include Chunky
+      include Bacon
+    end
+
+    Something.new.name # =>
+
+= slide 'Модули', 'приоритет на методите (3)' do
+  p Просто за информация: методите на mixin-ите имат приоритет пред тези на родителя.
+  p
+    ' Всичко това е свързано с нещо, наречено <em>ancestor chain</em>, за което
+      ще си говорим следващия път.
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Enumerable' do
+  list:
+    Най-важният модул в Ruby
+    Дава много полезни методи за обработка на масиви
+    Ползва се постоянно
+    [Документация на Enumerable](http://ruby-doc.org/core-2.1.0/Enumerable.html)
+
+= slide '#collect, #find_all и #inject' do
+  p Помните ли тези методи и техните синоними?
+
+  annotate:
+    [1, 2, 3, 4, 5].select { |n| n.odd? }           # =>
+    %w(foo plugh barney).map { |word| word.length } # =>
+    [1, 2, 3, 4, 5].reduce { |a, b| a * b }         # =>
+
+  .action
+    p Те са имплементирани в <code>Enumerable</code>, а не в <code>Array</code>.
+    p Всяка колекция в Ruby ги има.
+
+= slide 'Други методи на Enumerable' do
+  pre
+    ' all?        any?          chunk       collect          collect_concat
+      count       cycle         detect      drop             drop_while
+      each_cons   each_entry    each_slice  each_with_index  each_with_object
+      entries     find          find_all    find_index       first
+      flat_map    grep          group_by    include?         inject
+      lazy        map           max         max_by           member?
+      min         min_by        minmax      minmax_by        none?
+      one?        partition     reduce      reject           reverse_each
+      select      slice_before  sort        sort_by          take
+      take_while  to_a          zip
+
+  p По-нататък ще видите как използваме Enumerable, за да генерираме тази таблица.
+
+= slide 'Hash ← Enumerable' do
+  p Хешовете също са <code>Enumerable</code>:
+
+  annotate:
+    hash = {2 => 3, 4 => 5}
+
+    hash.to_a                                 # =>
+    hash.map { |p| p[0] + p[1] }              # =>
+    hash.map { |k, v| k + v }                 # =>
+    hash.reduce(0) { |s, p| s + p[0] * p[1] } # =>
+
+= slide 'Hash ← Enumerable', 'бележка под линия' do
+  p Някои от <code>Enumerable</code> методите в <code>Hash</code> са предефинирани.
+
+  annotate:
+
+    hash = {2 => 3, 4 => 5, 6 => 7, 8 => 9}
+
+    hash.select { |k, v| v > 6 }      # =>
+    hash.to_a.select { |k, v| v > 6 } # =>
+
+  p <code>Enumerable#select</code> връща списък, но <code>Hash#select</code> връща хеш.
+
+= slide 'Други неща за обхождане' do
+  list:
+    Разбира се, `Hash`, `Array`
+    Класът `Range` от числа, дати, символи и прочее
+    Класът за множество `Set` и други...
+
+= slide 'include Enumerable', 'или как да го ползваме за наши класове' do
+  list:
+    Разбира се, започвате с `include Enumerable`
+    Като минимум, трябва да дефинирате `#each`
+    Той ви дава всичко останало
+
+= slide 'include Enumerable', 'пример' do
+  annotate:
+    class FibonacciNumbers
+      include Enumerable
+
+      def initialize(limit)
+        @limit = limit
+      end
+
+      def each
+        current, previous = 1, 0
+
+        while current < @limit
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new(100).to_a # =>
+
+= slide 'include Enumerable', 'пример' do
+  annotate:
+    class StepRange
+      include Enumerable
+
+      def initialize(first, last, step)
+        @first, @last, @step = first, last, step
+      end
+
+      def each
+        @first.step(@last, @step) { |n| yield n }
+      end
+    end
+
+    StepRange.new(1, 10, 2).select { |n| n > 5 } # =>
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide '#all? и #any?' do
+  p
+    ' <code>#all?</code>/<code>#any?</code> връщат истина, ако всички/един елемент(и) от
+      колекцията отговарят на някакво условие.
+
+  annotate:
+    [1, 2, 3, 4].all? { |x| x.even? } # =>
+    [1, 2, 3, 4].any? { |x| x.even? } # =>
+
+    [2, 4, 6, 8].all? { |x| x.even? } # =>
+    [2, 4, 6, 8].any? { |x| x.odd? }  # =>
+
+    # И разбира се:
+    [1, 2, 3, 4].any?(&:even?)        # =>
+
+= slide '#all? и #any? без блок' do
+  p
+    ' <code>#all?</code> и <code>#any?</code> могат да работят и без блок:
+
+  annotate:
+    [1, 2, 3, nil].all?     # =>
+    [1, 2, 3, :nil].all?    # =>
+    [1, 2, 3, false].any?   # =>
+
+= slide '#one? и #none?' do
+  p Аналогични на <code>#all?</code> и <code>#any?</code>. Също могат да работят без блок.
+
+  annotate:
+    %w(foo bar larodi).one? { |word| word.length == 6 }  # =>
+    %w(foo bar larodi).one? { |word| word.length == 3 }  # =>
+
+    [1, 5, 3].none? { |number| number.even? }   # =>
+    [1, 2, 3].none? { |number| number.even? }   # =>
+
+    [1, 2, 3].one?     # =>
+    [1, nil, nil].one? # =>
+
+= slide '#none? в действие' do
+  annotate:
+    class Integer
+      def prime?
+        return false if self == 1
+        2.upto(self ** 0.5).none? { |n| self % n == 0 }
+      end
+    end
+
+    7.prime? # =>
+    8.prime? # =>
+
+= slide '#each_with_index' do
+  p <code>#each_with_index</code> yield-ва всеки елемент с индекса му в масива:
+
+  example:
+    %w[foo bar baz].each_with_index do |word, index|
+      puts "#{index}. #{word}"
+    end
+
+  p Горното извежда:
+
+  pre
+    ' 0. foo
+      1. bar
+      2. baz
+
+= slide '#map with index?' do
+  p Няма <code>#map_with_index</code>.
+
+  p Затова пък има нещо по-общо:
+
+  example:
+    %w[foo bar baz].map.with_index do |word, index|
+      [index, word]
+    end
+
+    # => [[0, "foo"], [1, "bar"], [2, "baz"]]
+
+= slide '#group_by' do
+  p Името казва всичко, което ви е нужно да знаете.
+
+  annotate:
+    words  = %w(foo bar plugh larodi)
+    groups = words.group_by { |word| word.length }
+
+    groups # =>
+
+= slide '#each_slice' do
+  p <code>#each_slice(n)</code> <code>yield</code>-ва елементите на части по <code>n</code>:
+
+  example:
+    %w(a b c d e f g h).each_slice(3) do |slice|
+      p slice
+    end
+
+  p Извежда
+  pre
+    ' ["a", "b", "c"]
+      ["d", "e", "f"]
+      ["g", "h"]
+
+= slide '#each_cons' do
+  p <code>#each_cons(n)</code> <code>yield</code> "подмасиви" с <code>n</code> елемента:
+
+  example:
+    [1, 2, 3, 4, 5].each_cons(3) do |cons|
+      p cons
+    end
+
+  p Извежда
+  pre
+    ' [1, 2, 3]
+      [2, 3, 4]
+      [3, 4, 5]
+
+= slide '#include? и #member?' do
+  p Вече знаете какво прави:
+
+  annotate:
+    [1, 2, 3, 4].include? 3   # =>
+    [1, 2, 3, 4].member? 5    # =>
+
+  p Двете са синоними.
+
+= slide 'To infinity and beyond!', 'лирическо отклонение' do
+  annotate:
+    (0...1.0 / 0.0).include? -1 # =>
+
+  .action
+    annotate:
+      1 / 0     #!
+      1.0 / 0.0 # =>
+
+= slide '#zip' do
+  annotate:
+    [1, 2, 3].zip([4, 5, 6])    # =>
+    [1, 2].zip([3, 4], [5, 6])  # =>
+
+= slide '#take, #drop, #take_while и #drop_while' do
+  annotate:
+    [1, 2, 3, 4, 5].take(2)  # =>
+    [1, 2, 3, 4, 5].drop(2)  # =>
+
+    [1, 3, 5, 6, 7, 9].take_while(&:odd?)  # =>
+    [1, 3, 5, 6, 7, 9].drop_while(&:odd?) # =>
+
+= slide 'Как генерирахме таблицата с методите?' do
+  pre
+    ' all?        any?          chunk       collect          collect_concat
+      count       cycle         detect      drop             drop_while
+      each_cons   each_entry    each_slice  each_with_index  each_with_object
+      entries     find          find_all    find_index       first
+      flat_map    grep          group_by    include?         inject
+      lazy        map           max         max_by           member?
+      min         min_by        minmax      minmax_by        none?
+      one?        partition     reduce      reject           reverse_each
+      select      slice_before  sort        sort_by          take
+      take_while  to_a          zip
+
+= slide 'Как генерирахме таблицата с методите?', 'кодът' do
+  example:
+    Enumerable.instance_methods.
+      sort.
+      map { |name| name.to_s.ljust(16) }.
+      each_slice(5) { |row| puts row.join '' }
+
+  p.action
+    em Disclaimer: Леко е редактиран whitespace-а, за да се събере в слайд.
+
+= slide 'Въпроси по Enumerable?' do
+  p След това ще продължим с наследяване.
+
+= slide 'Наследяване' do
+  p Наследяването в Ruby става така:
+
+  annotate:
+    class Person
+      def name() 'The Doctor' end
+    end
+
+    class PolitePerson < Person
+      def introduction
+        "Hi, I am #{name}"
+      end
+    end
+
+    PolitePerson.new.introduction # =>
+
+= slide 'Наследяване', 'ограничения' do
+  list:
+    Може да наследите най-много от един родител
+    В наследника имате достъп до всички методи
+    В наследника имате достъп до всички полета
+    Ако не определите родител, класът наследява от `Object`
+    Всеки клас в Ruby наследява от `Object` (с изключение на родителя на `Object`...)
+
+= slide 'private методи' do
+  p Имате достъп до <code>private</code> методите:
+
+  annotate:
+    class Person
+      private
+      def name() 'The Doctor' end
+    end
+
+    class PolitePerson < Person
+      def introduction() "Hi, I am #{name}" end
+    end
+
+    PolitePerson.new.introduction # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of?' do
+  annotate:
+    class Base; end
+    class SpaceStation < Base; end
+
+    base    = Base.new
+    station = SpaceStation.new
+
+    base.is_a? Base            # =>
+    station.is_a? SpaceStation # =>
+    station.is_a? Base         # =>
+
+    base.instance_of? Base            # =>
+    station.instance_of? SpaceStation # =>
+    station.instance_of? Base         # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of? (2)' do
+  p <code>#is_a?</code> има синоним <code>#kind_of?</code>
+  annotate:
+    class Base; end
+    class SpaceStation < Base; end
+
+    base    = Base.new
+    station = SpaceStation.new
+
+    base.kind_of? Base            # =>
+    station.kind_of? SpaceStation # =>
+    station.kind_of? Base         # =>
+
+= slide 'Наследяване', '#is_a? и #instance_of? (3)' do
+  list:
+    Ползвайте `#is_a?` по принцип.
+    Ползвайте `#instance_of?` само когато искате да не бъде наследник.
+    Гледайте да не ги ползвате въобще &mdash; duck typing
+
+= slide 'super' do
+  p Може да предефинирате метод и да извикате версията на родителя със <code>super</code>.
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super("Mr. #{other}") + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') # =>
+
+= slide 'super (2)' do
+  p Ако извикате <code>super</code> без скоби, родителският метод получава същите аргументи.
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') # =>
+
+= slide 'super (3)' do
+  p <code>super</code> и <code>super()</code> са различни:
+
+  annotate:
+    class Person
+      def introduction_to(other)
+        "Hello #{other}."
+      end
+    end
+
+    class PolitePerson < Person
+      def introduction_to(other)
+        super() + " How do you do?"
+      end
+    end
+
+    queen = PolitePerson.new
+    queen.introduction_to('Smith') #!
+
+= slide 'Ancestor chain' do
+  list:
+    Методи могат да се дефинират само в класове и модули
+    Всеки клас има родител и миксирани модули
+    Ако един метод не се намери в класа, той се търси в миксираните модули
+    Модулите се претърсват обратно на реда, в който са `include`-нати
+    Ако не се намери в тях, се търси в родителя
+    Ако го няма там, се търси в неговите модули и после в неговия родител
+    Рекурсия, брат
+    Този списък от модули и класове, в които се търси, се нарича `ancestor chain`
+
+= slide 'Ancestor chain (2)' do
+  annotate:
+    module Foo; end
+    module Bar; end
+    module Qux; end
+
+    class Base
+      include Foo
+    end
+
+    class Derived < Base
+      include Bar
+      include Qux
+    end
+
+    Derived.ancestors # =>
+
+= slide 'Ancestor chain (3)', 'модули, миксирани в други модули' do
+  annotate:
+    module Foo; end
+    module Bar; end
+
+    module Qux
+      include Foo
+      include Bar
+    end
+
+    class Thing
+      include Qux
+    end
+
+    Thing.ancestors # =>
+
+= slide 'Ancestor chain (4)' do
+  p Има само една версия на метода:
+
+  annotate:
+    module Talking
+      def greeting() "Hello, #{name}" end
+    end
+
+    class Base
+      include Talking
+      def name()        'Base'   end
+      def say_hi_base() greeting end
+    end
+
+    class Derived < Base
+      include Talking
+      def name()           'Derived' end
+      def say_hi_derived() greeting  end
+    end
+
+    derived = Derived.new
+    derived.say_hi_base    # =>
+    derived.say_hi_derived # =>
+    derived.ancestors      # =>
