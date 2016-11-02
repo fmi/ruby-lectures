@@ -26,3 +26,7 @@
   title: 06. Синоними на методи. Именовани пространства. Класови методи. Паралелно присвояване.
   date: 2016-10-31
   slug: 06-aliases-namespaces-class-methods-assignment
+7:
+  title: 07. Класовете като обекти. Symbol#to_proc. Case. Замразяване
+  date: 2016-11-02
+  slug: 07-classes-as-objects-symbol-to-proc-case-freeze

@@ -1,0 +1,662 @@
+= slide 'Днес' do
+  list:
+    Търсене на константи
+    Класовете като обекти
+    Символи към proc обекти
+    case в Ruby
+    Замразяване на низове
+
+= slide 'Но първо...' do
+  p Малко въпроси
+
+= slide 'Въпрос 1' do
+  p Какво правят <code>alias</code> и <code>alias_method</code>? Каква е разликата между двете?
+
+  .answer
+    list:
+      Копират метод
+      `alias` е ключова дума, `alias_method` е метод
+      Единствено `alias_method` може да се използва с променливи
+
+= slide 'Въпрос 2' do
+  p Какъв ще е резултатът от кода по-долу? Защо?
+
+  example:
+    answer = 42
+
+    universe = proc do
+      def say_answer
+        puts "The answer is: #{answer}"
+      end
+
+      say_answer
+    end
+
+  .answer
+    list:
+      Нищо няма да стане, понеже не викаме <code>Proc</code>-а <code>universe</code> (trolololo)
+      При извикване щяхме да получим грешка, понеже <code>answer</code> е недефинирано в <code>say_answer</code>
+      Причината е, че <code>def</code>, <code>class</code> и <code>module</code> са scope gate-ове
+      Дефиницията на блок <strong>не е</strong> scope gate!
+
+= slide 'Въпрос 3' do
+  p Какво ще изведе на екрана следният код:
+
+  table
+    tr
+      td
+        example:
+          FOOD = 'muffin'
+          module Cake
+            FOOD = 'fruit'
+          end
+          module Dessert
+            FOOD = ::Cake
+            module Cake
+              FOOD = 'chocolate'
+            end
+          end
+
+      td
+        example:
+          puts FOOD
+          module Dessert
+            puts Cake::FOOD
+            module Cake
+              puts Cake::FOOD
+              puts ::Cake::FOOD
+              puts Dessert::FOOD
+            end
+            puts FOOD
+          end
+          puts Dessert::FOOD::FOOD
+
+= slide 'Въпрос 3' do
+  p Отговорът
+
+  table
+    tr
+      td
+        example:
+          FOOD = 'muffin'
+          module Cake
+            FOOD = 'fruit'
+          end
+          module Dessert
+            FOOD = ::Cake
+            module Cake
+              FOOD = 'chocolate'
+            end
+          end
+
+      td
+        example:
+          puts FOOD                #=> muffin
+          module Dessert
+            puts Cake::FOOD        #=> chocolate
+            module Cake
+              puts Cake::FOOD      #=> chocolate
+              puts ::Cake::FOOD    #=> fruit
+              puts Dessert::FOOD   #=> Cake
+            end
+            puts FOOD              #=> Cake
+          end
+          puts Dessert::FOOD::FOOD #=> fruit
+
+= slide 'Въпрос 4' do
+  p Какво ще съдържат променливите след присвояването:
+
+  example:
+    foo, (bar,), (larodi, *qux, answer), *others = 1, [2, 3], [1, 2, 3, 42]
+
+  .answer
+    list:
+      `foo`    #=> 1
+      `bar`    #=> 2
+      `larodi` #=> 1
+      `qux`    #=> [2, 3]
+      `answer` #=> 42
+      `others` #=> []
+
+= slide 'Root scope на константи - Object' do
+  list:
+    Той е достъпен със синтаксиса `::`
+    Също така, той се намира в `Object`
+    Тоест, `Object::FOO` и `::FOO` в (почти) всички случаи са едно и също
+    Кога може да не са?
+    `::Object::FOO` и `::FOO` са едно и също винаги
+
+= slide 'Таблици с константи' do
+  list:
+    Понякога познаването на вътрешната имплементация помага за разбирането
+    Всяка константа-клас или модул си има хеш-таблица с вложените непосредствено в нея константи
+    Root scope-ът се пази в константата `Object`
+    Така работи влагането и така работи constant resolution-ът
+
+= slide 'Таблици с константи (2)' do
+  p Можете да видите тази "таблица" през <code>constants</code>:
+
+  annotate:
+    module MyLibrary
+      class Object
+      end
+    end
+
+    MyLibrary.constants         # =>
+    MyLibrary::Object == Object # =>
+
+= slide 'Текущ scope при търсене на константи' do
+  example:
+    class Foo::Bar
+      # In the Bar scope, but not in the Foo scope
+    end
+
+  list:
+    Съществува понятието "текущ scope"
+    Той се гледа, ако използвате "релативен" път до дадена константа
+    Сменя се с ключовите думи `class` и `module`
+
+= slide 'Текущ scope при търсене на константи (2)' do
+  p В този пример:
+
+  example:
+    class Foo::Bar
+      Larodi
+    end
+
+  list:
+    Създаваме константа (клас) `Bar` и я записваме в таблицата с константи на `Foo`
+    `Foo` трябва да съществува предварително; може да бъде или модул, или клас
+    Константата `Larodi` ще се търси в таблицата на `Bar` и след това в root scope-а
+    Няма да се търси в таблицата на `Foo`
+
+= slide 'Търсене на константи' do
+  example:
+    module A::B
+      module C::D
+        Foo # Where does Ruby look for Foo?
+      end
+    end
+
+  ol
+    li.action В таблицата на <code>D</code>
+    li.action В таблицата на <code>B</code>
+    li.action В root scope-а (т.е. в таблицата на <code>Object</code>)
+
+= slide 'Въпроси дотук?' do
+  p Задайте ги сега!
+
+= slide 'Symbol#to_proc' do
+  p Следните два реда са (почти) еквивалентни:
+
+  example:
+    name = proc { |object| object.name }
+    name = :name.to_proc
+
+  .action
+    p
+      ' Когато подавате блок на метод с <code>&block</code>, Ruby извиква
+        <code>#to_proc</code>, ако <code>block</code> не е ламбда или proc.
+
+  .action
+    p Съответно, следните два реда са еквивалентни
+    annotate:
+      %w(foo plugh larodi).map { |s| s.length } # =>
+      %w(foo plugh larodi).map(&:length)        # =>
+
+= slide 'Symbol#to_proc', 'с повече от един аргумент' do
+  p Всъщност, малко по-сложно е:
+  example:
+    block = proc { |obj, *args| obj.method_name *args }
+    block = :method_name.to_proc
+
+  .action
+    p Това значи, че може да направите така:
+    annotate:
+      [{a: 1}, {b: 2}, {c: 3}].reduce { |a, b| a.merge b } # =>
+      [{a: 1}, {b: 2}, {c: 3}].reduce(&:merge)             # =>
+
+  .action
+    p Или дори:
+    annotate:
+      [1, 2, 3, 4].reduce { |sum, b| sum + b } # =>
+      [1, 2, 3, 4].reduce(&:+)                 # =>
+
+= slide 'Symbol#to_proc', 'Употреба' do
+  ul
+    li Ползва се често
+    li Дори да не го ползвате често, трябва да знаете как работи
+
+  example:
+    ['Foo', :bar, 3].map(&:to_s).map(&:upcase)
+
+= slide 'Symbol#to_proc', 'Примерна имплементация' do
+  example:
+    class Symbol
+      def to_proc
+        # ...?
+      end
+    end
+
+= slide 'Object#send' do
+  list:
+    Всеки обект в Ruby има метод `send`
+    Може да ползвате `send`, за да викате произволни методи на този обект
+    Дори `private` или `protected` такива
+    Ползвайте `public_send`, ако искате да не прекрачвате този праг
+    Например:
+
+  .action
+    annotate:
+      3.send :+, 4                # =>
+      3.public_send :+, 4         # =>
+
+  .action
+    annotate:
+      3.send :puts, 'Ruby magic!' # Ruby magic!
+      3.public_send :puts, 'wow'  #!
+
+= slide 'Symbol#to_proc', 'Примерна имплементация' do
+  example:
+    class Symbol
+      def to_proc
+        proc { |object, *args| object.public_send self, *args }
+      end
+    end
+
+= slide 'Въпроси дотук?' do
+  p ???
+
+= slide 'Класовете като обекти' do
+  list:
+    Знаем, че всичко в Ruby е обект
+    Класовете не правят изключение
+    Можем да викаме методи на тях (напр. `String.methods`)
+    Обектите тип "клас" си имат клас (`String.class`) и той е `Class`
+    Тоест, са негови инстанции
+
+= slide 'Класовете като обекти (2)' do
+  p Долното работи:
+
+  annotate:
+    a_hash_class = Hash
+    a_hash_class.new # =>
+
+= slide 'Класовете като обекти (3)' do
+  list:
+    Можем да създаваме динамично обекти тип "клас" с `Class.new`
+    Тези класове се наричат анонимни класове
+    Абсолютно аналогично е за модули
+    `Module.new` ще създаде инстанция на анонимен модул
+
+  .action
+    annotate:
+      anonymous_class = Class.new
+      anonymous_class.new # =>
+      Class.new.new       # =>
+      Module.new          # =>
+
+= slide 'Класовете като обекти (4)' do
+  p Можем да подадем блок на <code>Class.new</code>:
+
+  annotate:
+    duck = Class.new do
+      def quack_to(creature_name)
+        "Quack, #{creature_name}, quack!"
+      end
+    end
+
+    duck.new.quack_to("swan") # =>
+
+= slide 'Обектите тип "клас" и константи' do
+  example:
+    class Person
+    end
+
+  list:
+    С оглед на това, `class` е просто синтаксис, който прави обект от тип "клас"
+    Припомняме за scope gate-овете – `class` е scope gate, докато блоковете не са
+    Освен да създаде обект, `class` го присвоява и на константа
+    Тоест, примерът по-горе може да се разглежда като присвояване на константа
+    А "имената" на класове са просто константи, сочещи към някакъв обект
+
+= slide 'Класове и константи' do
+  p Когато присвоим анонимен клас на константа, попадаме в специален случай:
+
+  example:
+    Person = Class.new
+
+  annotate:
+    Class.new           # =>
+    Person = Class.new  # =>
+
+    Module.new          # =>
+    Larodi = Module.new # =>
+
+= slide 'Въпроси?' do
+  p ?!?
+
+
+= slide 'Класови методи' do
+  list:
+    Миналия път ви показахме един от начините да дефинирате такъв
+    Този начин не е единствен и не е "каноничният"
+
+= slide 'Класови методи', 'преговор' do
+  p Неканоничният и праволинеен начин за дефиниране на класов метод:
+
+  example:
+    module Snake
+      class Level
+        def Level.load(level_data)
+          # Code
+        end
+      end
+    end
+
+= slide 'Класови методи', 'втори начин' do
+  p Този начин е еквивалентен на предишния слайд:
+
+  example:
+    module Snake
+      class Level
+        def self.load(level_data)
+          # Code
+        end
+      end
+    end
+
+  p.action Това работи, понеже:
+  list:
+    Тялото на класа е изпълним код
+    Както във всеки друг контекст в Ruby, и там имаме `self`
+    `self` и `Snake::Level` в тялото на класа реферират към един и същ обект
+
+= slide 'Класови методи', 'трети начин' do
+  p Използва се при нужда да се дефинират няколко класови метода:
+
+  example:
+    module Snake
+      class Level
+        class << self
+          def load(level_data)
+            # Code
+          end
+        end
+      end
+    end
+
+  list:
+    Какъв е този синтаксис и защо работи, ще си говорим по-нататък
+
+= slide 'Класови методи', 'конвенции' do
+  list:
+    Първият начин не се ползва (`def ClassName.method_name() end`)
+    При дефиниране на един, максимум два класови метода, ползваме втория начин
+    При дефиниране на повече от един класов метод, обикновено ползваме третия начин
+
+= slide 'Въпроси дотук?' do
+  p Преди да продължим със следващата тема.
+
+
+= slide 'case' do
+  p В Ruby има "switch". Казва се <code>case</code>.
+
+  example:
+    def quote(name)
+      case name
+      when 'Yoda'
+        puts 'Do or do not. There is no try.'
+      when 'Darth Vader'
+        puts 'The Force is strong with this one.'
+      when 'R2-D2'
+        puts 'Beep. Beep. Beep.'
+      else
+        puts 'Dunno what to say'
+      end
+    end
+
+  p.action Забележете индентацията.
+
+= slide 'case', 'особености' do
+  list:
+    Няма fall-through. Не се пише `break`
+    Ако нито един `when` не мине, изпълнява се `else`
+    Ако нито един `when` не мине и няма `else`, не става нищо
+    `case` е израз, което значи, че връща стойност
+
+= slide 'case', 'алтернативен синтаксис' do
+  example:
+    case operation
+    when :& then puts 'And?'
+    when :| then puts 'Or...'
+    when :! then puts 'Not!'
+    else         puts 'WAT?'
+    end
+
+= slide 'case', 'връщана стойност' do
+  p На какво ще се оцени следният код?
+
+  example:
+    case 'Wat?'
+    when 'watnot' then puts "I'm on a horse."
+    end
+
+  .action.answer
+    p Ако няма <code>else</code> и никой <code>when</code> не match-не, се връща <code>nil</code>.
+
+= slide 'case', 'стойности' do
+  p <code>case</code> не сравнява с <code>==</code>. Може да напишете следното:
+
+  example:
+    def qualify(age)
+      case age
+      when 0..12
+        'still very young'
+      when 13..19
+        'a teenager! oh no!'
+      when 33
+        'the age of jesus'
+      when 90..200
+        'wow. that is old!'
+      else
+        'not very interesting'
+      end
+    end
+
+= slide 'case', 'Object#===' do
+  p <code>case</code> сравнява с <code>===</code>. Няколко класа го имплементират:
+
+  list:
+    `Range`
+    `Regexp`
+    `Class`
+    Списъкът не е изчерпателен...
+    По подразбиране се оценява като `==`
+
+= slide 'case', 'Class#===' do
+  example:
+    def qualify(thing)
+      case thing
+      when Integer then 'this is a number'
+      when String  then 'it is a string'
+      when Array   then thing.map { |item| qualify item }
+      else 'huh?'
+      end
+    end
+
+= slide 'case', 'Range#===' do
+  example:
+    case hours_of_sleep
+    when 8..10 then 'I feel fine.'
+    when 6...8 then 'I am a little sleepy.'
+    when 0..3  then 'OUT OF MY WAY! I HAVE PLACES TO BE AND PEOPLE TO SEE!'
+    end
+
+= slide 'case', 'Regexp#===' do
+  example:
+    def parse_date(date_string)
+      case date_string
+      when /(\d{4})-(\d\d)-(\d\d)/
+        Date.new $1.to_i, $2.to_i, $3.to_i
+      when /(\d\d)\/(\d\d)\/(\d{4})/
+        Date.new $3.to_i, $1.to_i, $2.to_i
+      end
+    end
+
+= slide 'case', 'when с няколко стойности' do
+  p Ruby позволява да обедините проверката за няколко възможни стойности в един <code>when</code>, дори да не са от един и същи тип.
+
+  example:
+    case number
+    when (42+0i)  then 'This is too complex for me!'
+    when 42, 42.0 then 'This is more like it!'
+    end
+
+= slide 'case', 'с обикновени условия' do
+  list:
+    Можете да слагате и цели изрази в `when`
+    Изпуска се параметърът след `case`, например:
+
+  .action
+    example:
+      thing = 42
+      case
+      when thing == 1 then 1
+      else 'no_idea'
+      end
+
+  list:
+    Не го правете.
+    Ако ви се налага, ползвайте обикновени `if`-ове
+
+= slide 'Въпроси по case' do
+  p Сега е моментът.
+
+
+= slide 'Замразяване на обекти в Ruby' do
+  list:
+    Замразяването става с `Object#freeze` (Мутира обекта!)
+    Реално превръща mutable-обекти в immutable
+    Можете да проверите дали обект е замразен с `Object#frozen?`
+    Веднъж замразен, даден обект не може да бъде размразен
+    Не можете да променяте вече замразени обекти (workaround е да направите `dup`)
+    Често се ползва, когато присвоявате mutable-типове на константи
+
+= slide 'Замразяване на обекти' do
+  example:
+    module Entities
+      ENTITIES = {
+        '&' => '&amp;',
+        '"' => '&quot;',
+        '<' => '&lt;',
+        '>' => '&gt;',
+      }.freeze
+
+      ENTITY_PATTERN = /#{ENTITIES.keys.join('|')}/.freeze
+
+      def escape(text)
+        text.gsub ENTITY_PATTERN, ENTITIES
+      end
+    end
+
+= slide 'Замразяване на низове' do
+  p Тъй като низовете в Ruby са mutable, всяко срещане на низ = нов обект:
+
+  annotate:
+    ''.object_id                 # =>
+    ''.object_id                 # =>
+    ''.object_id == ''.object_id # =>
+
+  list:
+    Това е performance проблем
+    Символите го решават, но те не са заместител на низове
+
+= slide 'Замразяване на низове', 'пример' do
+  example:
+    class HTTP
+      attr_reader :method
+
+      def post?
+        method == 'POST' # New string object on each call
+      end
+    end
+
+= slide 'Замразяване на низове', 'пример за workaround' do
+  example:
+    class HTTP
+      attr_reader :method
+      METHOD_POST = 'POST'
+
+      def post?
+        method == METHOD_POST
+      end
+    end
+
+  p.action Това е досадно. Затова в Ruby 2.1 има и по-добро решение.
+
+= slide 'String#freeze' do
+  annotate:
+    ''.freeze.object_id                        # =>
+    ''.freeze.object_id                        # =>
+    ''.freeze.object_id == ''.freeze.object_id # =>
+
+  list:
+    Границата между `freeze`-нати низове и символи се размива в последните версии на Ruby
+    И символите вече се garbage collect-ват
+
+= slide 'Синтаксис за замразяване на низове' do
+  list:
+    `"Chunky bacon".freeze` се оптимизира от Ruby и връща един и същи обект
+    Ако вече има такъв обект, с такова съдържание, той ще бъде преизползван
+    Важи само при първо дефиниране на низ с литерален синтаксис
+
+= slide 'Оптимизация при замразяване', 'работи само с литералния синтаксис' do
+  annotate:
+    'text'.freeze.object_id                         # =>
+    foo = 'text'
+    foo.freeze.object_id                            # =>
+    foo.freeze.object_id == 'text'.freeze.object_id # =>
+
+= slide 'Замразяване на всички стрингове във файл' do
+  list:
+    От Ruby 2.3 има начин да замразим всички стрингове в даден `rb` файл
+    Това става с магическия коментар `# frozen_string_literal: true`
+    Слага се в началото на файла
+    Всички стрингове, дефинирани в този файл са замразени при създаване
+    Внимавайте - може да счупи работата ви с някои библиотеки
+
+= slide 'Замразяване на обекти' do
+  list:
+    Полезно и интересно е да знаете за оптимизацията
+    Не замразявайте низове под път и над път заради това
+    Това е микро-оптимизация, а те не са добра идея
+    Замразявайте неща, ако ви е страх от промени :)
+
+= slide 'Размразяване на обекти' do
+  list:
+    На теория невъзможно
+    Действителността се разминава с теорията
+    Не го правете (освен за ескперименти и debugging)
+    Вързано за C имплементацията на интерпретатора
+    Има ограничения
+
+= slide 'Arendelle\'s salvation' do
+  annotate:
+    require 'fiddle'
+
+    class Object
+      def unfreeze
+        Fiddle::Pointer.new(object_id * 2)[1] &= ~(1 << 3)
+      end
+    end
+
+    script = 'Do you want to build a castle of ice?'.freeze
+    script.frozen? # =>
+    script.unfreeze
+    script[/castle of ice/] = 'snowman'
+    script.frozen? # =>
+    script # =>
+
+  list:
+    [Wut?](http://stackoverflow.com/q/35633367/2423164)
