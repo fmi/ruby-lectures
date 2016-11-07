@@ -30,3 +30,7 @@
   title: 07. Класовете като обекти. Symbol#to_proc. Case. Замразяване
   date: 2016-11-02
   slug: 07-classes-as-objects-symbol-to-proc-case-freeze
+8:
+  title: 08. Call stack. Изключения
+  slug: 08-call-stack-exceptions
+  date: 2016-11-07

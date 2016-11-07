@@ -1,0 +1,732 @@
+= slide 'Днес' do
+  list:
+    Call stack
+    Изключения
+    `catch` и `throw`
+
+= slide 'Преди това' do
+  p SUGAR TIME!
+
+= slide 'Въпрос 1' do
+  p Какви са съответните стойности тук и защо?
+
+  example:
+    'text'.object_id                == 'text'.object_id        # => ???
+    'text'.freeze.object_id         == 'text'.object_id        # => ???
+    'text'.freeze.object_id         == 'text'.freeze.object_id # => ???
+    (foo = 'text').freeze.object_id == 'text'.freeze.object_id # => ???
+
+= slide 'Въпрос 1' do
+  p Какви са съответните стойности тук и защо?
+
+  annotate:
+    'text'.object_id                == 'text'.object_id        # =>
+    'text'.freeze.object_id         == 'text'.object_id        # =>
+    'text'.freeze.object_id         == 'text'.freeze.object_id # =>
+    (foo = 'text').freeze.object_id == 'text'.freeze.object_id # =>
+
+  .answer
+    list:
+      Низовете в Ruby са mutable => всяко срещане на низ = нов обект
+      <code>'text'.freeze</code> се оптимизира от Ruby и връща един и същи обект
+      Ако вече има такъв обект, с такова съдържание, той ще бъде преизползван
+      Важи само при първо дефиниране на низ с литерален синтаксис
+
+= slide 'Въпрос 2' do
+  p Какво ще се случи при изпълнение на следния код (и защо):
+
+  example:
+    case 42
+      when String         then 'This is a string'
+      when :odd?.to_proc  then 'This is an odd number'
+      when :even?.to_proc then 'This is an even number'
+      else                     'I have no f*cking idea what this is.'
+    end
+
+  .answer
+    list:
+      Ще изведе "This is an even number"
+      <code>case</code> използва "оператора" <code>===</code>, за да оценява различните случаи.
+      Всеки <code>when</code> се оценява така: <code>condition === testable</code>.
+      `Proc` имплементира `===` като извиква себе си с подадения на `===` аргумент.
+
+= slide 'Въпрос 3' do
+  p Как създаваме анонимни класове? А модули?
+
+  .answer
+    list:
+      `anonymous_class = Class.new`
+      `anonymous_module = Module.new`
+
+= slide 'Въпрос 4' do
+  p Избройте поне 3 начина за дефиниране на класови методи.
+  p Какви са конвенциите при използване на тези начини?
+
+  .answer
+    list:
+      1) `def ClassName.method_name(); end` - не се използва
+      2) `def self.method_name(); end` - при дефиниране на един, максимум два класови метода
+      3) `class << self` - при дефиниране на повече от един класов метод
+
+= slide 'Въпрос 5' do
+  p Какво правят `send` и `public_send`? Каква е разликата между тях?
+
+  .answer
+    list:
+      `send` може да извиква произволни методи на даден обект (дори `private` или `protected`)
+      `public_send` може да извиква само публични методи на даден обект
+
+= slide 'Call stack' do
+  list:
+    Пази реда на извикване на определени вложени методи и "указател" към техните аргументи и локални променливи
+    Нещо, което практически всеки език за програмиране осигурява и всяка програма използва
+    Има място за N на брой вложени извиквания (например, 65к)
+    Бездънната рекурсия – извикване на нови и нови методи, без старите извиквания да са приключили – го препълва
+
+= slide 'Достъп до call стека' do
+  list:
+    Методът `caller` връща списък с низове, които показват къде сме в текущия call стек
+    Показват имената на методите, които са извиквани, в обратен на извикването ред
+    В кой файл е станало извикването
+    На кой ред във файла
+
+= slide 'Пример за call stack' do
+  example:
+    # inception.rb:
+    def roll_the_ball()         go_deep               end
+    def go_deep()               we_need_to_go_deeper  end
+    def we_need_to_go_deeper()  even_deeper_than_that end
+    def even_deeper_than_that() puts(caller)          end
+
+    roll_the_ball
+
+  p Изпълняваме го с <code>ruby inception.rb</code>.
+
+= slide 'Пример за call stack - резултат' do
+  p Примерът от предния слайд ще продуцира:
+
+  pre
+    ' inception.rb:3:in `we_need_to_go_deeper'
+      inception.rb:2:in `go_deep'
+      inception.rb:1:in `roll_the_ball'
+      inception.rb:6:in `&lt;main&gt;'
+
+= slide 'Call стекът обикновено е по-дълбок', '(съкратен) пример от irb' do
+  pre
+    ' > puts caller
+      .../irb/workspace.rb:86:in `eval'
+      .../irb/workspace.rb:86:in `evaluate'
+      .../irb/context.rb:380:in `evaluate'
+      .../irb.rb:492:in `block (2 levels) in eval_input'
+      .../irb.rb:624:in `signal_status'
+      .../irb.rb:489:in `block in eval_input'
+      .../irb/ruby-lex.rb:247:in `block (2 levels) in each_top_level_statement'
+      .../irb/ruby-lex.rb:233:in `loop'
+      .../irb/ruby-lex.rb:233:in `block in each_top_level_statement'
+      .../irb/ruby-lex.rb:232:in `catch'
+      .../irb/ruby-lex.rb:232:in `each_top_level_statement'
+      .../irb.rb:488:in `eval_input'
+      .../irb.rb:397:in `block in start'
+      .../irb.rb:396:in `catch'
+      .../irb.rb:396:in `start'
+      .../bin/irb:11:in `<main>'
+      => nil
+
+= slide 'Call stacks и backtraces' do
+  list:
+    Когато възникне изключение, виждате backtrace
+    backtrace-ът е просто снимка на call стека в момента на изключението
+    Свикнете да се ориентирате в backtraces - файл, номер на ред, метод...
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Обработка на грешки' do
+  p Представете си, че пишете на C:
+
+  example:
+    char source[1000000];
+    FILE* file = fopen("text-file.txt", "r");
+
+    if (file != NULL) {
+        while ((symbol = getc(file)) != EOF) {
+            strcat(source, &symbol);
+        }
+        fclose(file);
+    } else {
+        // ERROR
+    }
+
+  list:
+    `fopen` връща указател към `FILE` или `NULL` ако има грешка
+    `getc` връща прочетен символ или `EOF` (специална константа)
+    Грозно е, нали?
+    (освен това е супер неефективно)
+
+= slide 'Обработка на грешки' do
+  p Представете си, че пишете качествен код на C:
+
+  example:
+    char *source = NULL;
+    FILE *fp = fopen("foo.txt", "r");
+    if (fp != NULL) {
+        // Go to the end of the file
+        if (fseek(fp, 0L, SEEK_END) == 0) {
+            // Get the size of the file
+            long bufsize = ftell(fp);
+            if (bufsize == -1) { /* ERROR */ }
+
+            // Allocate our buffer to that size
+            source = malloc(sizeof(char) * (bufsize + 1));
+            if (source == NULL) { /* ERROR */ }
+
+            // Go back to the start of the file
+            if (fseek(fp, 0L, SEEK_SET) != 0) { /* ERROR */ }
+
+            // Read the entire file into memory
+            size_t newLen = fread(source, sizeof(char), bufsize, fp);
+
+            if (ferror(fp) != 0) { /* ERROR */ }
+            else { source[newLen++] = '\0'; }
+        } else { /* ERROR */ }
+    } else { /* ERROR */ }
+
+= slide 'Обработка на грешки', 'Догади ли ви се?' do
+  list:
+    Последното е реален код - [Correct way to read a text file into a buffer in C](http://stackoverflow.com/a/2029227)
+    `fopen` връща `NULL` при грешка
+    `fseek` връща `0` при успех, нещо различно от `0` при грешка
+    `ftell` връща `-1` при грешка
+    `malloc` връща `NULL` при грешка
+    `fread` не сигнализира за грешки
+    `ferror` ви казва дали е имало грешка (в случая във `fread`). Връща 0 ако нямало грешки
+    Има 6 места, на които се обработват грешки
+    Има 4 различни начина за съобщаване на грешка
+    Представете си, че искате да кажете на извикващата функция, че има грешка...
+    ...или да ѝ кажете каква е била грешката
+
+= slide 'NodeJS' do
+  p Представете си, че пишете на NodeJS:
+
+  example:
+    function liveADay(callback) {
+      getUpInTheMorning(function(time) {
+        brushYourTeeth(function() {
+          goToFMI(function() {
+            sleepInClass(function() {
+              goHome(function() {
+                liveADay(callback);
+              });
+            });
+          });
+        });
+      });
+    }
+
+  list:
+    Проблем - искаме да сигнализираме за грешка, ако нещо се обърка
+
+= slide 'NodeJS - error handling' do
+  example:
+    function liveADay(callback) {
+      getUpInTheMorning(function(err, time) {
+        if (err) {
+          callback(err); return; // err = 'too early in the morning'
+        }
+
+        goToFMI(function() {
+          if (err) {
+            callback(err); return; // err = {error: 'It is Saturday'}
+          }
+
+          sleepInClass(function(err) {
+            if (err) {
+              callback(err); return; // err = TeacherGivesSnickersError
+            }
+
+            goHome(function() {
+              if (err) {
+                callback(err); return; // err = {code: ENOENT, errno: -2}
+              }
+
+              liveADay(callback);
+            });
+          });
+        });
+      });
+    }
+
+= slide 'Summary' do
+  list:
+    Има много причини да получим грешка
+    Има много начини да получим индикация за грешка
+    Има много начини да получим описание на грешката
+    C, NodeJS, Go и др. ви оставят да се оправяте сами
+    Има по-добра опция - изключения
+
+= slide 'Обработка на грешки' do
+  p Връщане на <code>nil</code> понякога е напълно приемливо. Например:
+
+  example:
+    def find(collection, expected_element)
+      collection.each do |element|
+        return element if element == expected_element
+      end
+
+      nil
+    end
+
+= slide 'Изключения' do
+  list:
+    Механизъм за обработка на грешки
+    Придвижват се нагоре (bubble-up-ват) по call стека от мястото на възникване, докато бъдат хванати или стекът свърши
+    Позволяват разделяне на обработката на грешките от мястото, където са възникнали
+    Ако никой не ги хване нейде по стека, програмата ви умира
+
+= slide 'Основни атрибути' do
+  p Изключенията в Ruby са обекти като всичко останало – инстанции на клас <code>Exception</code> или негов наследник.
+  p Имат три основни атрибута:
+
+  list:
+    Tип (клас) – `KeyError`, `RuntimeError`, `NoMethodError` – за автоматична обработка
+    Tекстово съобщение – "undefined local variable or method `foo' for main:Object" – за хора
+    Backtrace (call stack trace) – отпечатване на мястото в call стека, където се е случила грешката – отново за хора
+
+= slide 'Основни атрибути (2)' do
+  p Нека имаме инстанция на изключение в променлива <code>error</code>. Тогава:
+
+  list:
+    Tипът (класът) достъпваме с `error.class` (както и всеки друг Ruby обект)
+    Съобщението с `error.message`
+    Backtrace (call stack trace) – `error.backtrace`
+    Има и още няколко метода, вижте [документацията на `Exception`](http://ruby-doc.org/core-2.1.4/Exception.html)
+
+= slide 'Някои вградени изключения' do
+  example:
+    foo               # NameError: undefined local variable or method `foo' for main:Object
+    1 / 0             # ZeroDivisionError: divided by 1
+    File.open         # ArgumentError: wrong number of arguments (0 for 1..3)
+    File.open('/Ah?') # Errno::ENOENT: No such file or directory @ rb_sysopen - /Ah?
+
+  .action
+    p Между другото, <code>Errno::ENOENT</code> си е нормално изключение:
+
+    example:
+      Errno::ENOENT.ancestors.take_while { |kind| kind != Object }
+      # => [Errno::ENOENT, SystemCallError, StandardError, Exception]
+
+= slide 'Непълна йерархия' do
+  pre
+    ' Object
+      +-- Exception
+         +-- NoMemoryError
+         +-- ScriptError
+         |   +-- SyntaxError
+         |   +-- LoadError
+         +-- SecurityError
+         +-- StandardError
+             +-- ArgumentError
+             +-- IndexError
+             |   +-- KeyError
+             |   +-- StopIteration
+             +-- NameError
+             |   +-- NoMethodError
+             +-- RuntimeError
+             +-- TypeError
+
+= slide 'Наши собствени изключения' do
+  p За да си направим клас-изключение, обикновено наследяваме от <code>RuntimeError</code> или <code>StandardError</code>:
+
+  example:
+    class NoFriendsError < StandardError; end
+
+  list:
+    Обикновено тези класове са празни
+    Нужната функционалност я получаваме наготово от `Exception`
+    Съществуват само за разграничение по тип
+
+= slide 'Предизвикване на изключения' do
+  annotate:
+    # Предизвиква RuntimeError
+    raise "'Prophet!' said I, 'Thing of evil!" #!
+
+    # Като горното, но с различен текст
+    raise RuntimeError, 'prophet still, if bird or devil!' #!
+
+    # Друг начин да предизвикаме RuntimeError
+    raise RuntimeError.new('Whether tempter sent, or whether...') #!
+
+= slide 'Хващане на изключения' do
+  annotate:
+    begin
+      puts '...tempest tossed thee here ashore'
+      raise NameError, 'Desolate yet all undaunted'
+    rescue => ex
+      ex.message   #=>
+      ex.class     #=>
+    end
+
+= slide 'Хващане на изключения', 'хващане на конкретен тип' do
+  annotate:
+    begin
+      raise KeyError, 'on this desert land enchanted'
+    rescue ArgumentError => ex
+      puts 'on this home by horror haunted'
+    rescue KeyError, TypeError => ex
+      ex.message  # =>
+      ex.class    # =>
+    end
+
+= slide 'Какво хваща rescue?' do
+  p <code>rescue</code> хваща "само" наследници на <code>StandardError</code>, ако не сме указали друго:
+  pre
+    ' Object
+      +-- Exception
+         +-- NoMemoryError
+         +-- ScriptError<strong>
+         +-- StandardError
+             +-- ArgumentError
+             +-- NameError
+             |   +-- NoMethodError
+             +-- RuntimeError</strong>
+
+= slide 'Въпрос към вас', 'Какво ще се случи тук?' do
+  example:
+    begin
+      raise KeyError, 'tell me truly, I implore'
+    rescue IndexError => ex
+      puts 'IndexError'
+    rescue KeyError => ex
+      puts 'KeyError'
+    end
+
+  .action.answer
+    p Ще се изведе 'IndexError'
+
+= slide 'Йерархията отново (непълна)' do
+  pre
+    ' Object
+      +-- Exception
+         +-- NoMemoryError
+         +-- ScriptError
+         |   +-- SyntaxError
+         |   +-- LoadError
+         +-- SecurityError
+         +-- StandardError
+             +-- ArgumentError
+             +-- IndexError
+             |   +-- KeyError
+             |   +-- StopIteration
+             +-- NameError
+             |   +-- NoMethodError
+             +-- RuntimeError
+             +-- TypeError
+
+= slide 'Хващане на изключения', 'приоритет на rescue клаузите' do
+  p Припомняне <code>KeyError &lt; IndexError</code>
+
+  annotate:
+    $eh = 'foo'
+
+    begin
+      raise KeyError, 'Is there - is there balm in Gilead?'
+    rescue IndexError => ex
+      $eh = 'index'
+    rescue KeyError => ex
+      $eh = 'key'
+    end
+
+    $eh    # =>
+
+  p.action Изпълнява се първия <code>rescue</code>, за който изключението е <code>kind_of?</code> типа.
+
+= slide 'Запомнете' do
+  p Динамичните езици обикновено ползват прости правила
+
+  list:
+    "Първото отговарящо" е по-просто от "по-подходящото".
+    Или от "всички отговарящи".
+    Аналогичен случай с модулите.
+    Два дизайн принципа: KISS и POLA.
+    Keep it simple, stupid!
+    Principle of least astonishment.
+    Важат с пълна сила за кода, който пишете.
+
+= slide 'Хващане на изключения', 'ensure клауза' do
+  p Кодът в <code>ensure</code> клаузата се изпълнява винаги.
+
+  example:
+    begin
+      raise 'tell me - tell me, I implore!' if rand(2).zero?
+    ensure
+      puts '????? ??? ?????, "?????????"'
+    end
+
+  ul
+    li <code>rand(2).zero?</code> връща <code>true</code> или <code>false</code>, 50 на 50.
+    li Подходяща е за затваряне на ресурс, като отворен файл.
+    li Някой сеща ли се какво има на мястото на въпросителните?
+
+= slide 'Хващане на изключения', 'else клауза' do
+  p <code>else</code> клаузата се изпълнява когато няма възникнало изключение.
+
+  example:
+    begin
+      launch_nukes
+    rescue
+      puts 'Uh-oh! Something went wrong :('
+    else
+      puts 'War... War never changes'
+    end
+
+  list:
+    Обърнете внимание, че `launch_nukes` няма удивителна.
+    Дори да е опасен, няма &quot;по-безопасна&quot; версия.
+    Не заслужава допълнителна пунктуация.
+
+= slide 'The beginning and the end' do
+  example:
+    begin
+      get_a_life
+    rescue NoFriendsError => ex
+      puts 'Goodbye cruel world'
+    rescue InsufficientVespeneGasError, NotEnoughMineralsError
+      puts 'show me the money'
+    rescue
+      puts ';('
+    else
+      puts 'Woohoo!'
+    ensure
+      puts 'rm -rf ~/.history'
+    end
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'rescue в метод' do
+  p В случай, че ползвате <code>rescue</code> в метод така:
+
+  example:
+    def execute
+      begin
+        potentially_dangerous
+      rescue SomeException => e
+        # Handle the error
+      ensure
+        # Ensure something always happens
+      end
+    end
+
+= slide 'rescue в метод', 'Предпочитания вариант' do
+  p По-добре е да го запишете без <code>begin</code>/<code>end</code>, което е еквивалентно на предното:
+
+  example:
+    def execute
+      potentially_dangerous
+    rescue SomeException => e
+      # Handle the error
+    ensure
+      # Ensure something always happens
+    end
+
+= slide 'Предизвикване на изключение', 'по време на обработка на друго' do
+  p Ако възникне изключение при обработка друго, старото се игнорира и се "вдига" новото.
+
+  example:
+    begin
+      raise KeyError
+    rescue
+      raise TypeError
+      puts "I'm a line of code, that's never executed ;("
+    end
+
+= slide 'raise в rescue' do
+  p
+    ' <code>raise</code> в <code>rescue</code> клауза "вдига" същото
+      изключение, което се обработва.
+
+  example:
+    begin
+      raise KeyError, 'But high she shoots through air and light'
+    rescue
+      puts 'Whoops'
+      raise
+    end
+
+= slide 'begin/end', '...е израз, като всичко друго в ruby' do
+  annotate:
+    result = begin
+      raise KeyError if rand(3).zero?
+      raise NameError if rand(3).zero?
+    rescue KeyError
+      'nyckel'
+    rescue NameError
+      'namn'
+    else
+      'ingenting'
+    end
+
+    result    # =>
+
+= slide 'rescue като модификатор' do
+  ul
+    li <code>rescue</code> може да се ползва като модификатор.
+    li Ако възникне изключение, rescue връща стойността отдясно.
+    li Внимавайте. Така може да хващате само <code>StandardError</code>.
+    li Или да хванете неща, които не сте очаквали.
+
+  annotate:
+    [].fetch(1) rescue 'baba' # =>
+
+= slide 'Exception#exception' do
+  p
+    ' <code>raise type, message</code> всъщност извиква <code>type.exception(message)</code>,
+      за да конструира изключение.
+
+  annotate:
+    class Thing
+      def exception(message)
+        NameError.new(message)
+      end
+    end
+
+    thing = Thing.new
+    raise thing, 'whoops' #!
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'Как да ползваме изключения' do
+  p Може да разделим изключенията на два основни вида.
+
+  ol
+    li Непредвидими грешки, причинени от "околната среда".
+    li Програмистки грешки, причинени от неправилна употреба на парче код.
+
+= slide 'Непредвидими грешки' do
+  list:
+    Изчерпано дисково пространство, мрежови грешки, неправилни входни данни от потребител и прочее
+    Обикновено се прихващат с <code>rescue</code> от нас или от ползвателите на нашия код
+    Програмата реагира по някакъв начин – информира потребителя, пише в лог файл, прави повторни опити след време...
+
+= slide 'Програмистки грешки' do
+  list:
+    Не трябва да се хващат – трябва програмата да гръмне
+    Неправилна употреба на даден код – грешни/липсващи аргументи и прочее
+    Спазва се принципът "fail early"
+
+= slide 'Какво да хващаме?' do
+  list:
+    Възможно по-малко
+    Възможно по-конкретен тип
+    Точно поради горепосочените причини, е много вредно да хващате `Exception` или да обгръщате огромни части от програмата си с `begin ... rescue Exception`
+
+= slide 'Изключения в библиотеки' do
+  blockquote
+    ' It is recommended that a library should have one subclass of StandardError or RuntimeError and have specific exception types inherit from it. This allows the user to rescue a generic exception type to catch all exceptions the library may raise even if future versions of the library add new exception subclasses.
+
+= slide 'Изключения в библиотеки (2)' do
+  list:
+    Правите си клас, наследяващ от, да кажем, `RuntimeError` (или `StandardError`)
+    `class Skeptic::Error < RuntimeError; end`
+    Всички останали изключения във вашата библиотека наследяват от този клас
+    За "програмистки" грешки е окей да ползвате вградените класове (`ArgumentError`, `NotImplementedError` и прочее)
+    Възникването на такива грешки е знак за грешна употреба на вашия код и е важно да се видят рано (по време на разработка и тестване, а не в production)
+
+= slide 'Въпроси до тук?' do
+  p Сега е моментът да ги зададете :-)
+
+= slide 'catch и throw' do
+  list:
+    Сходни на `raise` и `rescue`
+    Не ползват изключения вътрешно
+    Служат за предаване на информация по стека (control flow)
+
+= slide 'catch и throw - общ вид' do
+  annotate:
+    def go_deep
+      go_deeper
+    end
+
+    def go_deeper
+      throw :some_label, 'the value'
+      raise 'This line WILL NOT execute.'
+    end
+
+    return_value = catch :some_label do
+      go_deep
+    end
+
+    return_value == 'the value' # =>
+
+= slide 'catch и throw', 'накратко' do
+  list:
+    `catch` приема символ и блок.
+    Нещо в блока може да извика `throw` със същия символ.
+    Когато това стане, Ruby започва да търси обратно по стека до съответния `catch`.
+    Когато бъде намерен, изпълнението продължава след `catch`-а.
+    `throw` взема допълнителен аргумент, който е върнатата стойност на `catch`.
+    Ако няма `throw`, стойността на `catch` е последния оценен израз.
+
+= slide 'catch и throw', 'edge cases' do
+  example:
+    catch(:baba) do
+      throw :baba, 'Penka'
+      'Ginka'
+    end                       # => "Penka"
+
+    catch(:baba) { 'Ginka' }  # => "Ginka"
+
+    throw :baba, 'Penka'      # error: UncaughtThrowError
+
+= slide 'catch и throw', 'реален пример' do
+  p Взет от <a href="https://github.com/mitchellh/vagrant/blob/b721eb62cfbfa93895d0d4cf019436ab6b1df05d/plugins/synced_folders/rsync/command/rsync_auto.rb#L160-L170">Vagrant</a>:
+
+  example:
+    found = catch(:done) do
+      [modified, added, removed].each do |changed|
+        changed.each do |listenpath|
+          throw :done, true if listenpath.start_with?(hostpath)
+        end
+      end
+
+      # Make sure to return false if all else fails so that we
+      # don't sync to this machine.
+      false
+    end
+
+= slide 'catch и throw', 'реален пример - дали?' do
+  p Какво ще кажете да го направим така?
+
+  example:
+    found =
+      [modified, added, removed].any? do |changed_paths|
+        changed_paths.any? { |path| path.start_with? host_path }
+      end
+
+  .action
+    p Или дори така:
+
+    example:
+      changed_paths = [modified, added, removed].flatten
+
+      found = changed_paths.any? { |path| path.start_with? host_path }
+
+= slide 'catch и throw', '(по-)реален пример' do
+  p Взет от <a href="https://github.com/discourse/discourse/blob/0f7aaf5ab19f593416a0012f223e2f91e6cb0329/lib/excerpt_parser.rb#L25-L27">Discourse</a> (и леко модифициран):
+
+  example:
+    def get_excerpt(html)
+      parser = Nokogiri::HTML::SAX::Parser.new(self)
+
+      catch(:found_excerpt) do
+        parser.parse(html)
+      end
+    end
+
+    def some_parser_hooks
+      # Make checks and gather info...
+      # Found our thing!
+      excerpt = 'something'
+      throw :found_excerpt, excerpt
+    end
