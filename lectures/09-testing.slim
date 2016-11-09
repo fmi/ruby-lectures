@@ -1,0 +1,565 @@
+= slide 'Днес' do
+  list:
+    Тестове и тестване
+    Unit, интеграционни
+    Тестове на уеб, GUI, CLI, API-та
+    RSpec примери
+
+= slide 'План за 19-20 ноември', 'традиционната планина' do
+  list:
+    Планираме я за един от двата дни в уикенда 19-20 ноември
+    От 9 сутринта до някое време следобед
+    Кой от двата зависи от прогнозата на времето
+    Ще знаем със сигурност другата седмица
+    Ще пуснем новина и тема във форума с още детайли като му дойде времето
+
+= slide 'Четвърта задача' do
+  list:
+    Ще ви я дадем този петък (2016-11-11)
+    Ще ви дадем решена задача
+    Ще трябва да напишете тестове
+    Повече подробности - в условието
+
+= slide 'Въпрос 1' do
+  p Какво ще се случи при изпълнение на следния код (и защо):
+
+  example:
+    try
+      def foo; foo; end
+      foo
+    catch Exception => e
+      puts e.class
+    end
+
+  .answer
+    list:
+      Синтактична грешка - <code>try</code> и <code>catch</code> имат различна употреба в Ruby
+      При <code>begin</code> и <code>rescue</code> щеше да изведе <code>SystemStackError</code>
+
+= slide 'Въпрос 2' do
+  p Какво ще се случи при изпълнение на следния код (и защо):
+
+  example:
+    begin
+      def foo; foo; end
+      foo
+    rescue
+      puts e.class
+    rescue 1 / 0
+      puts e.class
+    rescue Exception => e
+      puts e.class
+    end
+
+  .answer
+    list:
+      Кодът в <code>begin</code> хвърля <code>SystemStackError</code>
+      Първият <code>rescue</code> по подразбиране хваща <code>StandardError</code>
+      <code>SystemStackError</code> не е подклас на <code>StandardError</code>, търсенето продължава
+      <code>1 / 0</code> хвърля <code>ZeroDivisionError</code>
+      Няма <code>rescue</code>, което да обгражда целия израз
+
+= slide 'Софтуерът и електрониката' do
+  p Да сравним писането на софтуер с електрониката
+  p.action Нещата, които правим, обикновено изглеждат така:
+
+= slide '' do
+  img src="09/01-small-breadboard.jpg" style="max-width: 60%"
+
+= slide '' do
+  img src="09/02-breadboard-resistors.jpg" style="max-width: 60%"
+
+= slide '' do
+  img src="09/03-breadboard-ics-wires.jpg" style="max-width: 60%"
+
+= slide '' do
+  img src="09/04-breadboard-wires-mess.jpg" style="max-width: 60%"
+
+= slide '' do
+  img src="09/05-flying-montage.jpg" style="max-width: 60%"
+
+= slide 'Мотивация' do
+  list:
+    Вълнуващо е, когато "творението" проработи
+    Чувството да си създател на нещо е окриляващо и мотивиращо
+    Чувството за завършен краен продукт - също
+
+= slide 'Хвърчащият монтаж - плюсове' do
+  list:
+    Почти не изисква предварително планиране
+    Пести време
+    Подходящ за експерименти и изследване на непознати територии
+    Бързото достигане до работещ продукт носи удовлетворение
+
+= slide 'Хвърчащият монтаж - проблеми' do
+  list:
+    Изработеното изделие е много крехко и чупливо
+    Много трудно позволява модификации от един момент нататък
+    Ако има проблем, е много трудно да се открие и да се отстрани
+    Ако го оставите за месец, ще забравите всичко за него
+    Няма "пазарен" и "завършен" вид
+
+= slide 'Продукт' do
+  p Хардуерът в "хвърчащ монтаж" не е завършен продукт.
+
+= slide 'Legacy код', 'кошмарът на всеки програмист' do
+  p Какво е legacy код?
+
+  list:
+    "Legacy code is source code that relates to a no-longer supported or manufactured operating system or other computer technology."
+    Стар код, който трябва да се поддържа
+    Legacy код е всеки код без автоматизирани тестове
+
+= slide 'Код без тестове = legacy код' do
+  list:
+    Всеки ред код без тестове е равносилен на хвърчащ монтаж
+    Носи същите плюсове и минуси
+    Всеки дълготраен проект и продукт трябва да има тестове
+    Само така ще бъде завършен продукт
+
+= slide 'Няма лесен път към просветлението' do
+  list:
+    Да пишете тестове не е лесно
+    В началото ще ви отнема до два пъти повече време
+    Има много мотики, които трябва да и ще настъпите
+    "The One True Way®" не съществува
+    Трябва да извървите голяма част от пътя сами
+    Има с какво да си помагате
+
+= slide 'To test or not to test?' do
+  p Едно е сигурно - без тестове не може.
+  p.aciton Затова затягайте коланите и поемайте по пътя.
+
+= slide 'In testing we trust!' do
+  list:
+    Не всеки ред код трябва да се тества
+    Не винаги трябва да тествате даден проект (например - прототипизиране)
+    Различни техники на тестване ви носят различни плюсове и минуси - преценявайте според ситуацията
+    Както всяко правило и добра практика, не следвайте чужди съвети на сляпо
+    Пробвайте какво работи за вас, за екипа ви, за проекта
+    Опитайте да научите колкото можете от чужди грешки и сполуки, но...
+    Само опитът ви ще ви помогне
+
+= slide 'Терминология' do
+  list:
+    Понякога има вариации в термините
+    Ще опитаме да покрием основните, валидни за повечето среди и езици за програмиране
+
+= slide 'Unit тестове' do
+  list:
+    Тестване на една сравнително атомарна "единица" софтуер ("unit")
+    На практика, обикновено това са (публичните) методи на даден клас
+    Така тествате класовете си и методите си
+    Така тестваме решенията на домашните ви
+
+= slide 'Интеграционни тестове' do
+  list:
+    Тестват няколко компонента (или цялата система) в интеграция
+    Например, тест за логин на потребител - тества цялото уеб приложение, включително базата данни
+    Близки термини: "acceptance" тестове, "end-to-end" тестове
+    Обикновено са "black-box" тестове - приемат, че по-малките компоненти са unit-тествани
+    Много полезни, но бавни
+
+= slide 'Assertion (твърдение, проверка)' do
+  blockquote
+    ' An assertion is a function or macro that verifies the behavior (or the state) of the unit under test. Usually an assertion expresses a logical condition that is true for results expected in a correctly running system under test (SUT). Failure of an assertion typically throws an exception, aborting the execution of the current test.
+
+  list:
+    С други думи, единича проверка на даден факт
+    Например, ако събера 2 + 2, очаквам да получа 4
+    `assert(2 + 2 == 4, 'Wait, what?')`
+
+= slide 'Test Fixtures' do
+  blockquote
+    ' A test fixture (also known as a test context) is the set of preconditions or state needed to run a test. The developer should set up a known good state before the tests, and return to the original state after the tests.
+
+  list:
+    Това не означава само записи в база данни
+    Може да са файлове с определени данни - картинки, имейли и прочее
+    За всеки език има техники и библиотеки, които помагат с връщането на състоянието на базата
+
+= slide 'Test case' do
+  list:
+    В случая на софтуер - една тематична проверка на поведението на софтуера в конкретна ситуация
+    В един test case може да има една или няколко проверки
+    Обикновено се препоръчва да не са повече от една
+    Например - `test_can_withdraw_when_enough_amount_available`
+    Или - `test_cannot_withdraw_when_not_enough_amount_available`
+    Обикновено, освен проверки, test case-ът съдържа и някаква форма на подготовка (setup) на средата
+
+= slide 'setup/teardown, before/after' do
+  list:
+    `setup` е код, който се изпълнява преди всеки тест (test case) и подготвя "света" и състоянието за теста (fixtures)
+    `teardown` е същото, но след теста има за задача да върне нещата както са били и да направи cleanup
+    В различните test frameworks имат различни имена, но смислово правят това
+    Обикновено има възможност и за групиране на общ setup код за една тематична група от тестове
+
+= slide 'Test Suite' do
+  blockquote A test suite is a set of tests that all share the same fixture. The order of the tests shouldn&#39;t matter.
+
+  list:
+    Горното е дефиницията на този термин в xUnit / SUnit
+    Понякога "test suite" се нарича цялата съвкупност от тестове на даден проект
+
+= slide 'Test Runner' do
+  list:
+    Просто софтуер, който изпълнява тестовете ви
+    Има различни варианти за това
+    Често се налага да може да пуснете само един конкретен тест case, или само unit-тестовете на даден клас
+    Различни режими на работа и различно форматиране и оцветяване на изхода (резултатите)
+
+= slide 'Test Doubles' do
+  list:
+    Stub - симулация на метод, като връща конкретна стойност
+    Mock - като stub, но [позволява и проверка дали даден метод е извикан определен брой пъти](http://martinfowler.com/articles/mocksArentStubs.html)
+    Fake - нещо като събирателно за горните две. Алтернативна имплементация на нещо
+    Double - фалшив обект, който отговаря на всякакви съобщения (методи)
+    Това са доста груби дефиниции; понякога различни хора използват различни термини за едно и също нещо
+    Примери за [test doubles в RSpec](https://relishapp.com/rspec/rspec-mocks/docs)
+
+= slide 'Общи принципи' do
+  list:
+    Не тествате private методи
+    Ако private методите ви се струват сложни и че е нужно тестване, значи е нужно да ги изведете в отделен клас
+    Не използвате random данни в тестовете - необходимо ви е предвидимо поведение; ако веднъж стане failure, трябва да може да го пресъздадете
+    Тествате в изолация и предвидимо обкръжение - правите setup
+    Горното включва дори time traveling в някои ситуации (gem: [timecop](https://github.com/travisjeffery/timecop)) - немалко хора са имали failing test заради DST промяна, или сменена часова зона
+    Или нужда от връзка към Интернет
+
+= slide 'Скорост' do
+  list:
+    Трябва да може да проверите за части от секундата дали unit тестовете на класа, който пишете, минават или не
+    Затова тестовете трябва да са бързи - за да дават максимално бързо feedback
+    Обикновено не пускате всички тестове на всяка промяна, но често пускате unit-тестовете на дадения клас/модул/код
+    Затова и тестовете трябва да могат да работят в максимална изолация
+
+= slide 'TDD', 'test-driven development' do
+  list:
+    Методология (философия?) за разработване на софтуер
+    Някои хора твърдят, че за тях води до по-добра архитектура, по-ясен и прост код
+    Red → Green → Refactor
+    Red - пишете тест без код и пускате, за да се уверите, че не е такъв, който винаги минава
+    Green - пишете минималния код, колкото да мине теста (stub-вате), за да проверите, че тестът не е такъв, който винаги fail-ва
+    Refactor - знаете, че имате работещ тест; рефакторирате кода на спокойствие и си пускате теста след всяка промяна
+    Разчита на изолация, скорост и фокус на тестовете
+    [Test Driven Development By Example](http://www.amazon.com/Test-Driven-Development-By-Example/dp/0321146530)
+
+= slide 'BDD', 'behaviour-driven development' do
+  list:
+    Методология като TDD
+    Разликата е в начина, по който се описват тестовете
+    `проверка дали A прави Б` <> `A прави Б`
+    `провери дали А е равно на Б` <> `очаквам, че А е равно на Б`
+    Описание на проверка <> описание на поведение
+    Императивна дефиниция <> декларативна дефиниция
+    `Test::Unit` <> `RSpec`
+
+= slide 'Continuous Integration (CI)' do
+  list:
+    Машина/процес, която автоматично пуска тестовете, когато някой push-не в определен branch
+    Веднага сигнализира, ако някой commit-не код, който чупи тестовете
+    Понякога тестовете (или поне някои от тях) са по-бавни; CI-ят се грижи да ги пуска когато трябва, асинхронно от разработката на програмиста
+    Популярна услуга за това за OSS проекти – Travis CI
+
+= slide 'Метрики' do
+  list:
+    Code coverage - колко процента от редовете код са покрити от тестове
+    Обикновено се мери кои редове код се изпълняват и кои не, докато работят тестовете
+    Това е косвена метрика за покритие и още по-косвена - за качество на кода
+
+= slide 'Тестване в Ruby' do
+  list:
+    Няколко различни варианта
+    Test::Unit
+    Minitest
+    RSpec
+    Capybara, Cucumber
+
+= slide 'Test::Unit' do
+  list:
+    "An xUnit family unit testing framework for Ruby."
+    [github.com/test-unit/test-unit](https://github.com/test-unit/test-unit)
+    [test-unit.github.io](http://test-unit.github.io/)
+    Част от стандартната библиотека на Ruby
+    Има доста адаптери за различни случаи
+
+= slide 'Test::Unit - assertions' do
+  list:
+    `assert(boolean, message = nil)`
+    `assert_equal(expected, actual, message = nil)`
+    `assert_in_delta(expected_float, actual_float, delta, message = "")`
+    `assert_match(pattern, string, message = "")`
+    `assert_nil(object, message = "")`
+    `assert_not_nil(object, message = "")`
+    `assert_raises(*args, &block)`
+    [Списък с наличните assertions](http://www.rubydoc.info/gems/test-unit/1.2.3/Test/Unit/Assertions)
+
+= slide 'Test::Unit - пример' do
+  example:
+    require 'test/unit'
+
+    class TC_MyTest < Test::Unit::TestCase
+      # def setup
+      # end
+
+      # def teardown
+      # end
+
+      def test_fail
+        assert(false, 'Assertion was false.')
+      end
+    end
+
+= slide 'Minitest' do
+  list:
+    "minitest provides a complete suite of testing facilities supporting TDD, BDD, mocking, and benchmarking."
+    [Seattle.rb проект](https://github.com/seattlerb/minitest)
+    Част от стандартната библиотека от Ruby 1.9 насам
+    Съставен от Minitest::Unit, Minitest::Spec, Minitest::Mock и Minitest::Benchmark
+    [Документация](http://docs.seattlerb.org/minitest/)
+
+= slide 'Генериране на тестови данни' do
+  list:
+    Fixtures - предварително подготвени тестови данни, често за голям брой тестове
+    Factories (FactoryGirl) - създават данни само за определени тестове. По-гранулярни
+
+= slide 'SimpleCov' do
+  list:
+    [https://github.com/colszowka/simplecov](https://github.com/colszowka/simplecov)
+    Изчислява процента на code coverage, които тестовете ви имат
+
+= slide 'Тестване на GUI' do
+  list:
+    Unit-тествате кода отзад и не държите бизнес логика в GUI-specific код
+    Пишете интеграционни тестове за GUI
+    Често през accessibility функционалност
+
+= slide 'Тестване на CLI' do
+  list:
+    Същото като за GUI
+    Обикновено освен отделянето на бизнес кода, и самият bin файл е капсулиран в отделен клас - option handling-а и прочее - и може да се unit-тества
+    Интеграционният тест може и да вика изпълнимия файл, макар че това ще е по-бавно
+
+= slide 'Тестване на API-клиенти' do
+  list:
+    Моквате API-то - правите му симулация и тествате спрямо нея
+    Избягвате тестове спрямо live API-то - непредвидими и бавни (networking)
+    Полезен gem за целта - [vcr](https://github.com/vcr/vcr)
+    "Record your test suite's HTTP interactions and replay them during future test runs for fast, deterministic, accurate tests."
+
+= slide 'Тестване на уеб' do
+  list:
+    Rack::Test
+    Capybara
+    Cucumber
+
+= slide 'Rack::Test' do
+  blockquote
+    ' Rack::Test is a small, simple testing API for Rack apps. It can be used on its own or as a reusable starting point for Web frameworks and testing libraries to build on.
+
+  list:
+    "Maintains a cookie jar across requests"
+    "Easily follow redirects when desired"
+    "Set request headers to be used by all subsequent requests"
+    "Small footprint. Approximately 200 LOC"
+    [github.com/brynary/rack-test](https://github.com/brynary/rack-test)
+
+= slide 'Rack::Test - пример' do
+  example:
+    require 'rack/test'
+
+    describe 'Homepage' do
+      include Rack::Test::Methods
+
+      it 'says hello' do
+        authorize 'brian', 'secret'
+        get '/'
+
+        expect(last_response).to be_ok
+        expect(last_response.body).to eq 'Hello, Brian!'
+      end
+    end
+
+= slide 'Capybara' do
+  p
+    a href="https://github.com/jnicklas/capybara" https://github.com/jnicklas/capybara
+
+  list:
+    Интеграционни тестове
+    По подразбиране ползва Rack::Test и симулира HTTP заявки
+    Проверявате дали резултата отговаря на очакванията ви
+    Горното е бързо, но не поддържа JS и реални HTTP заявки към външни услуги
+    Затова - Capybara-WebKit, Selenium (webdriver) или Poltergeist (интеграция с PhantomJS)
+
+= slide 'Capybara - пример' do
+  example:
+    describe 'the signin process' do
+      before(:each) do
+        User.create(email: 'user@example.com', password: 'password')
+      end
+
+      it 'signs me in' do
+        visit '/sessions/new'
+
+        within '#session' do
+          fill_in 'Email', with: 'user@example.com'
+          fill_in 'Password', with: 'password'
+        end
+
+        click_button 'Sign in'
+        expect(page).to have_content 'Success'
+      end
+    end
+
+= slide 'Въпроси дотук?' do
+  p Имате ли въпроси по нещата досега?
+  p.action Следват няколко примера с RSpec
+
+= slide 'RSpec' do
+  list:
+    "Behaviour Driven Development for Ruby"
+    [github.com/rspec/rspec](https://github.com/rspec/rspec) и [rspec.info](http://rspec.info/)
+    "Assertions" се наричат "expectations" ([RSpec expectations](https://github.com/rspec/rspec-expectations))
+    Съвкупност от rspec-core, rspec-expectations и rspec-mocks
+
+= slide 'Тестване на методи' do
+  example:
+    class User
+      # Can be one of `:user`, `:admin`
+      attr_accessor :rank
+
+      def initialize(name, rank)
+        @name = name
+        @rank = rank
+      end
+
+      def admin?
+        rank == :admin
+      end
+    end
+
+= slide 'Тестване на методи' do
+  example:
+    describe User do
+      describe '#admin?' do
+        it 'is true for admins' do
+          expect(User.new('John', :admin).admin?).to be true
+        end
+
+        it 'is false for non-admins' do
+          expect(User.new('John', :user).admin?).to be false
+        end
+      end
+    end
+
+= slide 'context' do
+  example:
+    describe User do
+      describe '#admin?' do
+        context 'when the user is an admin' do
+          it 'is true' do
+            expect(User.new('John', :admin).admin?).to be true
+          end
+        end
+
+        context 'with a regular user' do
+          it 'is false' do
+            expect(User.new('John', :user).admin?).to be false
+          end
+        end
+      end
+    end
+
+= slide 'Друг пример' do
+  example:
+    class Game
+      def initialize(name, genre)
+        @name  = name
+        @genre = genre
+      end
+
+      def recommend
+        case genre
+        when :mmorpg then "Hey! Did you hear about #{name}? It's better than WoW!"
+        when :fps    then "Yo! You must try this new shooter - #{name}!"
+        else              "Have you tried #{name}? It's awesome!"
+        end
+      end
+    end
+
+= slide '' do
+  example:
+    describe Game do
+      describe '#recommend' do
+        context 'when the game is an MMORPG' do
+          it 'compares it to WoW' do
+            game = Game.new('Guild Wars 2', :mmorpg)
+            expect(game.recommend).to eq 'Hey! Did you hear about Guild Wars 2? It\'s better than WoW!'
+          end
+        end
+
+        ...
+
+= slide '' do
+  example:
+    ...
+
+    context 'when the game is an FPS' do
+      it 'calls it a shooter' do
+        game = Game.new('FarCry 4', :fps)
+        expect(game.recommend).to eq 'Yo! You must try this new shooter - FarCry 4!'
+      end
+    end
+
+    ...
+
+= slide '' do
+  example:
+    ...
+
+    context 'when the game is of an unknown genre' do
+      it 'says it\'s awesome' do
+        game = Game.new('The Witcher 3', :rpg)
+        expect(game.recommend).to eq 'Have you tried The Witcher 3? It\'s awesome!'
+      end
+    end
+
+= slide 'Конвенции' do
+  list:
+    Използвайте `<това> прави <нещо>`, не `<това> трябва да прави <нещо>` или `тест, че <това> прави <нещо>`
+    `it 'calls it a shooter'`
+    `describe` описва какво тестваме
+    `context` описва случай, който тестваме
+    Използвайте `describe` и `context` ако имате повече от един тест в група
+
+= slide 'Още' do
+  list:
+    Тестовете трябва да са максимално прости и очевидни
+    Не въртете цикли - напишете няколко `expect`-а, дори да са еднакви
+    Не слагайте if-ове
+
+= slide 'Често използвани обекти', 'let' do
+  example:
+    let(:user) { User.new('Georgi', :admin)      }
+    let(:game) { Game.new('The Witcher 3', :rpg) }
+
+    it 'can like a game' do
+      user.like(game)
+
+      expect(game.likes).to eq 1
+      expect(user.favourite_games).to match_array [game]
+    end
+
+    it 'can play a game' do
+      user.play(game, 2.hours)
+
+      expect(game.played_hours).to eq 2
+      expect(user.gameplay_hours).to eq 2
+    end
+
+= slide 'RSpec - повече информация' do
+  list:
+    Отправни точки: документацията на [rspec-core](https://relishapp.com/rspec/rspec-core/docs), [rspec-expectations](https://relishapp.com/rspec/rspec-expectations/docs) и [rspec-mocks](https://relishapp.com/rspec/rspec-mocks/docs)
+    [Spec-овете на сайта на курса](https://github.com/skanev/evans/tree/master/spec)
+    [Better Specs](http://betterspecs.org/)
+    Книги
