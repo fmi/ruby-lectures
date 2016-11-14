@@ -1,0 +1,466 @@
+= slide 'Днес' do
+  list:
+    Още примери за тестване с RSpec
+    Импортиране на файлове
+
+= slide 'План за 19-20 ноември', 'традиционната планина' do
+  list:
+    Един от двата дни в уикенда 19-20 ноември
+    От 9 сутринта до някое време следобед
+    Кой от двата зависи от прогнозата на времето
+    Ще направим Facebook събитие скоро
+    Елате, винаги е забавно
+
+= slide 'Трета задача' do
+  list:
+    Има резултати
+    Разгледайте нашето решение
+    Използвайте класове - `Argument`, `BooleanOption`, `OptionWithParameter`
+
+= slide 'Четвърта задача' do
+  list:
+    Дадохме я в петък, както обещахме
+    Срокът е до този петък
+    Трябва да напишете тестове за наше решение
+
+= slide 'Първи тест' do
+  list:
+    Наближава времето за първия тест
+    Ще го направим на 30 ноември
+    30 затворени въпроса, 45 минути; верен отговор = 1 т.; грешен = 0 т.
+
+= slide 'RSpec', 'малко преговор' do
+  list:
+    Test runner и framework за тестване
+    Използва се основно за unit тестване, но не само
+
+= slide 'Пример от предната лекция' do
+  example:
+    class Game
+      def initialize(name, genre)
+        @name  = name
+        @genre = genre
+      end
+
+      def recommend
+        case genre
+        when :mmorpg then "Hey! Did you hear about #{name}? It's better than WoW!"
+        when :fps    then "Yo! You must try this new shooter - #{name}!"
+        else              "Have you tried #{name}? It's awesome!"
+        end
+      end
+    end
+
+= slide '' do
+  example:
+    describe Game do
+      it 'compares MMORPGs to WoW' do
+        game = Game.new('Guild Wars 2', :mmorpg)
+        expect(game.recommend).to eq 'Hey! Did you hear about Guild Wars 2? It\'s better than WoW!'
+      end
+
+      it 'calls FPS games shooters' do
+        game = Game.new('FarCry 4', :fps)
+        expect(game.recommend).to eq 'Yo! You must try this new shooter - FarCry 4!'
+      end
+
+      it 'calls games from unknown genres awesome' do
+        game = Game.new('The Witcher 3', :rpg)
+        expect(game.recommend).to eq 'Have you tried The Witcher 3? It\'s awesome!'
+      end
+    end
+
+= slide 'Конвенции' do
+  list:
+    Използвайте `<това> прави <нещо>`, не `<това> трябва да прави <нещо>` или `тест, че <това> прави <нещо>`
+    `it 'calls it a shooter'`
+    `describe` описва какво тестваме
+    `context` описва случай, който тестваме
+    Използвайте `describe` и `context` ако имате повече от един тест в група
+
+= slide 'Още' do
+  list:
+    Тестовете трябва да са максимално прости и очевидни
+    Не въртете цикли - напишете няколко `expect`-а, дори да са еднакви
+    Не слагайте if-ове
+    За всеки логически път в кода трябва да има поне по една проверка
+    Използвайте `let` и `before` за да премахнете повторения
+    Повторенията са ОК
+
+= slide 'Често използвани matcher-и' do
+  example:
+    expect(object).to be value          #=> object.equal? value
+    expect(object).to eq value          #=> object == value
+    expect(object).to be < value        #=> object < value
+    expect(object).to be > value        #=> object > value
+    expect(object).to match_array value #=> сравнява два масива, без да гледа реда на елементите
+    expect(object).to be_something      #=> object.something?
+    expect(object).to have_something    #=> object.has_something?
+    expect(object).to include(value)    #=> object.include? value
+    expect { code }.to raise_error(Error, 'message')
+
+  list:
+    Използвайте най-подходящият за целта.
+    Помага за четенето на теста.
+    Може да си пишете собствени matcher-и.
+    Всички имат "обратна версия" с `to_not`.
+
+= slide 'Често използвани matcher-и', 'негативна версия' do
+  example:
+    expect(object).to_not be value          #=> object.equal? value
+    expect(object).to_not eq value          #=> object == value
+    expect(object).to_not be < value        #=> object < value
+    expect(object).to_not be > value        #=> object > value
+    expect(object).to_not match_array value #=> сравнява два масива, без да гледа реда на елементите
+    expect(object).to_not be_something      #=> object.something?
+    expect(object).to_not have_something    #=> object.has_something?
+    expect(object).to_not include(value)    #=> object.include? value
+    expect { code }.to_not raise_error
+
+= slide 'before и after' do
+  example:
+    describe '#launch_nukes' do
+      before { puts 'prepare nukes' }
+      after  { puts 'destroy nukes' }
+
+      it 'can launch the nukes' do
+        puts 'launching nukes'
+      end
+    end
+
+    it 'does not have access to nukes' do
+      puts 'cannot launch nukes'
+    end
+
+    #=> prepare nukes
+    #=> launching nukes
+    #=> destroy nukes
+    #=> cannot launch nukes
+
+= slide 'before и after' do
+  list:
+    `before`, `before(:each)` - изпълнява се преди всеки тест от групата
+    `before(:all)` - изпълнява се веднъж преди всички тестове от групата
+    Инстанционни променливи, дефинирани в блока, могат да се достъпват от тестовете
+
+= slide 'before и after' do
+  example:
+    describe '#launch_nukes' do
+      before do
+        @silo = NukeSilo.new
+        @silo.nukes = 10
+      end
+
+      it 'can launch the nukes' do
+        @silo.launch_at('Moon')
+      end
+    end
+
+    it 'does not have access to @silo' do
+      expect(@silo).to eq nil
+    end
+
+= slide 'Често използвани обекти', 'let' do
+  example:
+    let(:user) { User.new('Georgi', :admin)      }
+    let(:game) { Game.new('The Witcher 3', :rpg) }
+
+    it 'can like a game' do
+      user.like(game)
+
+      expect(game.likes).to eq 1
+      expect(user.favourite_games).to match_array [game]
+    end
+
+    it 'can play a game' do
+      user.play(game, 2.hours)
+
+      expect(game.played_hours).to eq 2
+      expect(user.gameplay_hours).to eq 2
+    end
+
+= slide 'Често използвани обекти', 'let' do
+  example:
+    let(:user) { puts 'user initialized'; User.new('Georgi', :admin) }
+
+    it 'does something' do
+      expect(user.admin?).to be true
+      expect(user.admin?).to be true
+      expect(user.admin?).to be true
+    end
+
+    it 'does something else' do
+      expect(user.superadmin?).to be true
+    end
+
+    it 'does not test user' do
+      expect(true).to be true
+    end
+
+    #=> user initialized
+    #=> user initialized
+
+= slide 'Често използвани обекти', 'let!' do
+  example:
+    let!(:user) { puts 'user initialized'; User.new('Georgi', :admin) }
+
+    it 'does something' do
+      expect(user.admin?).to be true
+      expect(user.admin?).to be true
+      expect(user.admin?).to be true
+    end
+
+    it 'does something else' do
+      expect(user.superadmin?).to be true
+    end
+
+    it 'does not test user' do
+      expect(true).to be true
+    end
+
+    #=> user initialized
+    #=> user initialized
+    #=> user initialized
+
+= slide 'let и let!' do
+  list:
+    Създават отделни обекти за всеки тест
+    `let` създава обекта при първото му използване в тест
+    `let!` създава обекта преди теста - независимо от това дали се използва
+    Използвайте `let` по подразбиране
+
+= slide 'Въпроси дотук?' do
+  p ???
+
+= slide 'Test Doubles', 'преговор' do
+  list:
+    Stub - симулация на метод, като връща конкретна стойност
+    Mock - като stub, но [позволява и проверка дали даден метод е извикан определен брой пъти](http://martinfowler.com/articles/mocksArentStubs.html)
+    Double - фалшив обект, който отговаря на всякакви съобщения (методи)
+
+= slide 'To mock or not to mock' do
+  example:
+    class Game
+      attr_accessor :likes
+
+      def initialize(name, genre)
+        # ...
+        @likes = 0
+      end
+    end
+
+    class User
+      def like(game)
+        game.likes += 1
+      end
+    end
+
+= slide 'Без mock-ване' do
+  example:
+    it 'increases the like counter of the game' do
+      game = Game.new('The Witcher 3', :rpg)
+      user = User.new('Georgi', :admin)
+
+      user.like(game)
+
+      expect(game.likes).to eq 1
+    end
+
+= slide 'С mock-ване' do
+  example:
+    it 'increases the like counter of the game' do
+      game = double
+      user = User.new('Georgi', :admin)
+
+      expect(game).to receive(:likes=).with(1)
+
+      user.like(game)
+    end
+
+  list:
+    `expect(...).to receive` фейлва теста, ако методът не бъде извикан
+
+= slide 'Stub-ване' do
+  example:
+    class Game
+      def popular?() likes >= 100 end
+    end
+
+    let(:game) { Game.new('The Witcher 3', :rpg) }
+
+    describe '#popular?' do
+      it 'returns true if the game is liked by at least 100 users' do
+        allow(game).to receive(:likes).and_return(123)
+
+        expect(game.popular?).to be true
+      end
+    end
+
+  list:
+    `allow(...).to receive` не фейлва теста, ако методът не бъде извикан
+
+= slide 'Друг пример' do
+  example:
+    class NukeSilo
+      def launch_nukes_at(city)
+        # [CLASSIFIED]
+
+        "Nukes sent at #{city}"
+      end
+    end
+
+    class User
+      def launch_nukes(silo)
+        raise "No permissions" unless rank == :president
+
+        silo.launch_nukes_at '[CLASSIFIED]'
+      end
+    end
+
+= slide 'Друг пример' do
+  example:
+    context 'when the user is a president' do
+      let(:silo) { NukeSilo.new }
+
+      it 'launches the nukes and reports what happened' do
+        user = User.new('Trump', :president)
+
+        expect(silo).to receive(:launch_nukes_at).and_return('World peace achieved')
+
+        expect(user.launch_nukes(silo)).to eq 'World peace achieved'
+      end
+    end
+
+= slide 'Двете страни на една и съща монета', 'ЗА мокване' do
+  list:
+    Тестваме поведението на метода
+    Ако се счупи `Game`, няма да се счупи теста
+    Избягваме подаване на ненужни тестови данни
+
+= slide 'Двете страни на една и съща монета', 'ПРОТИВ мокване' do
+  list:
+    Тестваме състоянието на резултата
+    Ако променим поведението на `Game`, може да пропуснем да променим и `User`
+    В някои случаи ни трябват допълнителни методи за проверка на състоянието
+
+= slide 'Как решаваме?' do
+  p Мокваме/стъбваме само ако...
+
+  list:
+    ...иначе ще въвлечем много логика от другия клас и тестът ще стане сложен
+    ...ще трябва много код за подготовка и тестът ще стане бавен
+
+
+
+= slide 'Въпроси?' do
+  p Задайте ги сега!
+
+
+
+= slide 'Импортиране на файлове' do
+  p В Ruby, код от други файлове се импортира с <code>require</code>.
+
+  .action
+    p Например:
+
+    example:
+      require 'bigdecimal'
+      require 'bigdecimal/util'
+
+= slide 'Какво търси require?' do
+  list:
+    `require 'foo'` търси файл `foo.rb` в "пътя за зареждане"
+    Още известен като load path
+    Той съдържа няколко "системни" пътища, плюс пътища от gem-ове, които сте си инсталирали
+    Очевидно, `require 'foo/bar'` търси директория `foo` с файл `bar.rb`
+    Разширението `.rb` отзад не е задължително да присъства
+    `require './foo'` търси `foo.rb` в текущата директория
+    Разбира се, абсолютни пътища също работят: `require '/home/gangelov/foo.rb'`
+
+= slide 'Текуща директория на процес', 'лирическо отклонение' do
+  p Всеки процес си има "текуща директория".
+
+  list:
+    По подразбиране наследява това от процеса, който го стартира и може да се променя.
+    Не винаги е директорията, в която се намира първоначално стартираният файл.
+    Следователно `require './foo'` не винаги ще зареди това, което очаквате.
+
+= slide 'Load path', 'където Ruby търси файлове за require' do
+  list:
+    Достъпен е като `$LOAD_PATH`
+    Още `$:`
+    Може да го променяте. Стандартно с `$:.unshift(path)`
+    Не е много добра практика да го правите
+
+= slide 'Зареждане на файлове от текущата директория' do
+  list:
+    Обикновено във вашия load path текущата директория не присъства
+    Някои хора се осмеляват да си я добавят, променяйки load path (не е добра идея)
+    Ползвайте релативен път, т.е. `require './foo'`
+
+= slide 'Зареждане на файлове от текущата директория', 'require_relative' do
+  list:
+    Алтернатива на горното е `require_relative`
+    `require_relative 'foo'` зарежда 'foo' спрямо <strong>директорията на изпълняващия се файл</strong>
+    `require './foo'` зарежда спрямо <strong>текущата директория на изпълняващия процес</strong>
+
+= slide 'Как работи require?' do
+  list:
+    Изпълнява файла
+    Константите, класове, глобални променливи и прочее са достъпни отвън
+    Няма абстракция. Все едно сте inline-нали файла на мястото на `require`-а. Почти
+    Файлът е изпълнен с друг binding. Демек, локалните му променливи са изолирани. Но само те
+    Не, че има значение, но `main` обектът е същият
+    Файлът се изпълнява само веднъж. Повторни `require`-и не правят нищо
+    Последното може да се излъже по няколко начина
+    `require` може да зарежда `.so` и `.dll` файлове
+
+= slide 'Библиотеките в Ruby' do
+  list:
+    Знаете, че се наричат gem-ове
+    Де-факто стандартното хранилище за библиотеки е [RubyGems](http://rubygems.org/)
+    Един gem е просто zip-ната папка с файлове
+    Инсталация на gem представлява сваляне на този zip и разархивирането му някъде
+    Това "някъде" е папка на вашия компютър, намираща се в `$LOAD_PATH`
+
+= slide 'Типичната структура на един gem', 'skeptic опростен' do
+  pre
+    ' .
+      ├── README.rdoc
+      ├── Rakefile
+      ├── bin
+      │   └── skeptic
+      ├── features
+      ├── lib
+      │   ├── skeptic
+      │   │   ├── rules.rb
+      │   │   └── scope.rb
+      │   └── skeptic.rb
+      ├── skeptic.gemspec
+      └── spec
+
+= slide 'Особеностите' do
+  list:
+    `lib/` обикновено съдържа `foo.rb` и `lib/foo/`
+    `foo.rb` обикновено е единственото нещо в `lib/`
+    Всичко останало е в `lib/foo`
+    `lib/` се добавя в load path
+    Така вече може да правите `require 'foo'` или `require 'foo/something'`
+    По този начин не замърсявате `require` областта
+    RubyGems прави това "автомагично"
+
+= slide 'Останалите неща' do
+  list:
+    Разгледайте [github.com/skanev/skeptic](skanev/skeptic) за повече подробности
+    После разгледайте някой друг gem
+    После си поиграйте малко с `require` и `$LOAD_PATH` и вижте какво се случва
+    Вижте [ръководствата в RubyGems](http://guides.rubygems.org/)
+
+= slide 'Kernel#load' do
+  list:
+    `load` е много сходен с `require`, но има няколко разлики
+    Иска разширение на файл - `load 'foo.rb'`
+    Повторни `load`-ове изпълняват файла
+    `load` не може да зарежда `.so`/`.dll` библиотеки
+    `load` има опционален параметър, с който може да обвие файла в анонимен модул
+    Последното дава известна изолация

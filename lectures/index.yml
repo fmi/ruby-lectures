@@ -38,4 +38,7 @@
   title: 09. Тестване
   slug: 09-testing
   date: 2016-11-09
-
+10:
+  title: 10. RSpec. Require
+  slug: 10-rspec-require
+  date: 2016-11-14
