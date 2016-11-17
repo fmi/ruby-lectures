@@ -269,7 +269,7 @@
 = slide 'С mock-ване' do
   example:
     it 'increases the like counter of the game' do
-      game = double
+      game = double likes: 0
       user = User.new('Georgi', :admin)
 
       expect(game).to receive(:likes=).with(1)
