@@ -1,0 +1,582 @@
+= slide 'Днес' do
+  list:
+    Пета задача
+    Класови променливи
+    Регулярни изрази, втора част
+
+= slide 'Пета задача' do
+  list:
+    `ArrayStore`
+    `HashStore`
+    `DataModel`
+
+= slide 'Пета задача', 'цели' do
+  list:
+    Класови методи
+    Инстанционни променливи на класове
+    Малко метапрограмиране
+
+= slide 'Хранилища' do
+  list:
+    `#create`
+    `#find`
+    `#delete`
+    `#update`
+    Не знаят нищо за моделите - работят с хешове
+    Еквивалентът на таблица от базата от данни
+
+= slide 'HashStore', '#create' do
+  example:
+    def initialize
+      @storage = {}
+    end
+
+    def create(record)
+      @storage[record[:id]] = record
+    end
+
+= slide 'HashStore', '#find' do
+  example:
+    def find(query)
+      @storage.values.select do |record|
+        query.all? { |key, value| record[key] == value }
+      end
+    end
+
+= slide 'HashStore', '#delete' do
+  example:
+    def delete(query)
+      find(query).each { |record| @storage.delete(record[:id]) }
+    end
+
+= slide 'HashStore', '#update' do
+  example:
+    def update(id, record)
+      return unless @storage.key? id
+
+      @storage[id] = record
+    end
+
+= slide 'Проблем 1', 'overuse на each' do
+  example:
+    def find(search_hash)
+      result = []
+      @storage.each do |_, current_hash|
+        result << current_hash if sub_hash?(current_hash, search_hash)
+      end
+      result
+    end
+
+= slide 'Проблем 1', 'помните ли select/reject?' do
+  example:
+    def find(query)
+      @storage.select do |_, record|
+        sub_hash?(record, query)
+      end
+    end
+
+= slide 'Проблем 1', '...' do
+  example:
+    def find(query)
+      @storage.select { |_, record| sub_hash?(record, query) }
+    end
+
+= slide 'Проблем 1', 'още един пример' do
+  example:
+    to_overload.each do |key, value|
+      desired_hash[key] = value
+    end
+
+= slide 'Проблем 1', '...' do
+  example:
+    desired_hash.merge!(to_overload)
+
+
+= slide 'Проблем 2', 'джаваподобни типове' do
+  example:
+    class DataStore
+      def create; end
+      def find;   end
+      def delete; end
+      def update; end
+    end
+
+    class ArrayStore < DataStore
+      # ...
+    end
+
+    class HashStore < DataStore
+      # ...
+    end
+
+= slide 'Проблем 2', '...' do
+  list:
+    С какво ни помага това?
+    Къде ни се налага да задаваме типове?
+    Ако забравим да напишем `HashStore#delete` метода ще връща `nil`, вместо `NoMethodError`
+    Общият родител е нещо, което в другите езици се използва за справяне с типовата им система
+    Duck typing, remember?
+
+= slide 'Проблем 3', 'опити за DRY на прост код' do
+  example:
+    module DataStore
+      def delete(query)
+        find(query).each do |obj|
+          delete_by_id(obj[:id])
+        end
+      end
+    end
+
+    class HashStore
+      include DataStore
+      def delete_by_id(id)
+        @storage.delete(id)
+      end
+    end
+
+= slide 'Проблем 3', '...' do
+  example:
+    class HashStore
+      def delete(query)
+        find(query) { |record| @storage.delete(record[:id]) }
+      end
+    end
+
+  list:
+    Кое е по-лесно за проследяване?
+    Дали изобщо спестяваме код?
+    Какво става, ако искаме да променим единия от двата store-а?
+    Какво става, ако искаме да напишем нов store - за база от данни?
+    [(Code) duplication is far cheaper than the wrong abstraction](https://www.sandimetz.com/blog/2016/1/20/the-wrong-abstraction)
+
+= slide 'The wrong abstraction' do
+  list:
+    Изваждайки дублирането на код създаваме нова абстракция - модулът `DataStore`
+    Той твърди, че за да изтрием нещо трябва да го направим на две стъпки:
+    1. Да намерим обектите
+    2. Да ги изтрием по `id`
+    Горното важи само за `ArrayStore` и `HashStore`
+
+= slide 'The wrong abstraction' do
+  list:
+    Какво става ако правим `SQLStore`?
+    `delete from users where first_name = 'Ivan' and last_name = 'Ivanov'`
+    Какво стана с търсенето и изтриването по `id`?
+    Извод:
+    Стъпили сме на грешно предположение.
+    Абстракцията ни е грешна.
+
+= slide 'The wrong abstraction', 'Sandi Metz' do
+  list:
+    Programmer A sees duplication.
+    Programmer A extracts duplication and gives it a name.
+    Programmer A replaces the duplication with the new abstraction.
+    <i>Ah, the code is perfect. Programmer A trots happily away.</i>
+    Time passes...
+
+= slide 'The wrong abstraction' do
+  list:
+    A new requirement appears for which the current abstraction is almost perfect.
+    Programmer B gets tasked to implement this requirement.
+    <i>Programmer B feels honor-bound to retain the existing abstraction...</i>
+    <i>...but since isn't exactly the same for every case, they alter the code to take a parameter,...</i>
+    <i>...and then add logic to do the right thing based on the value of that parameter.</i>
+    <strong>What was once a universal abstraction now behaves differently for different cases.</strong>
+
+= slide 'The wrong abstraction' do
+  list:
+    Номер едно причината кодът да се превръща в спагетена каша.
+    Каша, която никой не смее да пипа.
+    Защото ако се пипне се чупят тотално несвързани неща.
+    И единственото спасение е пренаписване.
+
+= slide 'The wrong abstraction', 'Изводи' do
+  list:
+    Не бързайте да extract-вате всеки повтарящ се код.
+    Преди да го направите - помислете има ли обща идея или е просто съвпадение, че се повтаря.
+    Ако има обща идея (или няколко идеи) - извлечете ги.
+    Всяка нова абстракция стъпва на някакви предположения. Постарайте се да са правилни.
+    Не се притеснявайте да рефакторирате/пренаписвате съществуващ код.
+    Кодът е средство, което моделира изискванията.
+    Изискванията се променят.
+    => Кодът трябва да се променя.
+
+= slide 'The wrong abstraction' do
+  list:
+    Това не означава, че не трябва да ви притеснява дублиране на код
+    Изваждайте дублиране на идеи
+    Ако се дублира код, но не и идея - не създавайте нова идея
+
+= slide 'The wrong abstraction' do
+  blockquote
+    | Existing code exerts a powerful influence. Its very presence argues that it is both
+      correct and necessary. We know that code represents effort expended, and we are very
+      motivated to preserve the value of this effort.
+      [...]
+      It's as if our unconscious tell us "Goodness, that's so confusing, it must have taken
+      ages to get right. Surely it's really, really important. It would be a sin to let all
+      that effort go to waste."
+  p Из <a href="https://www.sandimetz.com/blog/2016/1/20/the-wrong-abstraction">The Wrong Abstraction</a>
+
+= slide 'Проблем 4', 'id-та в модела' do
+  list:
+    Едно хранилище може да е свързано с много модели
+    Ако моделът пази id-тата, записите ще се презаписват един друг
+
+= slide 'Проблем 5', 'преизползване на id-та' do
+  p Представете си StackOverflow:
+  list:
+    Някой задава въпрос. Този въпрос си има id
+    Публикува се някъде линк към този въпрос. Линкът е по id
+    Модератор изтрива въпроса
+    Ако се преизползват id-та - следващият въпрос има id-то на изтрития
+    Всички линкове към стария въпрос вече водят към новия
+    Ако изтриването не работи правилно - всички отговори на стария въпрос са се пренесли на новия
+
+= slide 'HashStore', 'id-та' do
+  example:
+    class HashStore
+      def initialize
+        # ...
+        @next_id = 0
+      end
+
+      def next_id
+        @next_id += 1
+      end
+    end
+
+  list:
+    Трябва ли да ни притеснява дублирането на `next_id` и инстанционната променлива?
+
+= slide 'Проблем 6' do
+  example:
+    attributes.each do |attribute|
+      class_eval { attr_accessor attribute }
+    end
+
+  list:
+    `target.class_eval` сетва `self`-а на блока на `target`
+    Тук `target` е `self`
+    Тоест - променяме `self`-а на блока на `self`
+    Работи, както и `class_eval { class_eval { class_eval { attr_accessor attribute } } }`
+    Защо не последното?
+
+= slide 'Проблем 6', '...' do
+  example:
+    attributes.each do |attribute|
+      attr_accessor attribute
+    end
+
+  list:
+    ¯\_(ツ)_/¯
+
+
+= slide 'Проблем 7' do
+  example:
+    self.class.instance_variable_get(:@repository)
+    # vs
+    self.class.data_model
+
+  list:
+    Използвайте гетъри
+    `instance_variable_get` е лош подход
+    Инстанционните променливи са имплементационни детайли
+    You were so preoccupied with whether or not you could,...
+    ...you didn’t stop to think if you should.
+
+
+= slide 'Инстанционни променливи на класове', 'преговор' do
+  example:
+    class DataModel
+      def self.attributes(*attributes)
+        return @attributes if attributes.empty?
+        @attributes = attributes
+        # ...
+      end
+    end
+
+    class User < DataModel
+      attributes :name
+    end
+
+    class Picture < DataModel
+      attributes :date
+    end
+
+= slide 'Инстанционни променливи на класове' do
+  example:
+    User.attributes      #=> [:name]
+    Picture.attributes   #=> [:date]
+    DataModel.attributes #=> nil
+
+  list:
+    Това работи, защото:
+    Всеки клас е обект - има собствени инстанционни променливи
+    Извиквайки `attributes` в тялото на `User`, `self`-ът ви е `User`, НЕ `DataModel`
+
+= slide 'Класови променливи' do
+  annotate:
+    class Person
+      @@count = 0
+
+      def initialize
+        @@count += 1
+      end
+
+      def self.how_many
+        @@count
+      end
+    end
+
+    Person.new
+    Person.new
+    Person.how_many # =>
+
+= slide 'Клас променливи', 'семантиката' do
+  list:
+    Очевидно започват с `@@`
+    Търсят се в обхващащата константа
+    Ако я няма там, се търсят в родителя ѝ
+    Съответно, достъпни са в инстанция и в клас
+    Ако не са дефинирани, получавате `NameError` (направете разлика с инстанционните променливи)
+    Работят объркващо, така че по-добре ги избягвайте
+    Ако все пак ги ползвате, правете го когато нямате наследяване
+
+= slide 'Клас променливи' do
+  annotate:
+    class B
+      @@foo = 1
+      def self.foo() @@foo end
+      def self.hmm() @@bar end
+    end
+
+    class D < B
+      @@bar = 2
+      def self.bar() @@bar end
+      def self.change() @@foo = 3; @@bar = 4; end
+    end
+
+    [B.foo, D.foo, D.bar] # =>
+    B.hmm                 #!
+    D.change
+    [B.foo, D.foo, D.bar] # =>
+    B.hmm                 #!
+    D.hmm                 #!
+
+= slide '@@ vs @' do
+  list:
+    Класовите променливи се споделят между всички наследници
+    Предпочитайте инстанционни променливи, дори за класове
+
+
+= slide 'Вътрешно представяне' do
+  example:
+    def initialize(attributes)
+      attributes.each do |attribute, value|
+        send("#{attribute}=", value)
+      end
+    end
+
+    def to_hash
+      attributes.map do |attribute|
+        [attribute, send(attribute)]
+      end.to_h
+    end
+
+    def create
+      self.class.data_store.create(to_hash)
+    end
+
+  list:
+    Правим конвертирания заради начина на съхранение
+    Няма ли как да ги избегнем?
+
+= slide 'Вътрешно представяне', 'има, разбира се' do
+  example:
+    def initialize(attributes)
+      @attributes = attributes
+    end
+
+    def create
+      self.class.data_store.create(@attributes)
+    end
+
+= slide 'Ама attr_accessor иска така' do
+  example:
+    attr_accessor(attribute)
+    # vs
+    define_method("#{attribute}=") { |value| @attributes[attribute] = value }
+    define_method(attribute) { @attributes[attribute] }
+
+  list:
+    Помислете за най-подходящото вътрешно представяне.
+    Може да ви спести много код.
+
+
+
+= slide 'Въпроси?' do
+  p Продължаваме с регулярните изрази...
+
+= slide 'Бърз преговор', 'класове от символи' do
+  list:
+    Заградени между `[` и `]`
+    Наподобяват множества
+    Match-ват един символ от посочените вътре
+    Могат да се декларират диапазони, например `[a-z]` или `[0-9A-F]`
+    Има предефинирани класове от символи - `\w`, `\s` и т.н.
+
+= slide 'Бърз преговор', 'котви' do
+  list:
+    Не съвпадат с реални символи, а вместо това с невидимите граници между тях
+    `^` съвпада с началото на ред (Ruby е в multiline режим по подразбиране)
+    `$` съвпада с края на ред
+    `\A` съвпада с началото на текстов низ
+    `\z` съвпада с края на низ
+
+= slide 'Бърз преговор', 'повторители' do
+  list:
+    `s*` означава нула или повече повторения на `s`
+    `s+` търси едно или повече повторения на `s`
+    `s?` съвпада с нула или едно повторение на `s`
+    `s{m,n}` означава между m и n повторения на `s`
+
+= slide 'Бърз преговор', 'алчност' do
+  list:
+    По подразбиране повторителите са "алчни", т.е. изяждат колкото се може повече от низа
+    Това поведение може да се контролира с `?` след повторителя
+
+= slide 'Бърз преговор', 'групи' do
+  list:
+    Използва се `(` и `)`
+    Контролиране областта на влияние на дадена операция
+    Например, следното ще match-ва низове, съдържащи думите `day` или `dance`: `/\bda(y|nce)\b/`
+    Възможност за референция към „ограденото“ в скобите — в и извън шаблона
+    Групите биват номерирани или именовани
+
+= slide 'Backtracking' do
+  list:
+    Често срещан термин в регулярните изрази, свързан с имплементацията им
+    Често се случва, когато имате "алчни" повторители
+    Ето пример как работи:
+
+  .action
+    annotate:
+      /".*"/.match '"Quoted"' # =>
+
+    p Частта от шаблона <code>.*</code> хваща <code>Quoted"</code>, тъй като е алчна. Това води до невъзможност да се намери съвпадение и алгоритъмът backtrack-ва -- връща се една стъпка/символ назад.
+
+= slide 'Атомарни (неделими) групи' do
+  list:
+    Атомарните (неделими) групи могат да променят това поведение
+    Атомарна група се дефинира така: `(?>pattern)`
+    Според документацията, се ползват за оптимизация и предотвратяване на излишно backtrack-ване
+    Например:
+
+  .action
+    annotate:
+      /"(?>.*)"/.match('"Quote"') # =>
+
+= slide 'Рекурсивни групи' do
+  list:
+    Ако вместо порцията текст, отговаряща на дадена група, искате да преизпълните групата?
+    Ползвате следния синтаксис: `\g<name>`, където `name` е номер или име на група в шаблона
+    Това <strong>преизпълнява</strong> шаблона, не търси за вече намерения текст
+    Има смисъл за да направи шаблоните ви една идея по-DRY
+    Например:
+  div.action
+    annotate:
+      /(\w+), \1/.match    'testing, twice'   # =>
+      /(\w+), \g<1>/.match 'testing, twice'   # =>
+
+= slide 'Рекурсивни групи', 'втора част' do
+  list:
+    С помощта на горното можете да дефинирате рекурсивни групи
+    Спомняте ли си втория проблем, който поставихме в началото?
+  blockquote.action
+    | Да валидирате изрази от следния тип за правилно отворени/затворени скоби:
+    list:
+      `(car (car (car ...)))`
+      Например: `(car (car (car (car list))))`
+      Целта е израз, чийто резултат да може да се ползва в условен оператор (`true`/`false`-еквивалент)
+      Можете да ползвате произволни методи от класа `Regexp`
+      И регулярен израз, разбира се
+
+= slide 'Примерно решение', 'с рекурсивни групи' do
+  annotate:
+    validator = /^(\(car (\g<1>*|\w*)\))$/
+
+    valid   = '(car (car (car (car list))))'
+    invalid = '(car (car (car list))'
+
+    validator.match(valid)   ? true : false # =>
+    validator.match(invalid) ? true : false # =>
+
+= slide 'MOAR, MOAR!!!!111!' do
+  blockquote
+    | Проверете дали нещо е валиден математически израз
+    list:
+      Произволно цяло число `1337`
+      Променлива (малка латинска буква) `x`
+      Знак пред валиден израз (+, -) `-33 + 22 * -y`
+      Операция между валидни изрази (+, -, *, /) `x + y - 21 / 3`
+      Скоби, ограждащи валидни изрази `-x * (y + -5 * (7 - 13)) / 44 - 9000`
+
+= slide 'Примерно решение', 'so simple, right?' do
+  example:
+    validator = /^([-+]?(\d+|[a-z]|\(\g<1>\)|\g<1> [-+*\/] \g<1>))$/
+
+    valid   = '-(3 + (x * (7 / y))) * (44 * y - z / 22)'
+    invalid = '((33 - 7) * x'
+
+    validator.match(valid)   ? true : false
+    validator.match(invalid) ? true : false
+
+= slide 'Примерно решение', 'nope... fail!' do
+  annotate:
+    /^([-+]?(\d+|[a-z]|\(\g<1>\)|\g<1> [-+*\/] \g<1>))$/
+
+= slide 'Примерно решение', 'с рекурсивни групи' do
+  annotate:
+    validator = /^([-+]?(\d+|[a-z]|\(\g<1>\))( [-+*\/] \g<1>)?)$/
+
+    valid   = '-(3 + (x * (7 / y))) * (44 * y - z / 22)'
+    invalid = '((33 - 7) * x'
+
+    validator.match(valid)   ? true : false # =>
+    validator.match(invalid) ? true : false # =>
+
+= slide 'Look-ahead и look-behind' do
+  list:
+    Положителен look-ahead: `/(?=pattern)/`
+    Отрицателен look-ahead: `/(?!pattern)/`
+    Положителен look-behind: `/(?<=pattern)/`
+    Отрицателен look-behind: `/(?<!pattern)/`
+    Пример:
+  div.action
+    annotate:
+      /(?<=<b>)\w+(?=<\/b>)/.match("Fortune favours the <b>bold</b>") # =>
+
+= slide 'Пример' do
+  blockquote
+    | Сменете * на % ако тя не е екранирана (escape-ната)
+    list:
+      `foo*`     => `foo%`
+      `foo\*`    => `foo\*`
+      `foo\\\\*` => `foo\\\\%`
+      `*\\\**`    => `%\\\*%`
+
+= slide 'Първи начин' do
+  div.action
+    annotate:
+      "*\\**".gsub(/((?<!\\)(?:\\\\)*)\*/, '\1%') # =>
+  list:
+    Група 1 евентуално държи четни наброй `\`, които нямат пред себе си `\`
+    После ловим `*` и готово :)
+
+= slide 'Втори начин' do
+  div.action
+    annotate:
+      "*\\**".gsub(/\G([^*\\]*(?:\\.[^*\\]*)*)\*/, '\1%') # =>
+  list:
+    Сложно...
