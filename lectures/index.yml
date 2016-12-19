@@ -76,3 +76,7 @@
   title: 18. Web с Ruby. Sinatra
   slug: 18-web-and-sinatra
   date: 2016-12-14
+19:
+  title: 19. Bundler. Ruby core и stdlib. Външни зависимости. Полезни библиотеки
+  slug: 19-bundler-ruby-core-stdlib-gems-third-party-software
+  date: 2016-12-19

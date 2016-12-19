@@ -1,0 +1,386 @@
+= slide 'Днес' do
+  list:
+    Bundler - кратко въведение
+    Ruby core: `Struct`, `Comparable`, `Marshal`, `IO` & `File`, `RubyVM::InstructionSequence`
+    Ruby stdlib: `OpenStruct`
+    Как да подхождаме към външни софтуерни зависимости
+    Полезни Ruby библиотеки
+
+= slide 'Втори тест и дата за изпит' do
+  list:
+    Вторият тест ще се състои на 11. януари 2017г. (сряда)
+    Отново ще е 45 минути, 30 въпроса, 30 точки
+    Защитата на проектите ще е на 11. февруари 2017г. (събота)
+    От 10 часа до когато има хора
+
+= slide 'Бонус задача' do
+  list:
+    Ще ви я дадем днес
+    Няма да промени праговете за оценките в края на курса
+    Тоест, може да не я правите
+    Няма да се брои като непредадена
+    Носи 10 точки
+    По-сложна, ще имате седмица и половина да я решите
+
+= slide 'Бира в сряда' do
+  list:
+    В сряда вместо лекция ще се съберем в Пицария "Парма"
+    Запишете се във [Facebook събитието](https://www.facebook.com/events/368433853504270/)
+    Носете си коледното настроение
+
+= slide 'Bundler' do
+  list:
+    Практически задължително за всеки проект, който има нужда от други gem-ове.
+    Грижи се за две неща:
+    1) Инсталация на правилната версия на всички зависимости
+    2) Зареждане на правилната версия на всички зависимости
+    [GitHub](https://github.com/bundler/bundler) и [официален сайт](http://bundler.io/)
+
+= slide 'Bundler', 'Gemfile' do
+  p Посочвате зависимостите на вашия проект във файл, наречен `Gemfile`
+
+  example:
+    source 'https://rubygems.org'
+
+    gem 'rails'
+    gem 'rubocop'
+    gem 'rspec'
+
+  p Пускате командата <code>bundle install</code> и сте готови. Bundler ще се погрижи за останалото.
+
+= slide 'Bundler', 'Основни команди' do
+  list:
+    `bundle init` - генерира Gemfile в текущата директория
+    `bundle install` - инсталира зависимостите, посочени в `Gemfile`-a
+    `bundle update` - обновява зависимостите до последните им версии
+    `bundle exec` - изпълнява команда в контекста на правилните версии на посочените зависимости
+
+= slide 'Bundler', 'Версии' do
+  p Може да уточнявате каква версия на библиотека да се използва:
+
+  example:
+    gem 'rspec', '3.5'
+    gem 'rspec', '>=3.5'
+    gem 'rspec', '~> 3.5'
+
+  p <code>~></code>!?
+
+= slide 'Bundler', 'twiddle-wakka' do
+  list:
+    [semantic versioning](http://semver.org/)
+    `gem 'library', '>= 2.2.0'` - "optimistic" version constraint
+    `gem 'library', '~> 2.2'` - "pessimistic" version constraint
+    `>= 2.2.0` означава "всичко от тази версия нагоре е ок"
+    `~> 2.0.3` е еквивалентно на `>= 2.0.3 и < 2.1`
+    `~> 2.1` е еквивалентно на `>= 2.1 и < 3.0`
+    `~> 0` е еквивалентно на `>= 0.0 и < 1.0`
+
+= slide 'Bundler', 'bundle exec примери' do
+  list:
+    `bundle exec <команда> <аргумент1> <аргумент2> ...`
+    `bundle exec rails server`
+    `bundle exec rspec`
+
+= slide 'Bundler', 'обобщение' do
+  list:
+    Ако пишете Ruby, ще го използвате постоянно
+    [Научете какво може и как да го използвате](http://bundler.io/v1.12/#getting-started)
+
+= slide 'Sinatra demo' do
+  p Обещахме ви Sinatra пример с повече детайли
+
+= slide 'Ruby core & stdlib' do
+  list:
+    Полезни парчета код, които идват с Ruby
+    Разполагате с тях наготово
+    Някои са винаги заредени и налични, а други трябва да бъдат изрично заредени
+
+= slide 'Ruby core' do
+  list:
+    Ядрото на Ruby съдържа неща, които са част от интерпретатора и са винаги заредени и налични
+    Друг поглед над това е, че винаги заемат памет и не можете да ги махнете
+    Това е и причината немалка част от функционалността да е изведена в т.нар. "стандартна библиотека"
+    Разглеждали сме повечето класове от `core`; сега ще видим още няколко интересни класа
+
+= slide 'Struct' do
+  list:
+    Бърз начин да създавате мини-класове, представляващи колекция от атрибути
+    [Документация на `Struct`](http://ruby-doc.org/core-2.3.3/Struct.html)
+
+= slide 'Struct', 'пример от документацията' do
+  p Виждате, че може да добавите и свои методи там
+
+  annotate:
+    Customer = Struct.new(:name, :address) do
+      def greeting
+        "Hello #{name}!"
+      end
+    end
+
+    dave = Customer.new('Dave', '123 Main')
+
+    dave.name     # =>
+    dave.address  # =>
+    dave.greeting # =>
+
+= slide 'Struct' do
+  p Обектите от тип <code>Struct</code> приличат на колекции (хешове):
+
+  annotate:
+    Customer = Struct.new(:name, :address, :zip)
+    john = Customer.new('John Doe', '123 Maple, Anytown NC', 12345)
+
+    john.name      # =>
+    john['name']   # =>
+    john[:name]    # =>
+    john[0]        # =>
+
+    john.length    # =>
+    john.each      # =>
+
+= slide 'Приложение на Struct' do
+  p Struct vs Class
+  p Struct vs Hash
+
+= slide 'Comparable' do
+  list:
+    Ползва се, когато имате наредба на инстанциите на вашия клас
+    Дефинирате `<=>` и правите `include Comparable`
+    Получавате `<`, `<=`, `==`, `>=`, `>` и `between?`
+
+= slide 'Comparable', 'пример' do
+  annotate:
+    class Money
+      include Comparable
+
+      attr :amount, :currency
+
+      def initialize(amount, currency)
+        @amount, @currency = amount, currency
+      end
+
+      def <=>(money)
+        return unless currency == money.currency
+        amount <=> money.amount
+      end
+    end
+
+    Money.new(15, :BGN) < Money.new(30, :BGN) # =>
+
+= slide 'Marshal' do
+  list:
+    Може да се ползва за сериализиране и десериализиране на Ruby обекти
+    Продуцира binary низ
+    Проста употреба – `Marshal.load` и `Marshal.dump`
+    Някои обекти не могат да бъдат сериализирани
+    Може да предефинирате как (какво) да е представянето на ваш клас за сериализация
+    За целта дефинирате методи `marshal_dump` и `marshal_load`
+    Пълната му документация е [тук](http://ruby-doc.org/core-2.3.3/Marshal.html)
+
+= slide 'Marshal', 'пример' do
+  annotate:
+    data = [42, :answer, {foo: 'bar'}]
+
+    serizlized = Marshal.dump data
+
+    serizlized                       # =>
+    Marshal.load(serizlized) == data # =>
+    Marshal.load(serizlized)         # =>
+
+= slide 'Marshal', 'употреба и бележки' do
+  list:
+    Привидно удобен за употреба
+    Съображения за сигурност при зареждане на серизлизирани данни "отвън"
+    Може да доведе до изпълнение на произволен код
+    За алтернатива на `Marshal` може да се ползва `YAML`, от стандартната библиотека
+    YAML продуцира "човешки-четим" формат, но носи същите рискове за сигурността (и е бавничък)
+    JSON, също част от стандартната библиотека, е човешки-четим, няколко пъти по-бърз от YAML и сигурен
+
+= slide 'IO и File' do
+  list:
+    Все още не сме говорили за работа с файлове в Ruby
+    Употребата е тривиална; достатъчно ви е да разгледате документацията на [`File`](http://ruby-doc.org/core-2.3.3/File.html) и [`IO`](http://ruby-doc.org/core-2.3.3/IO.html)
+    `IO` е родителят на файл и представлява входно-изходен поток от данни
+    Други класове, наследяващи от `IO` са `TCPSocket` и `UDPSocket`
+    Много от методите на `File` идват от `IO`
+
+= slide 'File - два примера' do
+  p Прочитане на цял файл като низ:
+  example:
+    File.read('/etc/resolv.conf') # => "The contents of the file as a string."
+
+  p Отваряне на файл, работа с обекта и автоматично затваряне на файла при излизане от блока:
+  example:
+    File.open('foo/bar.txt', 'w') do |file|
+      file.write 'Some data.'
+      file.puts  'Some other data, with a newline at the end.'
+      file.puts  'File will be closed automatically, even in case of an exception in the block.'
+    end
+
+= slide 'RubyVM::InstructionSequence' do
+  list:
+    Не толкова полезен, колкото забавен клас
+    Дава поглед към начина, по който парче Ruby код изглежда, компилиран в Ruby bytecode
+    Специфичен за MRI (CRuby), може да го няма в други имплементации като JRuby, Rubinius и прочее
+    [Документаця](http://ruby-doc.org/core-2.3.3/RubyVM/InstructionSequence.html)
+
+= slide 'RubyVM::InstructionSequence', 'пример' do
+  example:
+    code = 'puts ["a" * 10].first'
+    compiled = RubyVM::InstructionSequence.compile(code)
+    puts compiled.disasm
+
+  p Резултат:
+  pre
+    |
+      == disasm: &lt;RubyVM::InstructionSequence:&lt;compiled>@&lt;compiled>>==========
+      0000 trace            1                                               (   1)
+      0002 putself
+      0003 putstring        "a"
+      0005 putobject        10
+      0007 opt_mult         &lt;callinfo!mid:*, argc:1, ARGS_SKIP>
+      0009 newarray         1
+      0011 opt_send_simple  &lt;callinfo!mid:first, argc:0, ARGS_SKIP>
+      0013 opt_send_simple  &lt;callinfo!mid:puts, argc:1, FCALL|ARGS_SKIP>
+      0015 leave
+
+= slide 'RubyVM::InstructionSequence', 'още един пример' do
+  example:
+    puts RubyVM::InstructionSequence.compile('a, b = 1, 2').disasm
+
+  p Можем да видим, че <code>a, b = 1, 2</code> минава през създаване на един обект тип <code>Array</code>:
+  pre
+    |
+      == disasm: &lt;RubyVM::InstructionSequence:&lt;compiled>@&lt;compiled>>==========
+      local table (size: 3, argc: 0 [opts: 0, rest: -1, post: 0, block: -1, keyword: 0@4] s1)
+      [ 3] a          [ 2] b
+      0000 trace            1                                               (   1)
+      0002 duparray         [1, 2]
+      0004 dup
+      0005 expandarray      2, 0
+      0008 setlocal_OP__WC__0 3
+      0010 setlocal_OP__WC__0 2
+      0012 leave
+
+= slide 'Стандартната библиотека на Ruby' do
+  list:
+    Мислете за нея като за една купчина съвсем обикновени gem-ове, които вървят пакетирани с Ruby
+    Там са неща, които се ползват сравнително често, но не толкова, че да бъдат в ядрото на Ruby
+    Част от нея е написана на C, друга част – на Ruby
+    В [документацията на stdlib](http://ruby-doc.org/stdlib-2.3.3/) може да видите списъка с "gem"-ове
+    За да ползвате нещо от нея, трябва да направите `require 'somelib'`, например `require 'bigdecimal'`
+    Множество дребни и интересни библиотеки - разгледайте ги, за да знаете какво имате наготово
+
+= slide 'Налични библиотеки' do
+  pre
+    |
+      abbrev       base64          benchmark    bigdecimal          cgi            cmath
+      coverage     csv             curses       date                dbm            debug
+      delegate     digest          dl           drb                 e2mmap         English
+      erb          etc             extmk        fcntl               fiddle         fileutils
+      find         forwardable     gdbm         getoptlong          gserver        io/console
+      io/nonblock  io/wait         ipaddr       irb                 json           logger
+      mathn        matrix          minitest     minitest/benchmark  minitest/spec  mkmf
+      monitor      mutex_m         net/ftp      net/http            net/imap       net/pop
+      net/smtp     net/telnet      nkf          objspace            observer       open-uri
+      open3        openssl         optparse     ostruct             pathname       pp
+      prettyprint  prime           profile      profiler            pstore         psych
+      pty          racc            racc/parser  rake                rdoc           readline
+      resolv       resolv-replace  rexml        rinda               ripper         rss
+      rubygems     scanf           sdbm         securerandom        set            shell
+      shellwords   singleton       socket       stringio            strscan        sync
+      syslog       tempfile        test/unit    thread              thwait         time
+      timeout      tk              tmpdir       tracer              tsort          un
+      uri          weakref         webrick      win32ole            xmlrpc         yaml
+      zlib
+
+= slide 'OpenStruct' do
+  list:
+    Ще разгледаме само един пример от stdlib - `OpenStruct`
+    Наподобява хеш, но дава достъп до полетата си през методи
+    Получавате го, като направите `require 'ostruct'`
+    Имплементиран на Ruby, може да разгледате кода
+    Дефинира `marshal_load` и `marshal_dump`, може да видите как за пример
+    Имплементира и част от интерфейса на `Hash`, като `each_pair` и методите `[]` и `[]=`
+    Вижте цялата му [документация](http://ruby-doc.org/stdlib-2.3.3/libdoc/ostruct/rdoc/OpenStruct.html)
+
+= slide 'OpenStruct - пример' do
+  annotate:
+    require 'ostruct'
+
+    john = OpenStruct.new
+    john.name = 'John Doe'
+    john.age  = 33
+
+    john.name     # =>
+    john.age      # =>
+    john.address  # =>
+
+= slide 'Полезни Ruby gem-ове и поуки' do
+  list:
+    Ще разгледаме някои популярни и полезни външни Ruby библиотеки
+    По пътя ще се опитаме да научим нещо ново
+    Например, добри практики при структуриране на проект
+    "Boilerplate" неща, необходими на един Ruby gem или проект
+    Други интересни Ruby трикове от практиката
+    Но преди това...
+
+= slide 'Third-party software – disclaimer' do
+  p Долното е извадка от <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL лиценза за отворен код</a>:
+
+  blockquote
+    p 15. Disclaimer of Warranty.
+    p THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+    p 16. Limitation of Liability.
+    p IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+= slide 'Third-party software – disclaimer' do
+  p Долното е извадка от <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL лиценза за отворен код</a>:
+
+  blockquote
+    p 15. Disclaimer of Warranty.
+    p THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM <span style="outline: 4px solid red;">“AS IS” WITHOUT WARRANTY OF ANY KIND</span>, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+    p 16. Limitation of Liability.
+    p IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+= slide '“AS IS” WITHOUT WARRANTY OF ANY KIND' do
+  p.action Ние, програмистите, не вярваме на собствения си код, та какво остава за чуждия такъв?
+  p.action Така и трябва. Колкото по-малко зависимости от чужд (third-party) код – толкова по-добре.
+  p.action Изобщо, колкото по-малко код, откъдето и да е дошъл – толкова по-добре. Но това е друга тема.
+  p.action От друга страна, не може да си напишем всичко. Трябва да стъпим на нещо. И трябва да знаем как да изберем на какво.
+
+= slide 'Популярни gem-ове', 'статистика от rubygems.org' do
+  p
+    a href="https://rubygems.org/stats" rubygems.org/stats
+
+  p.action Като изключим "помощни" gem-ове, най-популярният е Rails (с десетки милиони изтегляния)
+
+= slide 'Откриване на нови Ruby Gems' do
+  list:
+    Статистики за популярни/най-използвани gem-ове (търсете в Google)
+    [The Ruby Toolbox](https://www.ruby-toolbox.com/)
+    Помощ от приятел
+
+= slide 'Оценка качеството на съществуващи gem-ове' do
+  list:
+    Знаете името на gem и се чудите какво прави и дали е качествен?
+    `rubygems.org/gems/именабиблиотеката` → линк "Source code" или "Homepage"
+    Или търсите направо в GitHub
+    Гледате колко хора са добавили и fork-нали проекта, откога е последния commit, дали има много issues и pull requests и прочее
+    Разглеждате кода
+
+= slide 'Инсталация под Windows' do
+  list:
+    Някои gem-ове използват C-разширения
+    `gem install gemname --platform=ruby`
+    RubyInstaller и Ruby DevKit – [http://rubyinstaller.org/](http://rubyinstaller.org/)
+
+= slide 'Обобщение' do
+  list:
+    По света има много gem-ове, за почти всичко
+    Трябва да може да откривате такива и да оценявате качеството им
+    Не трябва да им се предоверявате
+    Разровете се в кода и структурата на тези gem-ове
+    Ще научите много от кода и практиката на другите
