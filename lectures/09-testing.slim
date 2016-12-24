@@ -440,7 +440,7 @@
 
 = slide 'Тестване на методи' do
   example:
-    describe User do
+    RSpec.describe User do
       describe '#admin?' do
         it 'is true for admins' do
           expect(User.new('John', :admin).admin?).to be true
@@ -454,7 +454,7 @@
 
 = slide 'context' do
   example:
-    describe User do
+    RSpec.describe User do
       describe '#admin?' do
         context 'when the user is an admin' do
           it 'is true' do
@@ -489,7 +489,7 @@
 
 = slide '' do
   example:
-    describe Game do
+    RSpec.describe Game do
       describe '#recommend' do
         context 'when the game is an MMORPG' do
           it 'compares it to WoW' do
