@@ -80,3 +80,7 @@
   title: 19. Bundler. Ruby core и stdlib. Външни зависимости. Полезни библиотеки
   slug: 19-bundler-ruby-core-stdlib-gems-third-party-software
   date: 2016-12-19
+20:
+  title: 20. Enumerator. Return от блокове. Още полезни библиотеки
+  slug: 20-enumerator-next-break-gems
+  date: 2017-01-04

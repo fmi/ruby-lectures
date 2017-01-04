@@ -1,0 +1,524 @@
+= slide 'Втори тест', 'напомняне' do
+  list:
+    Ще го направим на 11. януари 2017г. (другата сряда)
+    Четните факултетни номера - от 19:00
+    Нечетните - от 20:00
+    Може да включва материал от целия курс
+
+= slide 'План до края на семестъра' do
+  list:
+    09.01 (понеделник) - Конкурентност и паралелизъм
+    Задача
+    11.01 (сряда) - Тест
+    16.01 (понеделник) - Обектно-ориентирано програмиране - произход и основи
+    18.01 (сряда) - Rails или нещо друго :)
+
+= slide 'Проекти' do
+  list:
+    Защитата е на 11. февруари 2017г. (събота)
+    Ще трябва да ни предадете проектите до 09. февруари 23:59
+    Ако не сте си избрали проект или не го предадете до тогава - септември
+    Ако сте пропуснали повече от 3 задачи, отново септември
+    Точките ви от семестъра се запазват за поправката
+
+= slide 'Enumerator-и' do
+  p Някои методи на <code>Enumerable</code> могат да не вземат блок.
+
+  annotate:
+    numbers = []
+    1.upto(5) { |x| numbers << x }
+
+    numbers               # =>
+
+    other = 1.upto(5)
+    other                 # =>
+    other.to_a            # =>
+
+    1.upto(5).map(&:succ) # =>
+
+= slide 'Enumerator-и', 'нещо като итератори' do
+  p Енумераторите могат да се държат като итератори.
+
+  annotate:
+    numbers = 1.upto(3)
+
+    numbers.next   # =>
+    numbers.next   # =>
+    numbers.next   # =>
+    numbers.next   #!
+
+= slide 'Kernel#loop' do
+  p <code>loop</code> прави безкраен цикъл. Спира на <code>StopIteration</code>.
+
+  example:
+    numbers = 1.upto(3)
+
+    loop do
+      puts numbers.next
+    end
+
+    #=> 1
+    #=> 2
+    #=> 3
+
+= slide 'Enumerable и Enumerator' do
+  list:
+    Методите на `Enumerable` връщат `Enumerator`, ако ги извикате без блок
+    Това позволява да "навръзвате" enumerator-и
+    Ако дефинирате обект, който е `Enumerable`, помислете и за съвместимост с enumerator-и
+
+= slide 'Enumerators 101', 'примери' do
+  annotate:
+    enum = [1, 2].each # =>
+
+    enum.next # =>
+    enum.next # =>
+    enum.next #!
+
+= slide 'Enumerators 102', 'примери' do
+  annotate:
+    enum = Enumerator.new do |yielder|
+      yielder << 1
+      yielder << 2
+    end
+
+    enum.next # =>
+    enum.next # =>
+    enum.next #!
+
+= slide 'Object#enum_for' do
+  p Може да извадите енумератор от произволен метод с <code>enum_for</code>.
+
+  annotate:
+    class Numbers
+      def primes
+        yield 2
+        yield 3
+        yield 5
+        yield 7
+      end
+    end
+
+    first_four_primes = Numbers.new.enum_for(:primes)
+    first_four_primes.to_a     # =>
+
+= slide 'Object#enum_for' do
+  p `enum_for` предава аргументите си на итериращия метод.
+
+  annotate:
+    class Numbers
+      def primes(offset)
+        yield 2 + offset
+        yield 3 + offset
+        yield 5 + offset
+        yield 7 + offset
+      end
+    end
+
+    first_four_primes = Numbers.new.enum_for(:primes, 10)
+    first_four_primes.to_a     # =>
+
+= slide 'Object#to_enum', 'примери' do
+  annotate:
+    o = Object.new
+
+    def o.each
+      yield
+      yield 'hello'
+      yield [1, 2]
+    end
+
+    enum = o.to_enum
+    enum.next # =>
+    enum.next # =>
+    enum.next # =>
+
+= slide 'Enumerable и Enumerator (2)', 'пример' do
+  annotate:
+    class Foo
+      def each
+        return to_enum unless block_given?
+
+        yield 1
+        yield 2
+      end
+    end
+
+    f = Foo.new
+    f.each { |x| puts x } # =>
+    f.each                # =>
+
+= slide '#with_object и #with_index' do
+  p Енумераторите имат някои интересни методи.
+
+  annotate:
+    numbers = 1.upto(3)
+
+    numbers.with_index.to_a      # =>
+    numbers.with_object(:x).to_a # =>
+
+= slide 'map_with_index', 'навръзване на енумератори' do
+  p Ако ви се е случвало да ви трябва индекс в <code>map</code>:
+
+  annotate:
+    words = %w( foo bar baz ).map.with_index do |word, index|
+      "#{index}: #{word.upcase}"
+    end
+
+    words # =>
+
+= slide 'Мързеливи енумератори' do
+  list:
+    Методът `Enumerable#lazy` връща "мързелив" енумератор
+    Има и `Enumerator#lazy`
+    Дадената стойност се оценява само когато потрябва
+
+= slide 'Примери', 'безкрайни поредици' do
+  example:
+    (1..Float::INFINITY).map { |i| i * i }.first(5) # => ?
+
+  .action
+    annotate:
+      (1..Float::INFINITY).lazy.map { |i| i * i }.first(5) # =>
+
+= slide 'Примери', 'еднократно оценяване на целия chain' do
+  example:
+    [
+      ' a ',
+      ' b ',
+      ' c ',
+    ].lazy.map { |x| p x.strip }.map { |x| p x.upcase }.take(1).to_a
+
+  p Горното ще изведе на екрана:
+  pre
+    ' "a"
+      "A"
+  p И ще върне списъка <code>["A"]</code>.
+
+= slide 'LazyEnumerator methods' do
+  p Методи имплементирани в <a href="http://ruby-doc.org/core-2.3.1/Enumerator/Lazy.html">Enumerator::Lazy (документация)</a> към момента:
+
+  list:
+    `map` / `collect`
+    `flat_map` / `collect_concat`
+    `select` / `find_all`
+    `reject`
+    `grep`
+    `zip`
+    `take` и `take_while`
+    `drop` и `drop_while`
+    `slice_before`, `slice_after` и `slice_when` ([документация](http://ruby-doc.org/core-2.3.1/Enumerable.html#method-i-slice_when))
+
+  p.action Методи, които "материализират" lazy колекцията:
+  list:
+    `to_a` / `force`
+    `each`
+    `next`
+
+= slide 'Кога ни е полезно?', 'Първите 10 четни числа на Фибоначи' do
+  example:
+    # Решение 1
+    Fib.lazy.select(&:even?).take(10).to_a
+
+    # Решение 2
+    a = []
+    Fib.each do |x|
+      next if x.odd?
+      a << x
+      break if a.size == 10
+    end
+
+= slide 'Генератор на Fibonacci' do
+  p Кодът по-долу няма да приключи никога:
+
+  example:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new.each { |number| puts number }
+
+= slide 'Генератор на Fibonacci с енумератори' do
+  p Кодът по-долу ще работи:
+
+  annotate:
+    class FibonacciNumbers
+      def each
+        current, previous = 1, 0
+
+        while true
+          yield current
+          current, previous = current + previous, current
+        end
+      end
+    end
+
+    FibonacciNumbers.new.to_enum.take(5) # =>
+
+= slide 'Въпроси за Enumerator?' do
+  p Задайте ги сега
+
+= slide 'The Ten Commandments of Egoless Programming' do
+  ul
+    li Стари, но добри
+    li Заслужават си и са добър начин за начало на новата година
+    li Може да ги видите в <a href="http://www.codinghorror.com/blog/2006/05/the-ten-commandments-of-egoless-programming.html">оригиналния контекст тук</a>
+
+= slide 'The Ten Commandments of Egoless Programming', 'извадка' do
+  ul
+    li Understand and accept that you will make mistakes.
+    li You are not your code.
+    li Critique code instead of people – be kind to the coder, not to the code.
+    li No matter how much "karate" you know, someone else will always know more.
+    li Treat people who know less than you with respect, deference, and patience.
+    li The only constant in the world is change.
+    li The only true authority stems from knowledge, not from position.
+    li Fight for what you believe, but gracefully accept defeat.
+
+= slide 'Class#new и Object#initialize' do
+  p Всъщност, <code>#initialize</code> е просто instance метод.
+
+  p <code>Class#new</code> е имплементиран горе-долу така:
+
+  example:
+    class Class
+      def new
+        object = self.allocate
+        object.send :initialize
+        object
+      end
+    end
+
+= slide 'Object#dup, Object#clone, #initialize_copy' do
+  list:
+    `#dup` и `#clone` правят копие на обект
+    Копието е "shallow" копие, т.е. ако има instance променливи, те сочат на същото място
+    След като се направи, се вика `#initialize_copy`
+    Разликата между двете: `#clone` копира singleton методи и freeze-ва обекта, ако е замразен
+
+= slide 'retry в ensure' do
+  p <code>retry</code> изпълнява <code>begin</code> блока отначало.
+
+  example:
+    retries_left = 3
+
+    begin
+      connect_to_facebook
+    rescue ConnectionError
+      retries_left -= 1
+      retry if retries_left > 0
+    end
+
+= slide 'next, break, redo, retry' do
+  list:
+    `retry` може да се ползва в `rescue`/`ensure` клауза в метод
+    `redo` – просто рестартира блока
+    `next` – прекратява работата на блока
+    `break` – прекратява работата на метода, извикващ блока
+    `next`, `redo` и `break` могат да се използват само в блокове
+
+= slide 'next, break, redo, retry' do
+  p <code>next</code> прекратява работата на блока:
+
+  example:
+    def bar
+      p "bar started"
+      p yield
+      p yield
+      p "bar finished"
+    end
+
+    bar do
+      p "block started"
+      next "Return value"
+      p "block finished"
+    end
+
+  p Резултатът ще е:
+
+  example:
+    "bar started"
+    "block started"
+    "Return value"
+    "block started"
+    "Return value"
+    "bar finished"
+    => "bar finished"
+
+= slide 'next, break, redo, retry' do
+  p <code>break</code> прекратява работата на блока и на метода, който го извиква:
+
+  example:
+    def bar
+      p "bar started"
+      p yield
+      p yield
+      p "bar finished"
+    end
+
+    bar do
+      p "block started"
+      break "Return value"
+      p "block finished"
+    end
+
+  p Резултатът ще е:
+
+  example:
+    "bar started"
+    "block started"
+    => "Return value"
+
+= slide 'Документация в Ruby' do
+  list:
+    Пишете ли документация? Как? Къде?
+    Както повечето други езици и платформи, и в Ruby има инструменти за автоматично генериране на документация
+    RDoc — Ruby documentation
+    Seattle.rb проект; дефакто стандарт
+    YARD — инструмент, разширяващ RDoc-стандарта
+
+= slide 'RDoc' do
+  img src="20/rdoc-default.png"
+
+= slide 'YARD' do
+  img src="20/rdoc-yard.png"
+
+= slide 'Други - Rails API документацията' do
+  img src="20/rdoc-rails.png"
+
+= slide 'Други - API Dock' do
+  img src="20/rdoc-apidock.png"
+
+= slide 'RDoc' do
+  list:
+    Анализира статично вашата файлова структура, класове, модули, методи
+    Извлича коментарите над методи, класове и прочее и ги обработва
+    Дори да нямате коментари, пак ще генерира смислена и донякъде полезна документация
+    Във въпросните коментари може да използвате специален синтаксис
+
+= slide 'Подробно относно RDoc' do
+  list:
+    Официална документация относно позволения маркъп (малко трудна за откриване):
+    [http://docs.seattlerb.org/rdoc/RDoc/Markup.html](http://docs.seattlerb.org/rdoc/RDoc/Markup.html)
+    Обща документация на RDoc:
+    [http://docs.seattlerb.org/rdoc/index.html](http://docs.seattlerb.org/rdoc/index.html)
+
+= slide 'RubyDoc' do
+  list:
+    [rubydoc.info](http://www.rubydoc.info/) - място за преглеждане на RDoc
+    Генерирана документация от който и да е публикуван gem
+    Ако не можете да откриете документацията на даден gem, проверете там
+
+= slide 'Rails' do
+  p
+    a href="http://rubyonrails.org" rubyonrails.org
+
+  list:
+    Безспорно най-популярното нещо в Ruby света
+    Може би ще направим една лекция-overview в края на курса
+    Може да разгледате [миналогодишната](http://2015.fmi.ruby.bg/lectures/19-ruby-on-rails-part-1#1)
+
+= slide 'RuboCop' do
+  p
+    a href="https://github.com/bbatsov/rubocop" https://github.com/bbatsov/rubocop
+
+= slide 'Sidekiq' do
+  p
+    a href="https://github.com/mperham/sidekiq" https://github.com/mperham/sidekiq
+
+= slide 'ActiveSupport' do
+  p
+    a href="https://github.com/rails/rails/tree/master/activesupport" https://github.com/rails/rails/tree/master/activesupport
+
+  list:
+    [Ръководство](http://guides.rubyonrails.org/active_support_core_extensions.html) - силно препоръчително
+
+= slide 'ActiveRecord' do
+  p
+    a href="https://github.com/rails/rails/tree/master/activerecord" https://github.com/rails/rails/tree/master/activerecord
+
+  list:
+    ORM
+    Може да работи с редица релационни бази данни - PostgreSQL, SQLite, MySQL и други
+    Обикновено имате нужда и от съответния DB driver (пак gem) - например `mysql2`, `pg`, `sqlite3` и т.н.
+    [Ръководство](http://guides.rubyonrails.org/active_record_basics.html) - силно препоръчително
+    Може да се ползва извън Rails
+
+= slide 'ActiveRecord-Sinatra' do
+  p
+    a href="https://github.com/janko-m/sinatra-activerecord" https://github.com/janko-m/sinatra-activerecord
+
+= slide 'Curses', 'command-line UIs' do
+  p
+    a href="https://github.com/ruby/curses" https://github.com/ruby/curses
+
+  list:
+    Било е част от стандартната библиотека, вече е отделен gem
+    [Документация](http://www.rubydoc.info/gems/curses)
+
+= slide 'CarrierWave и Paperclip' do
+  p
+    a href="https://github.com/carrierwaveuploader/carrierwave" https://github.com/carrierwaveuploader/carrierwave
+  p
+    a href="https://github.com/thoughtbot/paperclip" https://github.com/thoughtbot/paperclip
+
+= slide 'Kaminari и will_paginate' do
+  p
+    a href="https://github.com/amatsuda/kaminari" https://github.com/amatsuda/kaminari
+  p
+    a href="https://github.com/mislav/will_paginate" https://github.com/mislav/will_paginate
+
+= slide 'MiniMagick' do
+  p
+    a href="https://github.com/minimagick/minimagick" https://github.com/minimagick/minimagick
+
+= slide 'CanCanCan и Pundit' do
+  p
+    a href="https://github.com/CanCanCommunity/cancancan" https://github.com/CanCanCommunity/cancancan
+  p
+    a href="https://github.com/elabs/pundit" https://github.com/elabs/pundit
+
+= slide 'Devise' do
+  p
+    a href="https://github.com/plataformatec/devise" https://github.com/plataformatec/devise
+
+= slide 'Bcrypt-Ruby' do
+  p
+    a href="https://github.com/codahale/bcrypt-ruby" https://github.com/codahale/bcrypt-ruby
+
+= slide 'ActiveAdmin' do
+  p
+    a href="https://github.com/gregbell/active_admin" https://github.com/gregbell/active_admin
+
+= slide 'Nokogiri' do
+  p
+    a href="https://github.com/sparklemotion/nokogiri" https://github.com/sparklemotion/nokogiri
+
+= slide 'SASS' do
+  p
+    a href="https://github.com/nex3/sass" https://github.com/nex3/sass
+
+= slide 'SimpleForm и Formtastic' do
+  p
+    a href="https://github.com/plataformatec/simple_form" https://github.com/plataformatec/simple_form
+  p
+    a href="https://github.com/justinfrench/formtastic" https://github.com/justinfrench/formtastic
+
+= slide 'Capistrano' do
+  p
+    a href="https://github.com/capistrano/capistrano" https://github.com/capistrano/capistrano
+
+= slide 'Passenger, Unicorn, Thin, Puma' do
+  p
+    a href="https://github.com/phusion/passenger" https://github.com/phusion/passenger
+
+= slide 'Fog' do
+  p
+    a href="https://github.com/fog/fog" https://github.com/fog/fog
